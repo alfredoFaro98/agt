@@ -1,0 +1,775 @@
+% =====================================================================
+%  Lezione 1 — Introduzione all'AGT, giochi combinatori, Minimax
+%  Materiale: Lesson_1_Introduction_to_AGT.pdf, Lab_Minimax_blank.ipynb
+% =====================================================================
+\chapter{Introduzione all'Algorithmic Game Theory}
+
+\parteteoria
+
+% ---------------------------------------------------------------------
+\section{Informazioni sul corso}
+
+\begin{itemize}
+  \item \kw{Lezioni}: mercoledì 10:30--13:30 (teoria), giovedì 11:30--13:30 (laboratorio).
+  \item \kw{Teams}: \emph{Algorithmic Game Theory 2026/27} (il codice per entrare è nelle slide).
+  \item \kw{Esame}: un \kw{progetto} in cui si deve \emph{formalizzare} un problema e
+        \emph{implementarne} una soluzione usando gli strumenti dell'AGT.
+\end{itemize}
+
+\begin{osservazione}[conseguenza pratica]
+Dato che l'esame è un progetto, contano due cose: saper \emph{modellare} un problema
+(chi sono i giocatori, quali azioni hanno, quali utilità) e saper \emph{scrivere codice}
+che calcola il concetto di soluzione giusto. I laboratori vanno quindi studiati quanto la teoria.
+\end{osservazione}
+
+\subsection*{Programma (provvisorio)}
+\begin{enumerate}[label=\arabic*.]
+  \item Giochi combinatori (\en{Combinatorial Games})
+  \item Teoria dell'utilità (\en{Utility theory})
+  \item Teoria dei giochi non cooperativi (\en{Non-cooperative game theory})
+  \item Teoria dei giochi coalizionali (\en{Coalitional game theory})
+  \item Scelta sociale computazionale (\en{Computational Social Choice})
+  \item Mercati di abbinamento (\en{Matching Markets})
+  \item Progettazione di meccanismi (\en{Mechanism Design})
+  \item Divisione equa (\en{Fair division})
+\end{enumerate}
+
+\subsection*{Testi di riferimento}
+Non esiste un unico libro che copra tutto il corso; queste sono le risorse gratuite indicate:
+\begin{itemize}
+  \item Y.~Shoham, K.~Leyton-Brown, \emph{Multiagent Systems};
+  \item N.~Nisan, T.~Roughgarden, É.~Tardos, V.~Vazirani, \emph{Algorithmic Game Theory};
+  \item A.~Karlin, Y.~Peres, \emph{Game Theory, Alive};
+  \item F.~Brandt et al., \emph{Handbook of Computational Social Choice}.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Che cos'è la teoria dei giochi}
+
+\begin{definizione}[Teoria dei giochi]
+La \kw{teoria dei giochi} studia le \emph{decisioni prese da più soggetti}
+(\en{multiperson decision making}), con lo scopo di prevedere come più agenti
+\kw{razionali} interagiranno e si comporteranno in situazioni di \kw{conflitto}
+e/o di \kw{cooperazione}.
+\end{definizione}
+
+I quattro ingredienti della definizione:
+\begin{enumerate}
+  \item \kw{Conflitto}: le azioni di un giocatore influenzano gli altri.
+  \item \kw{Cooperazione}: i giocatori possono unire le forze per raggiungere un obiettivo comune.
+  \item \kw{Comportamento razionale}: ogni giocatore vuole \emph{massimizzare} la propria
+        \kw{utilità attesa} (\en{expected utility}).
+  \item \kw{Predizione}: vogliamo sapere cosa succederà. Lo si fa tramite i
+        \kw{concetti di soluzione} (\en{solution concepts}), come l'equilibrio di Nash o il valore di Shapley.
+\end{enumerate}
+
+\section{Che cos'è l'Algorithmic Game Theory}
+
+\begin{definizione}[Algorithmic Game Theory]
+L'\kw{Algorithmic Game Theory} (AGT) è l'area all'intersezione tra \emph{teoria dei giochi}
+e \emph{progettazione di algoritmi}, il cui obiettivo è progettare algoritmi in
+\emph{ambienti strategici}. \fonte{Nisan et al.\ 2007}
+\end{definizione}
+
+In concreto, l'AGT si occupa di progettare algoritmi per:
+\begin{itemize}
+  \item \kw{calcolare} in modo efficiente i concetti di soluzione (es.\ trovare un equilibrio);
+  \item \kw{aggregare} voti e preferenze;
+  \item \kw{allocare} risorse scarse.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Panoramica delle aree dell'AGT}
+
+\subsection{Giochi non cooperativi}
+
+I giochi non cooperativi modellano situazioni di \kw{conflitto}: i giocatori competono
+tra loro e non possono necessariamente cooperare.
+Esempi: scacchi, sasso-carta-forbici, dilemma del prigioniero.
+
+L'obiettivo è modellare una situazione e capire cosa succede. Il concetto di soluzione
+tipico è l'\kw{equilibrio}.
+
+\subsubsection*{Il dilemma del prigioniero}
+
+Due giocatori scelgono simultaneamente se \emph{cooperare} (C) o \emph{tradire} (D, \en{defect}).
+I numeri sono le utilità (anni di carcere con segno negativo): in ogni cella il primo valore è di P1,
+il secondo di P2.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{cc|c|c|}
+  & \multicolumn{1}{c}{} & \multicolumn{2}{c}{\textbf{P2}} \\
+  & \multicolumn{1}{c}{} & \multicolumn{1}{c}{Cooperate} & \multicolumn{1}{c}{Defect} \\ \cline{3-4}
+  \multirow{2}{*}{\textbf{P1}} & Cooperate & $-1,\,-1$ & $-5,\,0$ \\ \cline{3-4}
+                               & Defect    & $0,\,-5$  & $-3,\,-3$ \\ \cline{3-4}
+\end{tabular}
+\caption{Dilemma del prigioniero in \emph{forma normale} (gioco bi-matrice).}
+\end{table}
+
+Questa rappresentazione a tabella si chiama \kw{forma normale} (o gioco \emph{bi-matrice}):
+una matrice di utilità per ciascuno dei due giocatori.
+
+\begin{definizione}[Ottimo di Pareto]
+Un esito è \kw{Pareto-ottimo} se non esiste un altro esito in cui \emph{qualcuno} sta meglio
+e \emph{nessuno} sta peggio. In altre parole: non si può migliorare la situazione di un
+giocatore senza peggiorare quella di qualcun altro.
+\end{definizione}
+
+\begin{definizione}[Equilibrio di Nash, idea]
+Un profilo di strategie è un \kw{equilibrio di Nash} se nessun giocatore può migliorare
+la propria utilità cambiando \emph{da solo} la propria scelta.
+\end{definizione}
+
+\begin{esempio}[analisi del dilemma]
+\textbf{Nash.} Per P1, tradire conviene \emph{qualunque} cosa faccia P2:
+se P2 coopera, $0 > -1$; se P2 tradisce, $-3 > -5$. Lo stesso vale per P2.
+Quindi (D,\,D) è l'unico equilibrio di Nash, con utilità $(-3,-3)$.
+Da (C,\,C), invece, ciascuno ha interesse a deviare (passa da $-1$ a $0$).
+
+\textbf{Pareto.} (C,\,C) con $(-1,-1)$ è Pareto-ottimo. L'equilibrio (D,\,D) \emph{non} lo è:
+(C,\,C) fa stare meglio entrambi.
+\end{esempio}
+
+Il dilemma mostra la tensione centrale della teoria dei giochi:
+\begin{center}
+\textbf{Ottimalità di Pareto $\Rightarrow$ efficienza}\qquad
+\textbf{Equilibrio di Nash $\Rightarrow$ stabilità}
+\end{center}
+L'esito efficiente non è stabile e l'esito stabile non è efficiente.
+
+\begin{attenzione}[definizione nelle slide]
+Le slide definiscono l'ottimo di Pareto come \emph{``nessun giocatore può deviare senza peggiorare
+qualcun altro''}. È una formulazione informale: l'ottimo di Pareto \emph{non} riguarda le deviazioni
+unilaterali (quelle sono il criterio di Nash), ma il confronto tra \emph{esiti}. Nel dilemma sono
+Pareto-ottimi anche (C,\,D) e (D,\,C): passando da $(-5,0)$ a qualunque altro esito P2 starebbe
+peggio. L'unico esito \emph{non} Pareto-ottimo è (D,\,D).
+\end{attenzione}
+
+\subsubsection*{Applicazioni}
+\begin{itemize}
+  \item algoritmi per giocare: scacchi, poker, \ldots;
+  \item \en{Generative Adversarial Networks} (GAN): generatore e discriminatore sono due giocatori;
+  \item sicurezza: pattugliamento, sorveglianza, \ldots;
+  \item decisioni sequenziali robuste (\en{robust sequential decision making}).
+\end{itemize}
+
+\subsection{Giochi coalizionali}
+
+Nei giochi coalizionali (o cooperativi) i giocatori \kw{uniscono le forze} per un obiettivo
+comune, ad esempio mettono insieme i soldi per comprare un bene.
+Le domande sono due:
+\begin{itemize}
+  \item quale coalizione è più probabile che si formi?
+  \item come si divide il bene (il \en{payoff}) tra i membri?
+\end{itemize}
+Concetto di soluzione principale: il \kw{valore di Shapley}.
+
+\begin{esempio}[tre imprese]
+Tre imprese $A, B, C$ possiedono ciascuna una parte della tecnologia per sviluppare un prodotto.
+Due imprese insieme guadagnano 100; una da sola guadagna 0; tutte e tre insieme guadagnano
+comunque 100. La \kw{funzione caratteristica} $v$ assegna a ogni coalizione il suo valore:
+\begin{align*}
+  v(\{A\}) &= v(\{B\}) = v(\{C\}) = 0,\\
+  v(\{A,B\}) &= v(\{A,C\}) = v(\{B,C\}) = 100,\\
+  v(\{A,B,C\}) &= 100.
+\end{align*}
+\begin{itemize}
+  \item Se si forma la coalizione di tutti e tre e si divide in parti uguali: $33{,}33$ a testa.
+  \item Ma $B$ e $C$ da soli ottengono 100 e, dividendo, $50$ a testa: stanno meglio
+        abbandonando $A$. La divisione in parti uguali della grande coalizione non è stabile.
+\end{itemize}
+\end{esempio}
+
+\begin{esempio}[variante: un giocatore più importante]
+Ora $v(\{A,B\}) = v(\{A,C\}) = 100$ ma $v(\{B,C\}) = 0$ (il resto invariato).
+Senza $A$ non si produce nulla: $A$ è più ``importante'' e la divisione in parti uguali
+non è più equa. Come dividere in modo equo? Con il \kw{valore di Shapley}.
+\end{esempio}
+
+\begin{extra}[calcolo del valore di Shapley nella variante]
+Il valore di Shapley (sarà definito formalmente più avanti) dà a ogni giocatore il suo
+\emph{contributo marginale medio} su tutti gli ordini in cui i giocatori possono entrare
+nella coalizione. Con 3 giocatori gli ordini sono $3! = 6$:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccc}
+\toprule
+Ordine & contributo di $A$ & contributo di $B$ & contributo di $C$ \\
+\midrule
+$A,B,C$ & 0   & 100 & 0   \\
+$A,C,B$ & 0   & 0   & 100 \\
+$B,A,C$ & 100 & 0   & 0   \\
+$B,C,A$ & 100 & 0   & 0   \\
+$C,A,B$ & 100 & 0   & 0   \\
+$C,B,A$ & 100 & 0   & 0   \\
+\midrule
+Media   & $66{,}67$ & $16{,}67$ & $16{,}67$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Esempio di lettura: nell'ordine $B,C,A$, $A$ entra quando ci sono già $B$ e $C$, e porta il valore
+da $v(\{B,C\}) = 0$ a $v(\{A,B,C\}) = 100$: contributo 100.
+Il totale è $100$, cioè tutto il valore della grande coalizione. Nel caso simmetrico
+di prima si ottiene invece $33{,}33$ a testa.
+\end{extra}
+
+\subsubsection*{Applicazioni}
+\begin{itemize}
+  \item divisione equa (\en{fair division});
+  \item classifiche di importanza, potere di voto, \ldots;
+  \item spiegabilità dell'IA: \kw{SHAP} (valori di Shapley applicati alle feature di un modello);
+  \item \en{network science}: massimizzazione dell'influenza, centralità, \ldots
+\end{itemize}
+
+\subsection{Scelta sociale computazionale}
+
+La \kw{scelta sociale computazionale} (\en{Computational Social Choice}) si occupa del calcolo
+dei risultati delle regole di voto e dei problemi legati a rappresentare e raccogliere
+le preferenze dei giocatori. Domande tipiche:
+\begin{itemize}
+  \item come si decide il vincitore di un'elezione?
+  \item a quali condizioni la democrazia è possibile?
+\end{itemize}
+
+\begin{esempio}[paradosso di Condorcet]
+Tre votanti ordinano tre candidati:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccc}
+\toprule
+Votante & 1\textsuperscript{a} preferenza & 2\textsuperscript{a} preferenza & 3\textsuperscript{a} preferenza \\
+\midrule
+Votante 1 & A & B & C \\
+Votante 2 & B & C & A \\
+Votante 3 & C & A & B \\
+\bottomrule
+\end{tabular}
+\end{center}
+Chi dovrebbe vincere? Confrontiamo i candidati a coppie, a maggioranza:
+\begin{itemize}
+  \item $A$ batte $B$ (votanti 1 e 3);
+  \item $B$ batte $C$ (votanti 1 e 2);
+  \item $C$ batte $A$ (votanti 2 e 3).
+\end{itemize}
+La preferenza collettiva è \kw{ciclica}: $A \succ B \succ C \succ A$.
+Anche se ogni votante ha preferenze coerenti (transitive), la maggioranza non le ha,
+e nessun candidato batte tutti gli altri.
+\end{esempio}
+
+\subsubsection*{Applicazioni}
+Elezioni, decisioni collettive, e nel machine learning i \en{random forest} e gli
+\en{ensemble} di modelli (ogni modello ``vota'' una predizione).
+
+\subsection{Mechanism design}
+
+Il \kw{mechanism design} è una sorta di teoria dei giochi \emph{al contrario}: invece di
+prendere un gioco come dato e analizzarne gli esiti, si vuole \emph{progettare} un gioco
+che incentivi i giocatori a comportarsi nel modo desiderato.
+
+\begin{esempio}[aste]
+In un'asta si vuole che le persone dichiarino il \emph{vero} prezzo a cui comprerebbero
+un oggetto o venderebbero un servizio.
+\end{esempio}
+
+Casi di successo: eBay, Google Ads, appalti pubblici e aste.
+
+\subsection{Matching markets}
+
+Nei \kw{mercati di abbinamento} si vogliono abbinare agenti ad altri agenti, o agenti a
+oggetti, beni, servizi, garantendo qualche proprietà sociale desiderabile.
+Esempi: studenti e alloggi universitari, pazienti e donatori di rene, lavoratori e compiti.
+Nel corso si studierà un algoritmo premiato con il Nobel per lo \kw{stable matching}.
+
+% ---------------------------------------------------------------------
+\section{Giochi combinatori}
+
+\begin{definizione}[Gioco combinatorio]
+Un \kw{gioco combinatorio} ha le seguenti proprietà:
+\begin{enumerate}
+  \item \kw{due giocatori}, di solito chiamati Giocatore~1 e Giocatore~2, oppure MAX e MIN;
+  \item \kw{informazione perfetta}: entrambi conoscono l'intero stato del gioco;
+  \item \kw{nessun elemento casuale}: niente dadi, mazzi mescolati o eventi aleatori;
+  \item \kw{finito}: il gioco termina sempre (niente partite infinite);
+  \item \kw{turni alternati}: i giocatori muovono uno alla volta;
+  \item \kw{somma zero}: il guadagno di un giocatore è esattamente la perdita dell'altro.
+\end{enumerate}
+\end{definizione}
+Esempi: scacchi, dama, go, tris (\en{tic-tac-toe}).
+
+\subsection{Dalla teoria dei giochi al giocare}
+
+\kw{Problema centrale}: dato lo stato attuale del gioco, qual è la mossa \emph{migliore}?
+
+La mossa migliore è quella che porta al miglior esito possibile \emph{assumendo che anche
+l'avversario giochi in modo perfetto}. L'idea chiave è modellare l'avversario come
+intelligente e capace di dare sempre la contromossa migliore.
+
+\begin{osservazione}[perché assumere un avversario perfetto]
+Se un giocatore vince contro la \kw{risposta migliore} (\en{best response}) dell'avversario,
+vince anche contro qualunque risposta non ottimale. Ragionare sul caso peggiore dà quindi
+una \emph{garanzia}: il risultato non può essere peggiore di quello calcolato.
+\end{osservazione}
+
+\subsection{L'albero di gioco}
+
+\begin{definizione}[Albero di gioco]
+Ogni gioco di questo tipo si può rappresentare come un \kw{albero di gioco}:
+\begin{itemize}
+  \item i \kw{nodi} sono stati del gioco (una configurazione della scacchiera);
+  \item gli \kw{archi} sono mosse, che portano da uno stato a un altro;
+  \item la \kw{radice} è lo stato attuale;
+  \item le \kw{foglie} sono stati terminali (vittoria di qualcuno o pareggio).
+\end{itemize}
+\end{definizione}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, x=1cm, y=1cm]
+  \node (r)  at (0,0)    {\tris{e,e,e, X,O,e, e,e,e}};
+  \node (a1) at (3.2,2)  {\tris{O,e,e, X,O,e, e,e,e}};
+  \node (a2) at (3.2,0)  {\tris{e,e,e, X,O,e, e,e,O}};
+  \node (a3) at (3.2,-2) {\tris{e,O,e, X,O,e, e,e,e}};
+  \node      at (3.2,-1) {$\vdots$};
+  \node (b1) at (6.4,0)  {\tris{X,e,e, X,O,e, e,e,O}};
+  \node (c1) at (9.6,0)  {\tris{X,e,e, X,O,e, O,e,O}};
+  \node (d1) at (12.8,1.5)  {\tris{X,e,O, X,O,e, O,X,O}};
+  \node (d2) at (12.8,-1.5) {\tris{X,e,X, X,O,e, O,O,O}};
+  \draw[->, blu] (r.east) -- (a1.west);
+  \draw[->, blu] (r.east) -- (a2.west);
+  \draw[->, blu] (r.east) -- (a3.west);
+  \draw[->, blu] (a2.east) -- (b1.west);
+  \draw[->, blu] (b1.east) -- (c1.west);
+  \draw[->, blu, dashed] (c1.east) -- node[above, sloped]{\small\ldots} (d1.west);
+  \draw[->, blu, dashed] (c1.east) -- node[below, sloped]{\small\ldots} (d2.west);
+  \draw[unical, thick] ($(d1.center)+(-0.52,-0.52)$) -- ($(d1.center)+(0.52,0.52)$);
+  \draw[unical, thick] ($(d2.center)+(-0.6,-0.42)$) -- ($(d2.center)+(0.6,-0.42)$);
+\end{tikzpicture}
+\caption{Una porzione dell'albero di gioco del tris. A destra due foglie in cui vince O.}
+\end{figure}
+
+\subsection{Un'IA per il tris}
+
+Servono tre elementi:
+\begin{enumerate}
+  \item un modo per \kw{rappresentare} la scacchiera e lo stato del gioco;
+  \item una \kw{funzione di valutazione} per sapere chi vince;
+  \item una \kw{strategia di ricerca} nell'albero di gioco.
+\end{enumerate}
+
+\paragraph{Funzione di punteggio.}
+Il gioco è piccolo e a somma zero, quindi si assegna un punteggio agli stati finali:
+\[
+  \text{valore}(s) =
+  \begin{cases}
+    +1 & \text{se vince MAX,}\\
+    -1 & \text{se vince MIN,}\\
+    \phantom{+}0 & \text{in caso di pareggio.}
+  \end{cases}
+\]
+La grandezza dei numeri non conta: conta solo l'\emph{ordine} ($+1 > 0 > -1$).
+
+\paragraph{Rappresentazione.}
+La scacchiera è una matrice $3\times 3$ di numeri: X $\to 1$, O $\to 2$, cella vuota $\to 0$.
+Servono una funzione che controlla se c'è un tris su una riga, colonna o diagonale, e una che
+controlla se la scacchiera è piena.
+
+\subsection{L'algoritmo Minimax}
+
+\kw{Minimax} è un algoritmo ricorsivo che esplora l'albero di gioco per determinare
+la mossa ottimale.
+\begin{itemize}
+  \item Il giocatore \kw{MAX} vuole \emph{massimizzare} il punteggio: sceglie la mossa con il
+        valore più alto restituito dalla chiamata ricorsiva.
+  \item Il giocatore \kw{MIN} vuole \emph{minimizzare} il punteggio (che è quello di MAX):
+        sceglie la mossa con il valore più basso.
+\end{itemize}
+
+\begin{lstlisting}[style=pseudo]
+def minimax(board, player):
+    if board is leaf node:
+        return value(board)
+    if player = MAX:
+        best = $-\infty$
+        for each move available:
+            new_board = apply move to board
+            val = minimax(new_board, MIN)
+            best = max(val, best)
+        return best
+    else:
+        best = $+\infty$
+        for each move available:
+            new_board = apply move to board
+            val = minimax(new_board, MAX)
+            best = min(val, best)
+        return best
+\end{lstlisting}
+
+In formula, il valore minimax di uno stato $s$ è:
+\[
+  \text{MM}(s) =
+  \begin{cases}
+    \text{valore}(s) & \text{se $s$ è terminale,}\\
+    \max_{s' \in \text{figli}(s)} \text{MM}(s') & \text{se in $s$ muove MAX,}\\
+    \min_{s' \in \text{figli}(s)} \text{MM}(s') & \text{se in $s$ muove MIN.}
+  \end{cases}
+\]
+
+\begin{extra}[esempio numerico]
+Un albero a due livelli (MAX alla radice, MIN al livello sotto). Si parte dalle foglie e si
+risale: ogni nodo MIN prende il minimo dei figli, la radice MAX il massimo.
+
+\begin{center}
+\begin{tikzpicture}[
+  level distance=1.5cm,
+  level 1/.style={sibling distance=4.3cm},
+  level 2/.style={sibling distance=1.25cm},
+  every node/.style={font=\sffamily\small},
+  max/.style={draw, thick, fill=blu!12, isosceles triangle, isosceles triangle apex angle=60,
+              shape border rotate=90, minimum size=0.95cm, inner sep=0pt},
+  min/.style={draw, thick, fill=unical!12, isosceles triangle, isosceles triangle apex angle=60,
+              shape border rotate=-90, minimum size=0.95cm, inner sep=0pt},
+  foglia/.style={draw, minimum size=0.6cm}]
+\node[max]{3}
+  child{node[min]{3}
+    child{node[foglia]{3}} child{node[foglia]{12}} child{node[foglia]{8}}}
+  child{node[min]{2}
+    child{node[foglia]{2}} child{node[foglia]{4}} child{node[foglia]{6}}}
+  child{node[min]{2}
+    child{node[foglia]{14}} child{node[foglia]{5}} child{node[foglia]{2}}};
+\node[font=\sffamily\bfseries\small, blu]   at (-6.3,0)    {MAX};
+\node[font=\sffamily\bfseries\small, unical] at (-6.3,-1.5) {MIN};
+\end{tikzpicture}
+\end{center}
+I tre nodi MIN valgono $\min(3,12,8) = 3$, $\min(2,4,6) = 2$, $\min(14,5,2) = 2$;
+la radice vale $\max(3,2,2) = 3$. MAX sceglie quindi la prima mossa.
+\end{extra}
+
+\subsection{I limiti di Minimax}
+
+Minimax nella versione base esplora \emph{tutto} l'albero. Già per il tris l'albero completo
+ha $549\,946$ nodi (partendo dalla scacchiera vuota). Molti rami però sono inutili:
+se un ramo è già sicuramente peggiore di un'alternativa trovata prima, non serve esplorarlo.
+
+\subsection{Potatura Alpha-Beta}
+
+Si tengono traccia di due valori, i migliori trovati finora lungo il percorso:
+\begin{itemize}
+  \item $\alpha$: il valore migliore (più \emph{alto}) che \kw{MAX} può garantirsi
+        al livello corrente o sopra;
+  \item $\beta$: il valore migliore (più \emph{basso}) che \kw{MIN} può garantirsi
+        al livello corrente o sopra.
+\end{itemize}
+All'inizio $\alpha = -\infty$ e $\beta = +\infty$. Appena $\alpha \geq \beta$, il nodo corrente
+non potrà mai essere raggiunto con gioco ottimale e i figli restanti si possono \kw{potare}
+(\texttt{break}).
+
+\begin{lstlisting}[style=pseudo]
+def minimax(board, player, alpha, beta):
+    if board is leaf node:
+        return value(board)
+    if player = MAX:
+        best = $-\infty$
+        for each move available:
+            new_board = apply move to board
+            val = minimax(new_board, MIN, alpha, beta)
+            best = max(val, best)
+            alpha = max(best, alpha)
+            if alpha >= beta:
+                break
+        return best
+    else:
+        best = $+\infty$
+        for each move available:
+            new_board = apply move to board
+            val = minimax(new_board, MAX, alpha, beta)
+            best = min(val, best)
+            beta = min(best, beta)
+            if alpha >= beta:
+                break
+        return best
+\end{lstlisting}
+
+\begin{extra}[alpha-beta sull'esempio numerico]
+Riprendiamo l'albero di prima, esplorando i figli da sinistra a destra.
+\begin{enumerate}
+  \item Primo nodo MIN ($\alpha=-\infty$, $\beta=+\infty$): vede 3, 12, 8 e restituisce 3.
+        La radice aggiorna $\alpha = 3$.
+  \item Secondo nodo MIN ($\alpha=3$): la prima foglia vale 2, quindi $\beta = 2$.
+        Ora $\alpha = 3 \geq \beta = 2$: \kw{potatura}. Le foglie 4 e 6 non vengono visitate.
+        \emph{Perché è corretto}: questo nodo MIN varrà al massimo 2, ma MAX ha già
+        un'alternativa che vale 3, quindi non sceglierà mai questo ramo.
+  \item Terzo nodo MIN ($\alpha=3$): vede 14 ($\beta=14$), 5 ($\beta=5$), 2 ($\beta=2$) e restituisce 2.
+\end{enumerate}
+Il risultato è 3, identico a Minimax, ma con due foglie in meno. Il risultato di alpha-beta
+è \emph{sempre} identico a quello di Minimax: cambia solo quanto lavoro si fa.
+
+\begin{center}
+\begin{tikzpicture}[
+  level distance=1.5cm,
+  level 1/.style={sibling distance=4.3cm},
+  level 2/.style={sibling distance=1.25cm},
+  every node/.style={font=\sffamily\small},
+  max/.style={draw, thick, fill=blu!12, isosceles triangle, isosceles triangle apex angle=60,
+              shape border rotate=90, minimum size=0.95cm, inner sep=0pt},
+  min/.style={draw, thick, fill=unical!12, isosceles triangle, isosceles triangle apex angle=60,
+              shape border rotate=-90, minimum size=0.95cm, inner sep=0pt},
+  foglia/.style={draw, minimum size=0.6cm},
+  potata/.style={draw, dashed, gray, minimum size=0.6cm, text=gray}]
+\node[max]{3}
+  child{node[min]{3}
+    child{node[foglia]{3}} child{node[foglia]{12}} child{node[foglia]{8}}}
+  child{node[min]{$\le 2$}
+    child{node[foglia]{2}}
+    child[gray, dashed]{node[potata]{4}}
+    child[gray, dashed]{node[potata]{6}}}
+  child{node[min]{2}
+    child{node[foglia]{14}} child{node[foglia]{5}} child{node[foglia]{2}}};
+\end{tikzpicture}
+\end{center}
+\end{extra}
+
+\begin{osservazione}[l'ordine delle mosse conta]
+Quanto si pota dipende dall'ordine in cui si esplorano i figli. Se le mosse migliori vengono
+esplorate per prime, $\alpha$ e $\beta$ si stringono subito e si pota molto di più. Nel caso
+ideale alpha-beta visita circa $b^{m/2}$ nodi invece di $b^{m}$ ($b$ = numero di mosse per
+stato, $m$ = profondità): a parità di tempo si può cercare circa due volte più in profondità.
+\end{osservazione}
+
+\subsection{Oltre alpha-beta}
+
+Alpha-beta può ridurre l'albero di oltre il 99\%, ma alcuni giochi restano troppo grandi
+(scacchi, go, \ldots). Tecniche usate in pratica:
+\begin{itemize}
+  \item \kw{ricerca a profondità fissa} / \en{iterative deepening}: ci si ferma a una certa
+        profondità, aumentandola finché c'è tempo;
+  \item \kw{valutazione euristica} degli stati: una stima del valore di stati non terminali;
+  \item \en{quiescence search}: si continua a cercare oltre il limite solo nelle posizioni
+        ``instabili'' (es.\ in mezzo a uno scambio di pezzi);
+  \item \en{hashing} e \en{transposition tables}: si memorizza il valore di stati già visti,
+        raggiungibili con sequenze di mosse diverse;
+  \item \en{move ordering}: si provano prima le mosse promettenti, per potare di più;
+  \item \kw{basi di conoscenza}: aperture e tabelle dei finali negli scacchi.
+\end{itemize}
+
+% =====================================================================
+\partelab{Minimax per il tris}
+% =====================================================================
+\fonte{Lab\_Minimax\_blank.ipynb}
+
+\textbf{Obiettivo}: implementare Minimax (e poi alpha-beta) per il tris, farlo giocare
+contro sé stesso e contro un umano. Il codice qui sotto è una soluzione completa ed è stata
+verificata: le asserzioni del notebook passano e le due IA pareggiano sempre.
+
+\subsection{Rappresentazione e condizioni di vittoria}
+
+La scacchiera è una lista di liste $3\times3$: \texttt{0} = vuota, \texttt{1} = X, \texttt{2} = O.
+\texttt{check\_winner} restituisce \texttt{1} o \texttt{2} se quel giocatore ha un tris,
+altrimenti \texttt{0}. \texttt{is\_full} dice se non ci sono celle vuote.
+
+\begin{lstlisting}
+def check_winner(board):
+    lines = []
+    lines.extend(board)                                    # righe
+    lines.extend([[board[i][j] for i in range(3)]
+                  for j in range(3)])                      # colonne
+    lines.append([board[i][i] for i in range(3)])          # diagonale
+    lines.append([board[i][2 - i] for i in range(3)])      # antidiagonale
+    for line in lines:
+        if line[0] != 0 and line[0] == line[1] == line[2]:
+            return line[0]
+    return 0
+
+def is_full(board):
+    return all(cell != 0 for row in board for cell in row)
+\end{lstlisting}
+
+\begin{attenzione}[la cella vuota]
+Il controllo \texttt{line[0] != 0} è essenziale: senza, una riga vuota \texttt{[0,0,0]}
+verrebbe vista come ``tre uguali'' e la funzione restituirebbe un vincitore inesistente.
+\end{attenzione}
+
+\subsection{Minimax}
+
+X è MAX, O è MIN. La funzione \texttt{score} traduce il vincitore nel punteggio $+1/-1/0$.
+Invece di copiare la scacchiera a ogni mossa, si \emph{modifica sul posto} e poi si
+\kw{annulla la mossa} (\en{rollback}) prima di provare la successiva.
+
+\begin{lstlisting}
+from math import inf
+
+def score(board):
+    w = check_winner(board)
+    if w == 1:
+        return 1       # vince X (MAX)
+    if w == 2:
+        return -1      # vince O (MIN)
+    return 0           # pareggio
+
+def minimax(board, is_maximizing):
+    if check_winner(board) or is_full(board):   # nodo foglia
+        return score(board)
+    if is_maximizing:
+        best = -inf
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == 0:
+                    board[i][j] = 1                          # prova la mossa
+                    best = max(best, minimax(board, False))
+                    board[i][j] = 0                          # annulla la mossa
+        return best
+    else:
+        best = inf
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == 0:
+                    board[i][j] = 2
+                    best = min(best, minimax(board, True))
+                    board[i][j] = 0
+        return best
+\end{lstlisting}
+
+\begin{attenzione}[pseudocodice del notebook]
+Nel notebook, nel ramo MAX, il \texttt{return best} è indentato \emph{dentro} il ciclo
+\texttt{for}: così la funzione restituirebbe il valore dopo aver provato solo la prima mossa.
+Il \texttt{return} va dopo il ciclo, come nelle slide e nel codice qui sopra.
+\end{attenzione}
+
+\subsection{Scegliere la mossa migliore}
+
+\texttt{minimax} restituisce un \emph{valore}, non una mossa. \texttt{find\_best\_move} prova
+ogni mossa legale, valuta la posizione risultante con \texttt{minimax} e tiene quella con il
+valore più alto (se muove il giocatore 1) o più basso (se muove il giocatore 2).
+
+\begin{lstlisting}
+def find_best_move(board, player):
+    move = (-1, -1)                      # nessuna mossa se la scacchiera è piena
+    best = -inf if player == 1 else inf
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 0:
+                board[i][j] = player
+                # dopo la mossa di 'player' tocca all'avversario:
+                # se ha mosso X (1) ora minimizza O, e viceversa
+                val = minimax(board, player == 2)
+                board[i][j] = 0
+                if (player == 1 and val > best) or (player == 2 and val < best):
+                    best, move = val, (i, j)
+    return move
+\end{lstlisting}
+
+\begin{attenzione}[errore tipico]
+Dopo aver piazzato la mossa di \texttt{player} bisogna chiamare \texttt{minimax} con il turno
+dell'\emph{avversario}. Chiamarla con \texttt{is\_maximizing = (player == 1)} è un errore comune:
+l'IA valuterebbe le posizioni come se toccasse di nuovo a lei.
+\end{attenzione}
+
+\subsection{Minimax contro sé stesso}
+
+Il notebook fornisce il ciclo di gioco: i giocatori si alternano chiamando
+\texttt{find\_best\_move} finché qualcuno vince o la scacchiera è piena. Con due giocatori
+ottimali la partita finisce \kw{sempre in pareggio}. Con l'implementazione sopra la partita è:
+\[
+(0,0),\ (1,1),\ (0,1),\ (0,2),\ (2,0),\ (1,0),\ (1,2),\ (2,1),\ (2,2)
+\quad\Rightarrow\quad \text{pareggio}
+\]
+
+\begin{center}
+\tris[0.55]{X,X,O, O,O,X, X,O,X}
+\end{center}
+
+\begin{extra}[perché il pareggio]
+In ogni gioco combinatorio finito si può calcolare il valore di ogni stato risalendo dalle foglie
+(\kw{induzione all'indietro}, \en{backward induction}), che è esattamente ciò che fa Minimax.
+Ne segue che uno dei due giocatori ha una strategia che garantisce la vittoria, oppure entrambi
+possono garantirsi almeno il pareggio (teorema di Zermelo). Per il tris vale la seconda:
+il valore minimax della scacchiera vuota è $0$.
+\end{extra}
+
+\subsection{Minimax con potatura alpha-beta}
+
+Si aggiungono i parametri \texttt{alpha} e \texttt{beta} e il controllo di potatura dopo ogni
+figlio. Il resto del codice (incluso \texttt{find\_best\_move}) non cambia, salvo chiamare
+\texttt{minimax\_ab} al posto di \texttt{minimax}.
+
+\begin{lstlisting}
+def minimax_ab(board, is_maximizing, alpha=-inf, beta=inf):
+    if check_winner(board) or is_full(board):
+        return score(board)
+    if is_maximizing:
+        best = -inf
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == 0:
+                    board[i][j] = 1
+                    best = max(best, minimax_ab(board, False, alpha, beta))
+                    board[i][j] = 0
+                    alpha = max(alpha, best)
+                    if alpha >= beta:
+                        return best              # potatura
+        return best
+    else:
+        best = inf
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == 0:
+                    board[i][j] = 2
+                    best = min(best, minimax_ab(board, True, alpha, beta))
+                    board[i][j] = 0
+                    beta = min(beta, best)
+                    if alpha >= beta:
+                        return best              # potatura
+        return best
+\end{lstlisting}
+
+\begin{attenzione}[\texttt{break} con due cicli annidati]
+Qui le mosse si scorrono con \emph{due} cicli (\texttt{i} e \texttt{j}). Un \texttt{break}
+uscirebbe solo dal ciclo interno e l'esterno continuerebbe a esplorare le righe successive,
+annullando parte della potatura. Per questo si usa \texttt{return best} (va bene perché la mossa
+è già stata annullata). In alternativa si può prima costruire la lista delle celle vuote e
+usare un solo ciclo.
+\end{attenzione}
+
+\paragraph{Risultati misurati.}
+Stessa partita (pareggio), stesse mosse, ma molto meno lavoro:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrr}
+\toprule
+ & Minimax & Alpha-beta \\
+\midrule
+Nodi visitati dalla scacchiera vuota & $549\,946$ & $18\,297$ \\
+Nodi visitati in un'intera partita IA contro IA & $618\,175$ & $36\,684$ \\
+Tempo della partita (Python) & circa $2{,}9$\,s & circa $0{,}17$\,s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Alpha-beta visita circa il 3\% dei nodi di Minimax, cioè ne pota circa il 97\%.
+
+\subsection{Giocare contro l'IA}
+
+L'ultima cella del notebook permette di sfidare l'algoritmo inserendo le mosse come
+\texttt{riga colonna} (indici da 0). Se l'implementazione è corretta \kw{non si può mai vincere}:
+al massimo si pareggia.
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item Teoria dei giochi = decisioni tra più agenti razionali; AGT = progettare algoritmi
+        in ambienti strategici.
+  \item Aree del corso: giochi non cooperativi (equilibrio di Nash), coalizionali (valore di
+        Shapley), scelta sociale (paradosso di Condorcet), mechanism design, matching.
+  \item Dilemma del prigioniero: efficienza (Pareto) e stabilità (Nash) possono non coincidere.
+  \item Giochi combinatori: 2 giocatori, informazione perfetta, niente caso, finiti, a turni,
+        a somma zero. Si rappresentano con l'albero di gioco.
+  \item Minimax: valore di uno stato = max (MAX) o min (MIN) dei valori dei figli.
+  \item Alpha-beta: stesso risultato, pota i rami con $\alpha \ge \beta$. Nel tris visita
+        $18\,297$ nodi invece di $549\,946$.
+\end{itemize}
+\textbf{Prossima lezione}: teoria dell'utilità e decisioni in condizioni di incertezza;
+giochi strategici e formalizzazione della \en{best response}.
+\end{riepilogo}

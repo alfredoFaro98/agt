@@ -1,0 +1,19 @@
+# File ausiliari di LaTeX
+build/
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Materiale del docente (slide e notebook originali): non si pubblica,
+# resta solo in locale nelle cartelle delle lezioni
+*/Lesson_*.pdf
+*/*_blank.ipynb
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/

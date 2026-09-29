@@ -1,0 +1,261 @@
+% =====================================================================
+%  Algorithmic Game Theory — Progetto d'esame (documento di lavoro)
+%  Compilazione:  powershell -File compila.ps1 project   ->  project.pdf
+%
+%  Si aggiorna dopo ogni lezione: nuove idee nella "banca delle idee",
+%  risposte alle domande aperte, decisioni prese.
+% =====================================================================
+\documentclass[11pt, a4paper, oneside, openany]{book}
+\input{preambolo}
+
+% In questo documento i capitoli non sono lezioni
+\addto\captionsitalian{\renewcommand{\chaptername}{Capitolo}}
+\renewcommand{\chaptermark}[1]{\markboth{Progetto -- #1}{}}
+
+% Stato delle idee e delle domande
+\newcommand{\stato}[2]{\etichetta{#1}{#2}}
+\newcommand{\aperta}{\stato{arancio}{APERTA}}
+\newcommand{\risolta}{\stato{verde}{RISOLTA}}
+\newcommand{\sbloccata}[1]{\stato{blu}{DA LEZIONE #1}}
+
+\begin{document}
+\frontmatter
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+  {\sffamily\bfseries\color{unical}\large UNIVERSITÀ DELLA CALABRIA\par}
+  \vspace{0.3cm}
+  {\sffamily\color{grigio}Anno accademico 2026/2027 -- Appello di gennaio\par}
+  \vspace{2.5cm}
+  {\color{blu}\rule{\linewidth}{1.2pt}\par}
+  \vspace{0.6cm}
+  {\sffamily\bfseries\Huge\color{blu} Progetto d'esame\par}
+  \vspace{0.4cm}
+  {\sffamily\Large Algorithmic Game Theory\par}
+  \vspace{0.6cm}
+  {\color{blu}\rule{\linewidth}{1.2pt}\par}
+  \vspace{1.5cm}
+  {\large Documento di lavoro: requisiti, metodo, idee, decisioni\par}
+  \vfill
+  {\small\color{grigio} Aggiornato fino alla Lezione 1 \quad·\quad Ultima compilazione: \today\par}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\tableofcontents
+
+\mainmatter
+% =====================================================================
+\chapter{Cosa sappiamo dell'esame}
+
+L'unica informazione ufficiale finora (slide della Lezione~1):
+
+\begin{definizione}[Esame]
+L'esame consiste in un \kw{progetto} in cui si deve \kw{formalizzare} e \kw{implementare}
+la soluzione di un problema usando gli strumenti dell'Algorithmic Game Theory.
+\end{definizione}
+
+Due verbi, due metà del lavoro:
+\begin{itemize}
+  \item \kw{formalizzare}: trasformare un problema a parole in un modello preciso
+        (giocatori, azioni, utilità, concetto di soluzione);
+  \item \kw{implementare}: scrivere codice che calcola quella soluzione, e mostrare che funziona.
+\end{itemize}
+
+\begin{attenzione}[cosa non sappiamo ancora]
+Formato della consegna, lavoro singolo o di gruppo, chi sceglie il problema, scadenze e
+criteri di valutazione non sono ancora stati comunicati. Le domande da fare al docente sono
+raccolte nel Capitolo~\ref{cap:domande}. Finché non ci sono risposte, tutto ciò che segue è
+una \emph{proposta} di metodo, non un requisito.
+\end{attenzione}
+
+% =====================================================================
+\chapter{Come impostare un progetto AGT}
+\label{cap:metodo}
+
+Qualunque sia il tema, un progetto di AGT segue la stessa sequenza. Conviene usarla anche
+come scaletta della relazione finale.
+
+\section{Le sette domande della formalizzazione}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=2em]
+  \item \kw{Problema}: qual è la situazione reale? Perché è interessante?
+  \item \kw{Giocatori}: chi prende decisioni? Quanti sono? ($N = \{1,\dots,n\}$)
+  \item \kw{Azioni / strategie}: cosa può fare ciascuno? ($A_i$, oppure mosse in uno stato)
+  \item \kw{Informazione e tempo}: si muove a turni o simultaneamente? Ognuno sa tutto
+        (informazione perfetta) o no? C'è casualità?
+  \item \kw{Utilità}: cosa vuole ciascun giocatore? ($u_i$, oppure $v(S)$ per le coalizioni).
+        È un gioco a somma zero?
+  \item \kw{Concetto di soluzione}: cosa vogliamo calcolare? (valore minimax, equilibrio di
+        Nash, valore di Shapley, matching stabile, vincitore di un'elezione, \ldots)
+  \item \kw{Algoritmo}: come lo calcoliamo? Con che complessità? Si può fare in modo esatto
+        o serve un'approssimazione o un'euristica?
+\end{enumerate}
+
+\begin{esempio}[il tris del Lab 1 formalizzato]
+\par\smallskip\noindent
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
+Problema      & giocare a tris in modo ottimale. \\
+Giocatori     & 2: MAX (X) e MIN (O). \\
+Azioni        & piazzare il proprio segno in una cella vuota. \\
+Informazione  & a turni alternati, informazione perfetta, niente caso. \\
+Utilità       & $+1$ / $0$ / $-1$ per MAX; somma zero. \\
+Soluzione     & valore minimax di ogni stato, e la mossa che lo realizza. \\
+Algoritmo     & Minimax con potatura alpha-beta; l'albero completo ha $549\,946$ nodi. \\
+\end{tabularx}
+\end{esempio}
+
+\section{Dall'implementazione alla relazione}
+
+Dopo la formalizzazione:
+\begin{enumerate}[resume*]
+  \item \kw{Implementazione}: codice pulito, eseguibile, con esempi e test.
+  \item \kw{Esperimenti}: misure che mostrano che l'algoritmo funziona e quanto costa
+        (tempo, nodi visitati, qualità della soluzione) al crescere dell'istanza.
+  \item \kw{Discussione}: limiti del modello (quali ipotesi sono irrealistiche?) e del metodo
+        (dove non scala?), possibili estensioni.
+\end{enumerate}
+
+\begin{osservazione}[cosa rende un progetto convincente]
+\begin{itemize}
+  \item Un confronto: algoritmo base contro versione migliorata, oppure due concetti di soluzione
+        sullo stesso problema. Esempio già visto: Minimax contro alpha-beta, $549\,946$ nodi
+        contro $18\,297$.
+  \item Numeri misurati, non solo affermati.
+  \item Ipotesi del modello dette esplicitamente, con il motivo per cui sono ragionevoli.
+\end{itemize}
+\end{osservazione}
+
+\section{Checklist prima della consegna}
+
+\begin{itemize}
+  \item[$\square$] Ogni elemento del modello (giocatori, azioni, utilità) è definito in modo preciso.
+  \item[$\square$] Il concetto di soluzione è motivato: perché proprio questo?
+  \item[$\square$] L'algoritmo è descritto (pseudocodice) e se ne discute la complessità.
+  \item[$\square$] Il codice gira da zero seguendo le istruzioni.
+  \item[$\square$] Ci sono esperimenti con tabelle o grafici e un commento ai risultati.
+  \item[$\square$] Ci sono limiti ed estensioni.
+\end{itemize}
+
+% =====================================================================
+\chapter{Banca delle idee}
+\label{cap:idee}
+
+Le idee sono ordinate per argomento del corso. Ogni lezione ``sblocca'' nuovi strumenti:
+un'idea diventa praticabile quando il suo argomento è stato spiegato.
+
+\section{Giochi combinatori (Lezione 1)}
+
+Strumenti disponibili: albero di gioco, Minimax, alpha-beta, e le tecniche per giochi grandi
+(profondità limitata, euristiche, \en{transposition table}, \en{move ordering}).
+
+\subsection*{Idea 1: IA per Forza 4 \hfill\sbloccata{1}}
+\begin{itemize}
+  \item \kw{Modello}: identico al tris (2 giocatori, turni, informazione perfetta, somma zero),
+        ma su una griglia $6\times7$ con gravità.
+  \item \kw{Perché è interessante}: l'albero completo è troppo grande per Minimax puro, quindi
+        servono tutte le tecniche della slide ``Oltre alpha-beta''.
+  \item \kw{Esperimenti}: nodi visitati e tempo al variare della profondità; effetto di
+        \en{move ordering} (colonne centrali prima) e della \en{transposition table};
+        percentuale di vittorie contro un giocatore casuale e uno ``greedy''.
+  \item \kw{Rischio}: basso. È un'estensione diretta del Lab~1.
+\end{itemize}
+
+\subsection*{Idea 2: tris generalizzato $(m,n,k)$ \hfill\sbloccata{1}}
+\begin{itemize}
+  \item \kw{Modello}: griglia $m\times n$, vince chi allinea $k$ segni (il tris è $(3,3,3)$,
+        il \en{gomoku} è $(15,15,5)$).
+  \item \kw{Perché è interessante}: permette di misurare come esplode l'albero di gioco al
+        crescere di $m, n, k$, e da che punto la ricerca esatta smette di essere praticabile.
+  \item \kw{Esperimenti}: per istanze piccole, valore esatto del gioco (vince il primo o si pareggia?);
+        per istanze grandi, ricerca a profondità limitata con euristica.
+  \item \kw{Rischio}: basso-medio. La parte esatta è facile; l'euristica richiede tentativi.
+\end{itemize}
+
+\subsection*{Idea 3: IA per Othello (Reversi) o Dama \hfill\sbloccata{1}}
+\begin{itemize}
+  \item \kw{Modello}: gioco combinatorio con regole di mossa più ricche.
+  \item \kw{Perché è interessante}: la funzione di valutazione euristica diventa centrale
+        (mobilità, angoli, stabilità dei pezzi in Othello).
+  \item \kw{Rischio}: medio. Implementare correttamente le regole richiede tempo.
+\end{itemize}
+
+\begin{osservazione}[limite dei giochi combinatori come progetto]
+Queste idee usano solo la prima parte del corso. Il resto del programma (Nash, Shapley,
+voto, matching, meccanismi, divisione equa) offrirà probabilmente temi più vicini allo spirito
+``formalizzare un problema reale''. Conviene tenerle come piano B e decidere più avanti.
+\end{osservazione}
+
+\section{Argomenti ancora da affrontare}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Argomento} & \textbf{Anticipazioni dalla Lezione 1 (possibili spunti)} \\
+\midrule
+Teoria dell'utilità            & decisioni in condizioni di incertezza \\
+Giochi non cooperativi         & equilibri di Nash; applicazioni a sicurezza (pattugliamento), GAN \\
+Giochi coalizionali            & valore di Shapley; SHAP per spiegare modelli, potere di voto, centralità nelle reti \\
+Scelta sociale computazionale  & regole di voto, paradosso di Condorcet; \en{ensemble} di modelli \\
+Matching markets               & matching stabile; studenti--alloggi, donatori di rene, lavoratori--compiti \\
+Mechanism design               & aste, incentivi a dire il vero \\
+Fair division                  & divisione equa di risorse \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\chapter{Domande aperte per il docente}
+\label{cap:domande}
+
+Da chiarire il prima possibile, perché cambiano il modo di lavorare.
+
+\begin{enumerate}
+  \item Il progetto è \kw{individuale} o \kw{di gruppo}? \hfill\aperta
+  \item Il \kw{problema} lo sceglie lo studente o viene assegnato? Serve un'approvazione
+        preventiva della proposta? \hfill\aperta
+  \item Cosa si \kw{consegna}: codice, relazione scritta, presentazione? Ci sono limiti di
+        lunghezza? \hfill\aperta
+  \item C'è un \kw{linguaggio} richiesto (Python, come nei lab)? \hfill\aperta
+  \item Quando va consegnato rispetto alla data dell'appello? \hfill\aperta
+  \item All'esame c'è anche una \kw{discussione orale} o domande di teoria? \hfill\aperta
+  \item Quali sono i \kw{criteri di valutazione}? \hfill\aperta
+\end{enumerate}
+
+% =====================================================================
+\chapter{Piano di lavoro e decisioni}
+
+\section{Calendario indicativo}
+
+Proposta da aggiornare quando saranno note le date ufficiali.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Periodo} & \textbf{Obiettivo} \\
+\midrule
+Ottobre    & seguire le lezioni, aggiungere idee alla banca, avere risposta alle domande aperte \\
+Novembre   & scegliere il tema; scrivere la formalizzazione (Capitolo~\ref{cap:metodo}, domande 1--7) \\
+Dicembre   & implementazione ed esperimenti \\
+Gennaio    & relazione, rifinitura, preparazione della discussione \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Registro delle decisioni}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Data} & \textbf{Decisione} \\
+\midrule
+29/09/2026 & Creato il documento di progetto. Nessun tema scelto. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\end{document}

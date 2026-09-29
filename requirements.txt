@@ -1,0 +1,39 @@
+# =====================================================================
+#  AGT — dipendenze per ricreare l'ambiente su un'altra macchina
+# =====================================================================
+#
+# ---------- 1. Python (testato con 3.13) ----------
+#   python -m pip install -r requirements.txt
+#
+# Il codice dei lab usa solo la libreria standard (math, time).
+# Servono solo i pacchetti per eseguire i notebook (.ipynb),
+# ad esempio in VS Code con l'estensione Jupyter.
+
+ipykernel>=7.1      # kernel per eseguire i notebook
+ipython>=9.9        # IPython.display.clear_output (Lab 1, "gioca contro l'IA")
+
+# Probabili per gli esperimenti del progetto (grafici, tabelle).
+# Togliere il commento quando servono davvero:
+# matplotlib>=3.10
+# numpy>=2.2
+# pandas>=2.2
+
+# ---------- 2. LaTeX (non installabile con pip) ----------
+# Serve per compilare main.pdf e project.pdf:
+#   powershell -File compila.ps1
+#
+# a) Installare MiKTeX: winget install MiKTeX.MiKTeX
+#    (su Linux/macOS va bene anche TeX Live completo)
+#
+# b) Abilitare l'installazione automatica dei pacchetti mancanti,
+#    altrimenti la compilazione si blocca su un popup:
+#      initexmf --set-config-value=[MPM]AutoInstall=1
+#
+# c) (Facoltativo) installare subito i pacchetti usati in preambolo.tex:
+#      miktex packages install babel-italian newtx bera microtype geometry xcolor amsmath mathtools booktabs multirow tools enumitem graphics float caption pgf titlesec fancyhdr tcolorbox listings hyperref bookmark
+#    Le dipendenze indirette (es. quelle di tcolorbox) arrivano da sole con AutoInstall.
+#
+# d) Aggiornare MiKTeX dopo l'installazione (MiKTeX Console -> Updates),
+#    altrimenti a ogni compilazione compare "you have not checked for updates".
+#
+# Perl NON serve: compila.ps1 usa direttamente pdflatex, non latexmk.

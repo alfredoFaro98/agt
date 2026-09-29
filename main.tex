@@ -1,0 +1,43 @@
+% =====================================================================
+%  Algorithmic Game Theory — Appunti (UniCal, a.a. 2026/2027)
+%  Compilazione:  powershell -File compila.ps1   ->  main.pdf
+%
+%  Struttura: una cartella per lezione (1/, 2/, ...) con le slide, i lab
+%  e i sorgenti .tex della lezione. Qui si includono in ordine.
+% =====================================================================
+\documentclass[11pt, a4paper, oneside, openany]{book}
+\input{preambolo}
+
+\begin{document}
+\frontmatter
+
+% ---------- Frontespizio ----------
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+  {\sffamily\bfseries\color{unical}\large UNIVERSITÀ DELLA CALABRIA\par}
+  \vspace{0.3cm}
+  {\sffamily\color{grigio}Anno accademico 2026/2027\par}
+  \vspace{2.5cm}
+  {\color{blu}\rule{\linewidth}{1.2pt}\par}
+  \vspace{0.6cm}
+  {\sffamily\bfseries\Huge\color{blu} Algorithmic Game Theory\par}
+  \vspace{0.4cm}
+  {\sffamily\Large Appunti del corso: teoria e laboratori\par}
+  \vspace{0.6cm}
+  {\color{blu}\rule{\linewidth}{1.2pt}\par}
+  \vspace{1.5cm}
+  {\large Corso tenuto da Sebastiano A.\ Piccolo\par}
+  \vfill
+  {\small\color{grigio} Ultima compilazione: \today\par}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+\tableofcontents
+
+\mainmatter
+% ---------- Lezioni ----------
+\input{1/lezione}
+
+\end{document}
