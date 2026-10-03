@@ -39,7 +39,7 @@
   \vspace{1.5cm}
   {\large Documento di lavoro: requisiti, metodo, idee, decisioni\par}
   \vfill
-  {\small\color{grigio} Aggiornato fino alla Lezione 1 \quad·\quad Ultima compilazione: \today\par}
+  {\small\color{grigio} Aggiornato fino alla Lezione 2 \quad·\quad Ultima compilazione: \today\par}
 \end{titlepage}
 \hypersetup{pageanchor=true}
 
@@ -187,6 +187,42 @@ voto, matching, meccanismi, divisione equa) offrirà probabilmente temi più vic
 ``formalizzare un problema reale''. Conviene tenerle come piano B e decidere più avanti.
 \end{osservazione}
 
+\section{Teoria dell'utilità e decisioni sotto incertezza (Lezione 2)}
+
+Strumenti disponibili: relazioni di preferenza, utilità ordinale e cardinale (VNM),
+lotterie e utilità attesa, atteggiamento verso il rischio, ricerca bayesiana
+(massimizzazione dell'utilità attesa con posteriore aggiornato).
+
+\subsection*{Idea 4: ricerca bayesiana per un problema di \en{search and rescue} \hfill\sbloccata{2}}
+\begin{itemize}
+  \item \kw{Modello}: un solo decisore contro l'incertezza. Un oggetto (relitto, persona
+        dispersa, guasto in una rete) si trova in una cella sconosciuta con un prior non
+        uniforme; ogni ispezione ha un costo e una probabilità di \en{falso negativo}.
+  \item \kw{Perché è interessante}: generalizza direttamente il Lab~2 e lo avvicina al caso
+        reale dei paper in \texttt{labs/02-battleship/papers/} (volo AF~447). Permette di
+        introdurre cose
+        che nel lab non ci sono: rilevazione imperfetta, costi di spostamento diversi per
+        cella, vincolo di budget.
+  \item \kw{Concetto di soluzione}: politica che massimizza l'utilità attesa; confronto tra
+        la politica \en{greedy} (massima probabilità) e una che tiene conto del costo.
+  \item \kw{Esperimenti}: turni o costo medio per trovare l'oggetto, al variare del prior,
+        del tasso di falsi negativi e del budget; confronto con le euristiche del Lab~2.
+  \item \kw{Rischio}: basso. Il codice del Lab~2 è già una base funzionante.
+\end{itemize}
+
+\subsection*{Idea 5: atteggiamento verso il rischio in un problema di allocazione \hfill\sbloccata{2}}
+\begin{itemize}
+  \item \kw{Modello}: più agenti con funzioni di Bernoulli diverse ($u(x)=x$, $u(x)=\sqrt{x}$,
+        $u(x)=x^2$) devono scegliere tra portafogli o contratti rischiosi.
+  \item \kw{Perché è interessante}: mostra in modo misurabile che la soluzione ottima dipende
+        dalla \emph{curvatura} di $u$ e non dal valore atteso, e permette di calcolare
+        equivalenti certi e premi per il rischio.
+  \item \kw{Collegamento}: è il ponte naturale verso i giochi coalizionali (il fondo comune
+        della lezione è già una coalizione) e verso il \en{mechanism design} (le assicurazioni).
+  \item \kw{Rischio}: medio. Da solo è un po' esile: funziona meglio come \emph{componente}
+        di un progetto più grande, una volta visti Nash o Shapley.
+\end{itemize}
+
 \section{Argomenti ancora da affrontare}
 
 \begin{center}
@@ -195,7 +231,6 @@ voto, matching, meccanismi, divisione equa) offrirà probabilmente temi più vic
 \toprule
 \textbf{Argomento} & \textbf{Anticipazioni dalla Lezione 1 (possibili spunti)} \\
 \midrule
-Teoria dell'utilità            & decisioni in condizioni di incertezza \\
 Giochi non cooperativi         & equilibri di Nash; applicazioni a sicurezza (pattugliamento), GAN \\
 Giochi coalizionali            & valore di Shapley; SHAP per spiegare modelli, potere di voto, centralità nelle reti \\
 Scelta sociale computazionale  & regole di voto, paradosso di Condorcet; \en{ensemble} di modelli \\
@@ -254,6 +289,9 @@ Gennaio    & relazione, rifinitura, preparazione della discussione \\
 \textbf{Data} & \textbf{Decisione} \\
 \midrule
 29/09/2026 & Creato il documento di progetto. Nessun tema scelto. \\
+03/10/2026 & Riorganizzato il repository in \texttt{lessons/}, \texttt{labs/},
+             \texttt{documentazione/}. Aggiunta la Lezione~2 e due nuove idee
+             (ricerca bayesiana, atteggiamento verso il rischio). Nessun tema scelto. \\
 \bottomrule
 \end{tabularx}
 \end{center}

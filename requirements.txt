@@ -5,17 +5,16 @@
 # ---------- 1. Python (testato con 3.13) ----------
 #   python -m pip install -r requirements.txt
 #
-# Il codice dei lab usa solo la libreria standard (math, time).
-# Servono solo i pacchetti per eseguire i notebook (.ipynb),
-# ad esempio in VS Code con l'estensione Jupyter.
+# Pacchetti per eseguire i notebook (.ipynb), ad esempio in VS Code
+# con l'estensione Jupyter.
 
 ipykernel>=7.1      # kernel per eseguire i notebook
 ipython>=9.9        # IPython.display.clear_output (Lab 1, "gioca contro l'IA")
+numpy>=2.2          # griglie e posteriore (Lab 2, battaglia navale)
+matplotlib>=3.10    # mappe e istogrammi (Lab 2)
 
-# Probabili per gli esperimenti del progetto (grafici, tabelle).
-# Togliere il commento quando servono davvero:
-# matplotlib>=3.10
-# numpy>=2.2
+# Probabile per gli esperimenti del progetto (tabelle).
+# Togliere il commento quando serve davvero:
 # pandas>=2.2
 
 # ---------- 2. LaTeX (non installabile con pip) ----------

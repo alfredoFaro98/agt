@@ -1,27 +1,52 @@
 # Algorithmic Game Theory — appunti e progetto
 
-Appunti in italiano del corso di Algorithmic Game Theory (Università della Calabria, a.a. 2026/2027), in vista dell'appello di gennaio.
+Appunti in italiano del corso di Algorithmic Game Theory (Università della Calabria, a.a. 2026/2027), in vista dell'appello di gennaio. Sono la traduzione e la rispiegazione delle lezioni del docente, teoria e laboratori insieme.
 
-- [`main.pdf`](main.pdf): appunti di tutte le lezioni, teoria e laboratori
-- [`project.pdf`](project.pdf): documento di lavoro per il progetto d'esame (metodo, idee, domande aperte, decisioni)
+Tutti i PDF generati stanno in [`documentazione/pdf/`](documentazione/pdf/):
+
+- un PDF per ogni lezione, `lezione-NN-nome.pdf`
+- [`main.pdf`](documentazione/pdf/main.pdf): tutte le lezioni in un unico documento
+- [`project.pdf`](documentazione/pdf/project.pdf): documento di lavoro per il progetto d'esame (metodo, idee, domande aperte, decisioni)
 
 ## Struttura
 
 ```
-main.tex        documento unico con tutte le lezioni
-project.tex     documento del progetto
-preambolo.tex   stile comune (font, colori, box, codice)
-compila.ps1     script di compilazione
-N/lezione.tex   teoria e laboratorio della lezione N
+documentazione/              il LaTeX che scriviamo noi
+  lezioni/
+    01-introduzione/lezione.tex
+    02-utilita/lezione.tex        una cartella per lezione
+  pdf/                            tutti i PDF generati
+  main.tex                        unisce tutte le lezioni
+  project.tex                     documento del progetto
+  preambolo.tex                   stile comune (font, colori, box, codice)
+  lezione-standalone.tex          wrapper per i PDF di singola lezione
+  compila.ps1                     script di compilazione
+
+lessons/                     slide del docente
+labs/
+  01-minimax/                     notebook del laboratorio 1
+  02-battleship/                  notebook del laboratorio 2
+    papers/                       paper di supporto
 ```
 
-Le slide e i notebook originali del docente non sono nel repository: vanno messi a mano nelle cartelle delle lezioni.
+Lezioni e laboratori usano la stessa convenzione per i nomi delle cartelle:
+`NN-nome`, con `NN` uguale al numero della lezione.
+
+`lessons/` e `labs/` contengono materiale del docente e non sono nel repository:
+vanno messi a mano in locale.
+
+Per aggiungere una lezione: creare `documentazione/lezioni/NN-nome/lezione.tex`
+e includerlo in `main.tex`. Il PDF singolo lo genera `compila.ps1` da solo,
+leggendo il nome della cartella.
 
 ## Compilazione
 
 Dipendenze e istruzioni di installazione sono in [`requirements.txt`](requirements.txt).
 
 ```powershell
-powershell -File compila.ps1            # main.pdf e project.pdf
+cd documentazione
+powershell -File compila.ps1            # lezioni + main.pdf + project.pdf
+powershell -File compila.ps1 lezioni    # solo i PDF delle singole lezioni
+powershell -File compila.ps1 02         # solo la lezione 02
 powershell -File compila.ps1 project    # solo project.pdf
 ```

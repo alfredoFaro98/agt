@@ -2,8 +2,10 @@
 %  Algorithmic Game Theory — Appunti (UniCal, a.a. 2026/2027)
 %  Compilazione:  powershell -File compila.ps1   ->  main.pdf
 %
-%  Struttura: una cartella per lezione (1/, 2/, ...) con le slide, i lab
-%  e i sorgenti .tex della lezione. Qui si includono in ordine.
+%  Struttura: una cartella per lezione in lezioni/ (NN-slug/lezione.tex),
+%  inclusa qui in ordine. Ogni lezione si compila anche da sola:
+%  vedi lezione-standalone.tex e compila.ps1.
+%  Le slide del docente stanno in ../lessons/, i notebook in ../labs/.
 % =====================================================================
 \documentclass[11pt, a4paper, oneside, openany]{book}
 \input{preambolo}
@@ -38,6 +40,7 @@
 
 \mainmatter
 % ---------- Lezioni ----------
-\input{1/lezione}
+\input{lezioni/01-introduzione/lezione}
+\input{lezioni/02-utilita/lezione}
 
 \end{document}

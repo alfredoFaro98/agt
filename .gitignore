@@ -8,10 +8,10 @@ build/
 *.fls
 *.fdb_latexmk
 
-# Materiale del docente (slide e notebook originali): non si pubblica,
-# resta solo in locale nelle cartelle delle lezioni
-*/Lesson_*.pdf
-*/*_blank.ipynb
+# Materiale del docente (slide, notebook, paper): non si pubblica,
+# resta solo in locale in lessons/ e labs/
+lessons/
+labs/
 
 # Python / Jupyter
 __pycache__/

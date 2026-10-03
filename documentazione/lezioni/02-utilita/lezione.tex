@@ -1,0 +1,1008 @@
+% =====================================================================
+%  Lezione 2 — Teoria dell'utilità e decisioni in condizioni di incertezza
+%  Materiale: Lesson_2_Utility_Theory.pdf, Battleship_Blank.ipynb
+% =====================================================================
+\chapter{Teoria dell'utilità}
+
+\parteteoria
+
+Nella lezione precedente le utilità erano numeri dati ($+1$, $0$, $-1$ per il tris).
+Qui si fa il passo indietro: \emph{da dove vengono} quei numeri? La risposta è che
+non sono un dato primitivo, ma una \kw{rappresentazione} delle preferenze del giocatore.
+Il percorso della lezione è:
+\begin{enumerate}[label=\arabic*.]
+  \item concetti di base: alternative e preferenze;
+  \item rappresentare preferenze ordinali (utilità \kw{ordinale});
+  \item oltre l'ordinale: lotterie e utilità \kw{cardinale} (VNM);
+  \item atteggiamento verso il rischio;
+  \item applicazioni e introduzione alla teoria delle decisioni.
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\section{Concetti di base}
+
+\subsection{Alternative}
+
+Un agente sceglie all'interno di un insieme $X$ di \kw{alternative}, che devono essere:
+\begin{itemize}
+  \item \kw{mutuamente esclusive}: se ne realizza una sola;
+  \item \kw{esaustive}: coprono tutti i casi possibili.
+\end{itemize}
+
+\begin{esempio}[scelta dei corsi]
+Le opzioni sono $\{\text{Deep Learning},\ \text{Algorithmic Game Theory}\}$, ma queste
+\emph{non} sono le alternative: si possono seguire entrambi i corsi o nessuno.
+L'insieme corretto è
+\[
+  X = \{\, \mathrm{DL},\ \mathrm{AGT},\ \mathrm{DLAGT},\ \mathrm{N} \,\},
+\]
+dove DLAGT = entrambi e N = nessuno dei due.
+\end{esempio}
+
+\begin{osservazione}[è un passo di modellazione, non una formalità]
+Costruire $X$ \emph{bene} è la prima cosa da fare in un modello. Con $n$ opzioni
+combinabili liberamente le alternative sono $2^n$: già qui si vede che la dimensione
+dello spazio delle alternative è un problema \emph{computazionale}, non solo concettuale.
+\end{osservazione}
+
+\subsection{Preferenze}
+
+\begin{definizione}[Relazione di preferenza]
+Le \kw{preferenze} sono una relazione $\pref$ su $X$, cioè un sottoinsieme di $X \times X$.
+Si legge $x \pref y$ come ``$x$ è \emph{almeno buono quanto} $y$''. La relazione è:
+\begin{itemize}
+  \item \kw{completa} se $\forall x,y \in X$ vale $x \pref y$ oppure $y \pref x$;
+  \item \kw{transitiva} se $\forall x,y,z \in X$, $[x \pref y \text{ e } y \pref z]
+        \Rightarrow x \pref z$.
+\end{itemize}
+Una preferenza è una \kw{relazione di preferenza} se e solo se è completa e transitiva.
+\end{definizione}
+
+Da $\pref$ si derivano altre due relazioni:
+\begin{align*}
+  \text{preferenza \kw{stretta}:} && x \spref y &\iff [\,x \pref y \ \text{e}\ y \npref x\,];\\
+  \text{\kw{indifferenza}:}       && x \indif y &\iff [\,x \pref y \ \text{e}\ y \pref x\,].
+\end{align*}
+
+\begin{osservazione}[completezza non vuol dire ``decidere sempre'']
+La completezza non dice che l'agente preferisce sempre qualcosa a qualcos'altro: dice che
+sa sempre \emph{confrontare} due alternative. Il caso ``mi sono indifferenti'' è ammesso
+ed è proprio $x \indif y$. Quello che la completezza esclude è l'incomparabilità
+(``non so dire'').
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\section{Rappresentare le preferenze: utilità ordinale}
+
+\begin{definizione}[Funzione di utilità]
+Una relazione di preferenza $\pref$ è \kw{rappresentata} da una funzione di utilità
+$u : X \to \R$ nel senso seguente:
+\[
+  x \pref y \iff u(x) \geq u(y) \qquad \forall x,y \in X.
+\]
+\end{definizione}
+
+Se un giocatore trova $x$ almeno buono quanto $y$, allora $u(x)$ deve essere almeno
+alto quanto $u(y)$. In questo senso il giocatore si comporta \emph{come se}
+(\en{as if}) stesse massimizzando $u(\cdot)$.
+
+\begin{osservazione}[la direzione della spiegazione]
+L'ultima frase va presa alla lettera e sarà ripresa alla fine della lezione: l'utilità
+è un \emph{modo di descrivere} le preferenze, non la loro causa. Non si sceglie $x$
+perché ha utilità più alta; ha utilità più alta perché è ciò che si sceglie.
+\end{osservazione}
+
+\begin{teorema}[Rappresentazione ordinale]
+Sia $X$ \emph{finito}. Una preferenza può essere rappresentata da una funzione di utilità
+se e solo se è completa e transitiva. Inoltre, se $u : X \to \R$ rappresenta $\pref$ e
+$f : \R \to \R$ è \kw{strettamente crescente}, allora anche $f \circ u$ rappresenta $\pref$.
+\end{teorema}
+
+Per l'ultima affermazione queste utilità si dicono \kw{ordinali}: conta solo
+l'\emph{informazione d'ordine}.
+
+\subsection{Le condizioni sono necessarie}
+
+\paragraph{Transitività.}
+Sia $X = \{a,b,c\}$ e si supponga il ciclo $a \spref b \spref c \spref a$.
+Se esistesse $u$ si avrebbe $u(a) > u(b) > u(c) > u(a)$, cioè $u(a) > u(a)$: assurdo.
+
+\begin{extra}[la \en{money pump}]
+Filosofi ed economisti direbbero che violare la transitività genera una
+\kw{pompa di soldi}. Se l'agente ha il ciclo sopra e possiede $c$, allora preferisce
+strettamente $b$ a $c$: gli si può vendere $b$ in cambio di $c$ più un piccolo
+importo $\varepsilon$. Poi preferisce $a$ a $b$: altro scambio, altro $\varepsilon$.
+Poi preferisce $c$ ad $a$: terzo scambio. L'agente è tornato al punto di partenza
+avendo pagato $3\varepsilon$, e il ciclo si può ripetere all'infinito.
+È l'argomento ``pratico'' a favore della transitività: chi la viola si fa svuotare le tasche.
+\end{extra}
+
+\paragraph{Completezza.}
+Si assuma di avere una funzione di utilità $u : X \to \R$. Dati due numeri $u(x)$ e $u(y)$,
+sono ammissibili solo due possibilità: $u(x) \geq u(y)$ oppure $u(y) \geq u(x)$.
+Quindi $x \pref y$ o $y \pref x$: la completezza è una necessità matematica, ereditata
+dal fatto che l'ordine $\geq$ su $\R$ è totale.
+
+\subsection{Le condizioni sono sufficienti}
+
+\paragraph{Dimostrazione del teorema.}
+Sia $X = \{x_1,\dots,x_n\}$. Grazie a completezza e transitività si possono partizionare
+gli elementi di $X$ in $k$ \kw{classi di indifferenza} $C_1, \dots, C_k$ (ogni classe
+raccoglie alternative tra loro indifferenti) ordinate in modo che
+$C_1 \spref C_2 \spref \dots \spref C_k$. Si definisce allora
+\[
+  u(x) = k - i + 1 \qquad \text{per ogni } x \in C_i,
+\]
+cioè $u = k$ sulla classe migliore, $u = k-1$ sulla successiva, fino a $u = 1$ su $C_k$.
+Per costruzione $u(x) \ge u(y) \iff x \pref y$. $\square$
+
+\begin{attenzione}[dove serve che $X$ sia finito]
+L'ipotesi ``$X$ finito'' non è decorativa: serve a poter costruire le classi di
+indifferenza e a numerarle. Con $X$ infinito completezza e transitività \emph{non}
+bastano. Il controesempio classico sono le preferenze \kw{lessicografiche} su
+$X = \R^2$, dove $(a_1,a_2) \pref (b_1,b_2)$ se $a_1 > b_1$, oppure se $a_1 = b_1$ e
+$a_2 \ge b_2$: la relazione è completa e transitiva ma non ammette alcuna
+rappresentazione con una $u$ a valori reali.
+\end{attenzione}
+
+\subsection{Esempi: l'utilità ordinale non è interpretabile}
+
+Con $X = \{a,b,c\}$ e preferenze $a \spref b \spref c$, tutte e tre queste funzioni
+rappresentano le \emph{stesse} preferenze:
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{cccc}
+\toprule
+ & $u_1$ & $u_2$ & $u_3$ \\
+\midrule
+$u(a)$ & $-1$ & $30$ & $90$ \\
+$u(b)$ & $-2$ & $20$ & $2$ \\
+$u(c)$ & $-3$ & $10$ & $1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Il valore numerico dell'utilità ordinale \kw{non è interpretabile}: non dice
+con quale \emph{intensità} un giocatore preferisce $a$ a $b$. Con $u_2$ le
+differenze sono uguali, con $u_3$ il salto tra $a$ e $b$ sembra enorme, ma le
+preferenze rappresentate sono identiche.
+
+\begin{osservazione}[perché non basta]
+Finché si sceglie tra alternative \emph{certe}, l'ordine basta: si prende la migliore.
+Ma appena entra in gioco l'\kw{incertezza} (una scelta dà $a$ con probabilità $0{,}5$ e
+$c$ con probabilità $0{,}5$) serve sapere \emph{quanto} $b$ sta tra $a$ e $c$: serve
+un'utilità \kw{cardinale}. È il problema che risolve la teoria di Von Neumann--Morgenstern.
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\section{Oltre l'ordinale: le lotterie}
+
+\begin{definizione}[Lotteria semplice]
+Una \kw{lotteria semplice} è una tupla
+\[
+  L = (p_1, x_1;\ p_2, x_2;\ \dots;\ p_n, x_n)
+\]
+dove $x_1,\dots,x_n \in X \subseteq \R$ sono \kw{premi monetari} e
+$(p_1,\dots,p_n)$ è una distribuzione di probabilità ($p_i \ge 0$, $\sum_i p_i = 1$).
+Si indica con $\lott$ l'insieme delle lotterie semplici.
+\end{definizione}
+
+\begin{esempio}[una lotteria]
+$L = (0{,}3,\ 10;\ 0{,}2,\ 5;\ 0{,}1,\ 0;\ 0{,}4,\ -5)$.
+\begin{center}
+\begin{tikzpicture}[>=Stealth, scale=0.9, every node/.style={font=\small\sffamily}]
+  \node[circle, draw, inner sep=1.6pt] (r) at (0,0) {};
+  \foreach \p/\x/\y [count=\k] in {0.3/10/1.5, 0.2/5/0.5, 0.1/0/-0.5, 0.4/-5/-1.5} {
+    \node[circle, fill=black, inner sep=1.8pt] (n\k) at (2.6,\y) {};
+    \draw[->, grigio] (r) -- node[above, pos=0.62, font=\scriptsize\sffamily]{\p} (n\k);
+    \node[right=4pt of n\k] {$\x$};
+  }
+\end{tikzpicture}
+\end{center}
+\end{esempio}
+
+\subsection{Lotterie composte}
+
+Una lotteria può avere come premi altre lotterie. Siano
+\[
+  L_1 = (0{,}9{:}\ -1\$,\ 0{,}1{:}\ 5\$), \qquad
+  L_2 = (0{,}75{:}\ -1\$,\ 0{,}25{:}\ 2\$).
+\]
+La \kw{lotteria composta} $L_c = (0{,}5{:}\ L_1,\ 0{,}5{:}\ L_2)$ equivale alla lotteria
+semplice che si ottiene moltiplicando le probabilità lungo i rami e sommando quelle
+che portano allo stesso premio:
+\[
+  L_e = \bigl(0{,}5 \times 0{,}9 + 0{,}5 \times 0{,}75 {:}\ -1\$,\quad
+              0{,}5 \times 0{,}25 {:}\ 2\$,\quad
+              0{,}5 \times 0{,}1 {:}\ 5\$\bigr)
+      = (0{,}825{:}\ -1\$,\ 0{,}125{:}\ 2\$,\ 0{,}05{:}\ 5\$).
+\]
+
+\begin{osservazione}[ipotesi di riduzione]
+Questo passaggio è un'\emph{assunzione} del modello: si suppone che al giocatore
+interessi solo la distribuzione finale sui premi, non il modo in cui ci si arriva
+(due estrazioni invece di una). Grazie a essa basta studiare $\lott$, l'insieme delle
+lotterie \emph{semplici}.
+\end{osservazione}
+
+\subsection{Valore atteso}
+
+\begin{definizione}[Valore atteso]
+Per $L = (p_1,x_1;\dots;p_n,x_n)$ il \kw{valore atteso} è
+\[
+  \Ev(L) = \sum_{i=1}^{n} p_i\, x_i .
+\]
+\end{definizione}
+
+Per la lotteria dell'esempio:
+\[
+  \Ev(L) = 0{,}3 \times 10 + 0{,}2 \times 5 + 0{,}1 \times 0 + 0{,}4 \times (-5) = 2 .
+\]
+Giocando ripetutamente quella lotteria ci si aspetta di vincere in media $2$.
+
+\begin{attenzione}[il valore atteso non basta a decidere]
+Verrebbe da usare $\Ev$ come criterio di scelta, ma è sbagliato. Si consideri il
+\kw{paradosso di San Pietroburgo}: si lancia una moneta finché non esce testa; se esce
+al lancio $k$ si vincono $2^k$ euro. Il valore atteso è
+$\sum_{k \ge 1} 2^{-k} \cdot 2^{k} = \infty$, eppure nessuno pagherebbe più di poche
+decine di euro per giocare. Serve applicare l'utilità \emph{ai premi}, non ai soldi.
+\end{attenzione}
+
+\subsection{Utilità attesa}
+
+\begin{definizione}[Utilità attesa e funzione di Bernoulli]
+Data una relazione di preferenza $\pref$ su $\lott$, una funzione di utilità
+$U : \lott \to \R$ è una \kw{funzione di utilità attesa} se può essere scritta come
+\[
+  U(L) = \sum_{i=1}^{n} p_i\, u(x_i)
+\]
+per qualche funzione $u : \R \to \R$. La funzione $u$ si chiama
+\kw{funzione di utilità di Bernoulli}.
+\end{definizione}
+
+\begin{attenzione}[due utilità diverse, due simboli diversi]
+$u$ è definita sui \emph{premi} (numeri di euro), $U$ sulle \emph{lotterie}.
+La forma di $U$ è vincolata: deve essere \kw{lineare nelle probabilità}. Non ogni
+$U$ che rappresenta preferenze su $\lott$ ha questa forma; il teorema VNM dice
+esattamente quando ce l'ha.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{L'utilità di Von Neumann--Morgenstern}
+
+Von Neumann e Morgenstern (VNM) hanno fornito le condizioni sotto cui una relazione di
+preferenza $\pref$ su $\lott$ è rappresentabile da una funzione di utilità attesa.
+
+\begin{definizione}[Assiomi VNM]
+\begin{description}[leftmargin=2.2cm, style=nextline, font=\normalfont\bfseries]
+  \item[Assioma 1] (\kw{ordine di preferenza}) $\pref$ è completa e transitiva.
+  \item[Assioma 2] (\kw{continuità}) se $L \spref M \spref N$, esiste $p \in [0,1]$
+        tale che $pL + (1-p)N \indif M$.
+  \item[Assioma 3] (\kw{indipendenza}) per ogni lotteria $N$ e ogni $p \in [0,1]$,
+        \[ L \pref M \iff pL + (1-p)N \pref pM + (1-p)N. \]
+\end{description}
+\end{definizione}
+
+\begin{osservazione}[come leggere gli assiomi 2 e 3]
+La \kw{continuità} dice che non esistono premi ``infinitamente'' migliori di altri:
+se $M$ sta tra $L$ e $N$, c'è una miscela di $L$ e $N$ esattamente equivalente a $M$.
+L'\kw{indipendenza} dice che un esito \emph{comune} alle due lotterie non deve
+cambiare il confronto: $N$ compare con la stessa probabilità $1-p$ da entrambe le parti,
+quindi deve essere irrilevante. È l'assioma più forte dei tre e, come si vedrà con
+Allais, è quello che gli esseri umani violano.
+\end{osservazione}
+
+\begin{teorema}[Von Neumann--Morgenstern]
+Una relazione binaria $\pref$ su $\lott$ ammette una rappresentazione di utilità attesa
+se e solo se soddisfa gli assiomi 1--3. Inoltre, se $U$ e $V$ sono due rappresentazioni
+di utilità attesa di $\pref$, allora esistono costanti $a, b \in \R$ con $a > 0$ tali che
+\[
+  U(\cdot) = a\,V(\cdot) + b .
+\]
+\end{teorema}
+
+L'ultima affermazione dice che la rappresentazione VNM è unica \kw{a meno di
+trasformazioni affini}.
+
+\begin{osservazione}[ordinale contro cardinale]
+È qui la differenza con il Teorema 1. Lì si poteva applicare a $u$ \emph{qualunque}
+funzione strettamente crescente; qui solo $a x + b$ con $a>0$. Il margine di libertà è
+molto più stretto, e questo rende i numeri \emph{interpretabili}: sono fissati l'origine
+e l'unità di misura, come per la temperatura in gradi Celsius. Ha senso dire che il salto
+da $a$ a $b$ è il doppio del salto da $b$ a $c$; non ha senso dire che $a$ vale il doppio
+di $b$. Si parla di \kw{scala a intervalli}.
+\end{osservazione}
+
+\subsection{Necessità degli assiomi}
+
+\paragraph{Ordine di preferenza.} Già dimostrato per il Teorema 1.
+
+\paragraph{Continuità.}
+Sia $L \spref M \spref N$; allora $u(L) > u(M) > u(N)$. Si ponga
+\[
+  p = \frac{u(M) - u(N)}{u(L) - u(N)} \in (0,1).
+\]
+Per la definizione di utilità attesa:
+\begin{align*}
+  u\bigl(pL + (1-p)N\bigr)
+    &= p\,u(L) + (1-p)\,u(N)\\
+    &= p\,u(L) + u(N) - p\,u(N)\\
+    &= p\bigl(u(L) - u(N)\bigr) + u(N)\\
+    &= \frac{u(M) - u(N)}{u(L) - u(N)}\bigl(u(L) - u(N)\bigr) + u(N)\\
+    &= u(M) - u(N) + u(N) = u(M).
+\end{align*}
+Quindi $pL + (1-p)N \indif M$: la continuità è necessaria.
+
+\paragraph{Indipendenza.}
+Siano $L_1 = pL + (1-p)N$ e $L_2 = pM + (1-p)N$. Per linearità dell'attesa:
+\begin{align*}
+  u(L_1) &= p\,u(L) + (1-p)\,u(N),\\
+  u(L_2) &= p\,u(M) + (1-p)\,u(N).
+\end{align*}
+Sottraendo membro a membro, il termine comune in $N$ si cancella:
+\[
+  u(L_1) - u(L_2) = p\bigl(u(L) - u(M)\bigr).
+\]
+Se $L \spref M$ allora $u(L) > u(M)$, dunque $u(L_1) > u(L_2)$, cioè $L_1 \spref L_2$.
+L'indipendenza è necessaria.
+
+\begin{osservazione}[da dove viene la ``forza'' dell'indipendenza]
+La cancellazione del termine $(1-p)u(N)$ funziona \emph{perché} $U$ è lineare nelle
+probabilità. Indipendenza e linearità sono in sostanza la stessa proprietà vista da due
+lati: uno comportamentale (l'esito comune non conta), l'altro algebrico.
+\end{osservazione}
+
+\subsection{Sufficienza: dimostrazione del teorema VNM}
+
+La dimostrazione si divide in due parti:
+\begin{itemize}
+  \item \kw{Parte 1}: si mostra che $U(L) = \sum_{i} p_i\,u(x_i)$;
+  \item \kw{Parte 2}: si mostra che $L \spref M \iff U(L) > U(M)$ per ogni $L,M \in \lott$.
+\end{itemize}
+
+\paragraph{Parte 1.}
+Si supponga di avere $n$ esiti $o_1,\dots,o_n$. Per completezza e transitività si possono
+ordinare dal peggiore al migliore: $o_1 \pref \dots \pref o_n$ (nel senso $o_n$ migliore).
+Si fissano i due estremi della scala:
+\[
+  u(o_1) = 0, \qquad u(o_n) = 1 .
+\]
+Si definisce la famiglia di lotterie semplici
+\[
+  L(p) = p \cdot o_n + (1-p) \cdot o_1 ,
+\]
+cioè ``il premio migliore con probabilità $p$, il peggiore con probabilità $1-p$''.
+Per l'assioma di continuità, per ogni esito $o_i$ esiste una probabilità $q_i \in [0,1]$
+tale che $L(q_i) \indif o_i$; si pone $u(o_i) = q_i$. Ne segue che l'utilità di una
+lotteria $M = \sum_i p_i o_i$ è l'attesa di $u$:
+\[
+  u(M) = u\Bigl(\sum_i p_i o_i\Bigr) = \sum_i p_i\,u(o_i) = \sum_i p_i\,q_i .
+\]
+
+\begin{osservazione}[che cosa è davvero $q_i$]
+$q_i$ è un modo operativo di \emph{misurare} l'utilità: è la probabilità di vincere il
+premio migliore che rende il giocatore indifferente a ricevere $o_i$ con certezza.
+È una definizione che si può realizzare come esperimento, chiedendo alla persona
+di aggiustare $q$ finché non è indifferente, ed è esattamente questo che rende la scala
+cardinale invece che ordinale: $q_i$ posiziona $o_i$ \emph{tra} i due estremi.
+\end{osservazione}
+
+\paragraph{Parte 2.}
+Per l'assioma di continuità il giocatore è indifferente tra l'esito $o_i$ e la lotteria
+$q_i \cdot o_n + (1-q_i) \cdot o_1$. Insieme all'assioma di indipendenza (si sostituisce
+un esito alla volta dentro la lotteria) il giocatore è indifferente tra le due lotterie
+\[
+  M = \sum_i p_i o_i
+  \qquad\text{e}\qquad
+  M' = \sum_i p_i \bigl[\,q_i \cdot o_n + (1-q_i)\cdot o_1\,\bigr].
+\]
+Ma $M'$ coinvolge solo i due esiti estremi, quindi si può riscrivere come lotteria semplice:
+\[
+  M' = \Bigl(\sum_i p_i q_i\Bigr)\cdot o_n + \Bigl(\sum_i p_i (1-q_i)\Bigr)\cdot o_1
+     = U(M)\cdot o_n + \bigl(1 - U(M)\bigr)\cdot o_1 .
+\]
+Ogni lotteria è dunque equivalente a una lotteria sui soli due estremi, la cui unica
+caratteristica è la probabilità $U(M)$ di ottenere il premio migliore.
+
+Si supponga ora $L \spref M$ e si definiscano
+\begin{align*}
+  L' &= U(L)\cdot o_n + \bigl(1-U(L)\bigr)\cdot o_1,\\
+  M' &= U(M)\cdot o_n + \bigl(1-U(M)\bigr)\cdot o_1 .
+\end{align*}
+Vale l'ordine $L' \indif L \spref M \indif M'$, quindi $L' \spref M'$. Ma $L'$ e $M'$
+differiscono solo per la probabilità del premio migliore, e tra due lotterie di questa
+famiglia si preferisce quella con la probabilità più alta: dunque $U(L) > U(M)$.
+Vale anche il viceversa, quindi $L \spref M \iff U(L) > U(M)$. $\square$
+
+% ---------------------------------------------------------------------
+\section{Il paradosso di Allais}
+
+Si risponda d'istinto a due domande. \emph{Prima}: quale lotteria si preferisce?
+\[
+  L = (1{:}\ 1.000.000\$), \qquad
+  M = (0{,}89{:}\ 1.000.000\$,\ \ 0{,}10{:}\ 5.000.000\$,\ \ 0{,}01{:}\ 0\$).
+\]
+\emph{Seconda}: e tra queste?
+\[
+  N = (0{,}89{:}\ 0\$,\ \ 0{,}11{:}\ 1.000.000\$), \qquad
+  O = (0{,}90{:}\ 0\$,\ \ 0{,}10{:}\ 5.000.000\$).
+\]
+La maggior parte delle persone sceglie $L$ nella prima coppia (il milione sicuro) e $O$
+nella seconda. Questa combinazione è \kw{incompatibile} con la teoria dell'utilità attesa.
+
+\begin{extra}[perché è una contraddizione]
+Si normalizzi $u(0) = 0$ e si scrivano $u_1 = u(1\text{M})$, $u_5 = u(5\text{M})$.
+\begin{itemize}
+  \item $L \spref M$ significa
+        $u_1 > 0{,}89\,u_1 + 0{,}10\,u_5$, cioè $0{,}11\,u_1 > 0{,}10\,u_5$;
+  \item $O \spref N$ significa
+        $0{,}10\,u_5 > 0{,}11\,u_1$.
+\end{itemize}
+Le due disuguaglianze si contraddicono: \emph{nessuna} funzione di utilità $u$ può
+giustificare entrambe le scelte.
+
+Visto con l'assioma di indipendenza è ancora più netto. Si scriva ogni lotteria come
+miscela con $p = 0{,}11$:
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{lll}
+\toprule
+ & parte con probabilità $0{,}11$ & parte con probabilità $0{,}89$ \\
+\midrule
+$L$ & $1$M certo                                  & $1$M \\
+$M$ & $(\tfrac{10}{11}{:}\,5\text{M},\ \tfrac{1}{11}{:}\,0)$ & $1$M \\[2pt]
+$N$ & $1$M certo                                  & $0$ \\
+$O$ & $(\tfrac{10}{11}{:}\,5\text{M},\ \tfrac{1}{11}{:}\,0)$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Le coppie $(L,M)$ e $(N,O)$ differiscono nella prima colonna esattamente allo stesso modo;
+la seconda colonna è un esito \emph{comune} (dentro ogni coppia). Per l'indipendenza
+l'esito comune non deve contare, quindi chi preferisce $L$ a $M$ deve preferire $N$ a $O$.
+\end{extra}
+
+\begin{osservazione}[che cosa insegna il paradosso]
+Allais non dimostra che la teoria VNM è sbagliata: dimostra che è \kw{normativa} e non
+\kw{descrittiva}. Dice come si \emph{dovrebbe} decidere per essere coerenti, non come le
+persone decidono davvero. L'effetto in gioco si chiama \en{certainty effect}: il salto da
+$0{,}99$ a $1$ (certezza) pesa psicologicamente molto più del salto da $0{,}10$ a $0{,}11$.
+Le teorie descrittive alternative (per esempio la \en{prospect theory} di Kahneman e
+Tversky) nascono proprio da qui.
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\section{Atteggiamento verso il rischio}
+
+\begin{definizione}[Lotteria equa]
+Una lotteria $L = (p{:}\ x,\ (1-p){:}\ y)$ è \kw{equa} se il suo valore atteso è nullo:
+\[
+  \Ev(L) = p\,x + (1-p)\,y = 0 .
+\]
+\end{definizione}
+
+\begin{attenzione}[notazione delle slide]
+Le slide scrivono ``$L = p \cdot x + (1-p)\cdot y = 0$''. La lotteria $L$ è un oggetto
+(una distribuzione), non un numero: a essere nullo è il suo \emph{valore atteso}
+$\Ev(L)$. Si tratta di un abuso di notazione, ma la sostanza è ``giocare questa lotteria
+non costa e non rende nulla, in media''.
+\end{attenzione}
+
+\begin{definizione}[Atteggiamenti verso il rischio]
+Un giocatore con funzione di utilità di Bernoulli $u$ è:
+\begin{itemize}
+  \item \kw{neutrale al rischio} se $u$ è \kw{lineare}, $u(x) = ax + b$ (con $a > 0$):
+        è indifferente di fronte alle lotterie eque;
+  \item \kw{avverso al rischio} se $u$ è \kw{concava}:
+        se strettamente concava, non gioca \emph{nessuna} lotteria equa;
+  \item \kw{amante del rischio} (\en{risk seeking}) se $u$ è \kw{convessa}:
+        se strettamente convessa, gioca \emph{tutte} le lotterie eque.
+\end{itemize}
+\end{definizione}
+
+\begin{figure}[H]
+\centering
+% Stessa scala per le tre curve: x_tikz = x/5, y_tikz = u/25.
+% avverso  u(x) =  x^0.72  (x>0),  -(-x)^1.4 (x<0)   -> concava
+% amante   u(x) =  x^1.4   (x>0),  -(-x)^0.72 (x<0)  -> convessa
+% neutrale u(x) =  x
+\begin{tikzpicture}[scale=1, >=Stealth, font=\footnotesize\sffamily]
+  \draw[->, grigio] (-4.4,0) -- (4.4,0) node[below right]{$x$};
+  \draw[->, grigio] (0,-2.9) -- (0,2.9) node[above left]{$u(x)$};
+  \foreach \t in {-4,-2,2,4} \draw[grigio] (\t,0.07) -- (\t,-0.07);
+  % a sinistra le etichette vanno sopra l'asse: sotto ci passano le curve
+  \foreach \t/\l in {-4/-20, -2/-10}
+    \node[grigio, anchor=south, font=\scriptsize\sffamily] at (\t,0.1) {\l};
+  \foreach \t/\l in {2/10, 4/20}
+    \node[grigio, anchor=north, font=\scriptsize\sffamily] at (\t,-0.1) {\l};
+  \draw[grigio, thick, dashed] (-4,-0.8) -- (4,0.8);
+  \draw[unical, very thick, domain=0:4,  samples=60, smooth] plot (\x, {pow(5*\x,0.72)/25});
+  \draw[unical, very thick, domain=-4:0, samples=60, smooth] plot (\x, {-pow(-5*\x,1.4)/25});
+  \draw[blu, very thick, domain=0:4,  samples=60, smooth] plot (\x, {pow(5*\x,1.4)/25});
+  \draw[blu, very thick, domain=-4:0, samples=60, smooth] plot (\x, {-pow(-5*\x,0.72)/25});
+  \node[blu,    anchor=west] at (4.15, 2.64) {amante del rischio};
+  \node[grigio, anchor=west] at (4.15, 0.80) {neutrale};
+  \node[unical, anchor=west] at (4.15, 0.34) {avverso al rischio};
+\end{tikzpicture}
+\caption{Le tre forme della funzione di utilità sui guadagni. L'avverso al rischio
+soffre una perdita più di quanto goda un guadagno della stessa entità; per l'amante
+del rischio vale il contrario.}
+\end{figure}
+
+\begin{extra}[perché concavità significa avversione al rischio]
+È la \kw{disuguaglianza di Jensen}. Se $u$ è concava, per ogni lotteria $L$
+\[
+  \Ev\bigl[u(L)\bigr] \;\le\; u\bigl(\Ev[L]\bigr),
+\]
+cioè l'utilità del gioco è al più l'utilità di incassare con certezza il valore atteso.
+Chi è avverso al rischio preferisce quindi sempre il certo all'aleatorio di pari media;
+per una lotteria equa aggiunta alla propria ricchezza, non giocare è almeno altrettanto
+buono che giocare.
+
+Si definisce \kw{equivalente certo} (\en{certainty equivalent}) $CE(L)$ il premio certo
+che dà la stessa utilità della lotteria, cioè $u(CE(L)) = \Ev[u(L)]$. La differenza
+\[
+  \Ev[L] - CE(L)
+\]
+è il \kw{premio per il rischio}: quanto il giocatore è disposto a rinunciare per
+eliminare l'incertezza. Per un avverso al rischio è positivo, ed è esattamente la
+quantità su cui si regge il mercato assicurativo.
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Applicazioni}
+
+In entrambe le applicazioni la funzione di Bernoulli è $u(x) = \sqrt{x}$, che è
+strettamente concava: il giocatore è avverso al rischio.
+
+\subsection{Condivisione del rischio (\en{risk sharing})}
+
+Due giocatori avversi al rischio, con $u(x) = \sqrt{x}$, possiedono due attività
+rischiose \emph{indipendenti}
+\[
+  A_1 = A_2 = (0{,}5,\ 100;\ 0{,}5,\ 0).
+\]
+L'utilità di ciascuna attività, presa da sola, è
+\[
+  u(A_1) = u(A_2) = 0{,}5 \times \sqrt{100} + 0{,}5 \times \sqrt{0} = 5 .
+\]
+Se i due giocatori formano un \kw{fondo comune} in cui ciascuno possiede metà del totale,
+ogni giocatore si ritrova con l'attività
+\[
+  A_m = (0{,}25,\ 100;\ 0{,}5,\ 50;\ 0{,}25,\ 0),
+\]
+la cui utilità è
+\[
+  u(A_m) = 0{,}25 \times \sqrt{100} + 0{,}5 \times \sqrt{50} + 0{,}25 \times \sqrt{0}
+         \approx 2{,}5 + 3{,}54 = 6{,}04 > 5 .
+\]
+Entrambi i giocatori stanno \kw{meglio} pur non avendo cambiato il valore atteso.
+
+\begin{extra}[da dove viene $A_m$ e perché funziona]
+Le due attività sono indipendenti, quindi i quattro casi (vince $A_1$ sì/no, $A_2$ sì/no)
+hanno probabilità $0{,}25$ ciascuno. Il montante totale è $200$, $100$, $100$, $0$; metà
+del fondo vale quindi $100$, $50$, $50$, $0$, da cui
+$A_m = (0{,}25,100;\ 0{,}5,50;\ 0{,}25,0)$.
+
+Il valore atteso è rimasto $50$ in entrambi i casi: quello che è cambiato è la
+\emph{varianza}, scesa da $2500$ a $1250$. Mettere insieme rischi indipendenti li
+\kw{diversifica}, e per un giocatore con $u$ concava meno varianza a parità di media
+significa più utilità. È il principio su cui si reggono i fondi comuni di investimento
+e le mutue assicurative.
+\end{extra}
+
+\subsection{Assicurazione}
+
+Un giocatore avverso al rischio con $u(x) = \sqrt{x}$ possiede l'attività
+$A = (0{,}5,\ 100;\ 0{,}5,\ 0)$. Esiste una compagnia di assicurazione \kw{neutrale al
+rischio} con molto capitale.
+
+\paragraph{Quanto è disposto a pagare il giocatore?}
+Il giocatore paga un premio $P$ e in cambio riceve con certezza $100$; il suo patrimonio
+certo è quindi $100 - P$. Accetta se questo gli dà almeno l'utilità della lotteria:
+\[
+  u(100 - P) \ \geq\ 0{,}5 \times u(100) + 0{,}5 \times u(0)
+  \ \Longrightarrow\ \sqrt{100 - P} \geq 5
+  \ \Longrightarrow\ 100 - P \geq 25
+  \ \Longrightarrow\ P \leq 75 .
+\]
+
+\paragraph{Quanto vuole la compagnia?}
+Essendo neutrale al rischio, le basta che il premio copra il valore atteso del risarcimento:
+\[
+  P \ \geq\ 0{,}5 \times 100 + 0{,}5 \times 0 \ \Longrightarrow\ P \geq 50 .
+\]
+
+\paragraph{Conclusione.} Entrambe le parti guadagnano se il contratto si stipula a un
+premio
+\[
+  P \in [50,\ 75].
+\]
+
+\begin{osservazione}[lettura con l'equivalente certo]
+$\sqrt{100-P} \ge 5$ significa $100 - P \ge 25$: l'equivalente certo della lotteria è
+$CE(A) = 25$, mentre il suo valore atteso è $\Ev(A) = 50$. Il premio per il rischio è
+$50 - 25 = 25$, ed è esattamente l'ampiezza dell'intervallo $[50,75]$: il
+\kw{surplus} che le due parti si dividono. L'assicurazione crea valore perché sposta il
+rischio da chi lo odia a chi gli è indifferente.
+\end{osservazione}
+
+\begin{attenzione}[il patrimonio iniziale conta]
+Qui si è assunto implicitamente che il giocatore non abbia altra ricchezza: l'utilità si
+calcola su $100 - P$ e su $100$ o $0$. Se avesse un patrimonio iniziale $w$, le utilità
+sarebbero $u(w + 100 - P)$ e $u(w+100)$, $u(w)$, e il premio massimo accettabile sarebbe
+diverso (più basso in termini relativi: più si è ricchi, meno si è avversi al rischio
+con $u(x) = \sqrt{x}$). La funzione di Bernoulli si applica alla \emph{ricchezza
+finale}, non al guadagno della singola scommessa.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{Riepilogo sulla teoria VNM}
+
+\begin{itemize}
+  \item La teoria VNM fornisce un modo per costruire funzioni di utilità \kw{cardinali}:
+        i valori numerici sono interpretabili su una \kw{scala a intervalli} e, in certe
+        situazioni, su una scala di rapporti.
+  \item La teoria VNM fornisce una teoria \kw{normativa} della decisione: massimizzare
+        l'utilità attesa. È molto usata in applicazioni finanziarie ed economiche.
+  \item La teoria VNM \kw{non descrive} il comportamento umano. Un'alternativa non è
+        preferita perché ha un'utilità più alta; piuttosto, le si associa un'utilità più
+        alta perché è l'alternativa preferita.
+\end{itemize}
+
+% =====================================================================
+\partelab{Battaglia navale e ricerca bayesiana}
+% =====================================================================
+\fonte{Battleship\_Blank.ipynb}
+
+\textbf{Obiettivo}: costruire un'IA per la \kw{battaglia navale}, partendo da strategie
+euristiche semplici e arrivando a una strategia \kw{adattiva} che a ogni turno spara dove
+l'\emph{utilità attesa} è massima. Quest'ultima tecnica si chiama \kw{ricerca bayesiana}
+(\en{Bayesian search}) ed è uno degli algoritmi più efficaci per i problemi di ricerca e
+di ``caccia al tesoro''.
+
+Il collegamento con la teoria della lezione è diretto: non c'è un avversario strategico,
+ma c'è \kw{incertezza}. Si deve scegliere l'azione (la cella su cui sparare) che
+massimizza l'utilità attesa, dove la probabilità viene aggiornata a ogni colpo con le
+informazioni raccolte.
+
+\subsection{Regole e impostazione}
+
+Il campo è una griglia $10 \times 10$ su cui sono disposte cinque navi, in orizzontale o
+in verticale, senza sovrapposizioni e senza uscire dal bordo:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lc}
+\toprule
+Nave & Celle \\
+\midrule
+Portaerei (\en{Carrier})     & 5 \\
+Corazzata (\en{Battleship})  & 4 \\
+Incrociatore (\en{Cruiser})  & 3 \\
+Sommergibile (\en{Submarine}) & 3 \\
+Cacciatorpediniere (\en{Destroyer}) & 2 \\
+\midrule
+\textbf{Totale}              & \textbf{17} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Non essendoci un avversario vero, le strategie non si valutano in partite vinte ma in
+\kw{numero di turni necessari ad affondare tutte le navi}: 17 è il minimo teorico
+(nessun colpo a vuoto), 100 il massimo.
+
+Lo stato della conoscenza si tiene in una matrice \texttt{shot\_grid} con
+\texttt{0} = cella inesplorata, \texttt{1} = colpo a vuoto, \texttt{2} = colpo a segno.
+
+\begin{attenzione}[un bug nel generatore fornito]
+La funzione \texttt{create\_random\_disposition} del notebook estrae le coordinate così:
+\begin{lstlisting}
+if horizontal:
+    x = np.random.randint(0, grid_size - 1)        # riga
+    y = np.random.randint(0, grid_size - length)   # colonna di partenza
+else:
+    x = np.random.randint(0, grid_size - length)
+    y = np.random.randint(0, grid_size - 1)
+\end{lstlisting}
+\texttt{np.random.randint(0, n)} esclude \texttt{n}. Quindi per una nave orizzontale la
+riga sta in $[0,8]$ (la riga 9 non esce mai) e la colonna di partenza in
+$[0,\,9-\texttt{length}]$, cioè l'ultima cella occupata arriva al più alla colonna 8.
+Simmetricamente per le navi verticali. Il risultato è che \kw{l'ultima riga e l'ultima
+colonna non sono mai occupate}: su 2000 partite generate, le celle della riga 9 e della
+colonna 9 risultano vuote in tutte e 2000 (contro circa 2800 occupazioni per la riga 0 e
+per la colonna 0). Gli estremi corretti sarebbero
+\texttt{randint(0, grid\_size)} e \texttt{randint(0, grid\_size - length + 1)}.
+
+Conseguenza pratica: le cifre misurate sotto sono un po' ottimistiche, perché il 19\% del
+campo è di fatto acqua garantita. Il confronto \emph{tra} le strategie resta però valido,
+dato che tutte giocano sulle stesse partite.
+\end{attenzione}
+
+\subsection{Strategia 1: tiro casuale}
+
+La strategia più semplice: si spara a caso, ignorando del tutto gli esiti. Non è una vera
+strategia, ma serve da \kw{riferimento} (\en{baseline}): battere il caso è il minimo
+sindacale.
+
+\begin{lstlisting}
+def random_attack_strategy(grid):
+    shot_grid = np.zeros((10, 10), dtype=int)
+    cells = [(i, j) for i in range(10) for j in range(10)]
+    np.random.shuffle(cells)
+    hits = turns = 0
+    for (i, j) in cells:
+        shot_grid[i, j] = 2 if grid[i, j] else 1
+        turns += 1
+        if grid[i, j]:
+            hits += 1
+            if hits == 17:              # tutte le navi affondate
+                break
+    return shot_grid, turns
+\end{lstlisting}
+
+\begin{osservazione}[mescolare invece di estrarre]
+Sparare ``a caso'' si può implementare estraendo una cella e riprovando se è già stata
+colpita, ma verso la fine della partita quasi tutte le celle sono esplorate e il ciclo
+di riprova diventa lento. Mescolare una volta la lista delle 100 celle e scorrerla dà la
+stessa distribuzione senza riprove.
+\end{osservazione}
+
+\subsection{Strategia 2: \en{hunt and target}}
+
+La strategia casuale va male perché tratta tutte le celle come equiprobabili e
+\emph{butta via} l'informazione dei colpi a segno. L'idea di \kw{hunt and target} è
+alternare due modalità:
+\begin{itemize}
+  \item \kw{hunt} (caccia): si cerca a caso finché non si colpisce qualcosa;
+  \item \kw{target} (bersaglio): appena si colpisce, si spara nelle celle adiacenti
+        (sopra, sotto, destra, sinistra) non ancora esplorate, finché la nave è affondata.
+\end{itemize}
+È il classico compromesso tra \kw{esplorazione} e \kw{sfruttamento}.
+
+In più, in modalità hunt non serve sparare ovunque: la nave più piccola occupa 2 celle,
+quindi una nave non può nascondersi dentro una sola ``casella nera'' di una
+\kw{scacchiera}. Basta sparare sulle celle con $(i+j)$ pari: 50 celle invece di 100, con
+la garanzia di intercettare comunque ogni nave.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.3]
+  \foreach \i in {0,...,9} \foreach \j in {0,...,9} {
+    \pgfmathparse{int(mod(\i+\j,2))}
+    \ifnum\pgfmathresult=0
+      \fill[blu!25] (\j,-\i) rectangle ++(1,1);
+    \fi
+    \draw[grigio!60] (\j,-\i) rectangle ++(1,1);
+  }
+  \fill[unical] (3,-4) rectangle ++(1,1);
+  \fill[unical] (4,-4) rectangle ++(1,1);
+\end{tikzpicture}
+\end{center}
+{\small\sffamily\color{grigio}\hspace*{\fill}Le celle della scacchiera (in blu) bastano:
+qualunque nave da 2 celle (in rosso) ne tocca almeno una.\hspace*{\fill}}
+
+\begin{lstlisting}
+def hunt_and_target_strategy(grid):
+    shot_grid = np.zeros((10, 10), dtype=int)
+    hunt = [(i, j) for i in range(10) for j in range(10) if (i + j) % 2 == 0]
+    np.random.shuffle(hunt)
+    targets = []                       # pila delle celle da verificare
+    hits = turns = 0
+    while hits < 17:
+        if targets:
+            i, j = targets.pop()
+        else:
+            i, j = hunt.pop()
+        if shot_grid[i, j]:            # gia' esplorata: salta il turno
+            continue
+        shot_grid[i, j] = 2 if grid[i, j] else 1
+        turns += 1
+        if grid[i, j]:
+            hits += 1
+            for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                a, b = i + di, j + dj
+                if 0 <= a < 10 and 0 <= b < 10 and shot_grid[a, b] == 0:
+                    targets.append((a, b))
+\end{lstlisting}
+
+\begin{attenzione}[la pila può contenere celle già colpite]
+Una cella può finire nella pila \texttt{targets} due volte (da due colpi a segno diversi),
+oppure essere colpita nel frattempo. Il controllo \texttt{if shot\_grid[i, j]: continue}
+prima di sparare è indispensabile: senza, si conterebbero turni per colpi mai sparati e
+il risultato sarebbe gonfiato.
+\end{attenzione}
+
+\begin{extra}[si può fare meglio in modalità target]
+L'implementazione sopra è ``la più semplice'': spara alle quattro celle adiacenti senza
+ragionare. Un miglioramento classico è sfruttare l'\kw{orientamento}: dopo due colpi a
+segno allineati si sa che la nave è orizzontale o verticale, quindi si possono scartare
+le celle adiacenti nell'altra direzione. La ricerca bayesiana della prossima sezione
+ottiene questo effetto \emph{automaticamente}, senza regole scritte a mano.
+\end{extra}
+
+\subsection{Strategia 3: ricerca bayesiana}
+
+Qui si usa davvero la teoria della lezione. A ogni turno si costruisce una
+\kw{distribuzione a posteriori} sulla posizione delle navi e si spara dove la probabilità
+di colpire è massima, cioè dove è massima l'\kw{utilità attesa} (con utilità $1$ per il
+colpo a segno e $0$ per il colpo a vuoto, l'utilità attesa di una cella \emph{è} la sua
+probabilità di contenere una nave).
+
+Il conteggio è semplice: per ogni nave rimasta e per ogni sua possibile posa
+(orizzontale o verticale) \emph{compatibile} con quanto si sa, si aggiunge un voto a
+ciascuna cella coperta. Una posa è compatibile se non copre nessuna cella risultata a
+vuoto. Si distinguono due regimi:
+\begin{itemize}
+  \item nessun colpo a segno ``aperto'' (\kw{hunt}): si contano tutte le pose compatibili;
+  \item ci sono colpi a segno (\kw{target}): si contano solo le pose che \emph{spiegano}
+        almeno un colpo a segno, pesandole con $10^{(\text{colpi coperti})}$ per premiare
+        le pose che ne spiegano di più.
+\end{itemize}
+In entrambi i casi i voti si assegnano solo alle celle ancora \kw{inesplorate}: sparare
+dove si è già sparato non ha alcun valore.
+
+\begin{lstlisting}
+SIZES = [5, 4, 3, 3, 2]
+
+def update_posterior(shot_map, sizes):
+    post = conta_pose(shot_map, sizes, targeting=(shot_map == 2).any())
+    if post.max() == 0:                     # nessuna posa spiega i colpi a segno
+        post = conta_pose(shot_map, sizes, targeting=False)
+    if post.max() == 0:                     # nessuna posa compatibile: cella libera
+        post = (shot_map == 0).astype(float)
+    return post
+
+def conta_pose(shot_map, sizes, targeting):
+    post = np.zeros((10, 10))
+    for length in sizes:
+        for horizontal in (True, False):
+            righe = 10 if horizontal else 10 - length + 1
+            colonne = 10 - length + 1 if horizontal else 10
+            for i in range(righe):
+                for j in range(colonne):
+                    cells = [(i, j + k) if horizontal else (i + k, j)
+                             for k in range(length)]
+                    if any(shot_map[a, b] == 1 for a, b in cells):
+                        continue                 # la posa copre un colpo a vuoto
+                    n_hit = sum(shot_map[a, b] == 2 for a, b in cells)
+                    if targeting and n_hit == 0:
+                        continue                 # non spiega nessun colpo a segno
+                    peso = 10 ** n_hit
+                    for a, b in cells:
+                        if shot_map[a, b] == 0:
+                            post[a, b] += peso
+    return post
+
+def get_best_coordinates(posterior_map):
+    return np.unravel_index(np.argmax(posterior_map), posterior_map.shape)
+
+def bayesian_search_strategy(grid):
+    shot_grid = np.zeros((10, 10), dtype=int)
+    hits = turns = 0
+    while hits < 17:
+        i, j = get_best_coordinates(update_posterior(shot_grid, SIZES))
+        shot_grid[i, j] = 2 if grid[i, j] else 1
+        turns += 1
+        if grid[i, j]:
+            hits += 1
+    return shot_grid, turns
+\end{lstlisting}
+
+\begin{osservazione}[dov'è il teorema di Bayes]
+Il nome ``bayesiana'' è giustificato anche se nel codice non compare la formula. Il
+prior è uniforme su tutte le disposizioni possibili; una cella risultata a vuoto ha
+verosimiglianza $0$ per ogni disposizione che la occupa, quindi tutte quelle
+disposizioni vengono eliminate dal posteriore. Contare le pose sopravvissute è
+esattamente calcolare la probabilità a posteriori marginale di ogni cella, a meno della
+costante di normalizzazione, che non serve perché si cerca solo l'\emph{argmax}.
+\end{osservazione}
+
+\begin{attenzione}[il posteriore può azzerarsi, e il programma si blocca]
+Scritta nel modo ovvio (solo il conteggio, senza i due \texttt{if} iniziali) questa
+strategia entra in \kw{ciclo infinito}. Succede così: una nave da 2 celle viene colpita
+tutta e si trova circondata da celle già esplorate. I suoi due colpi a segno restano
+``aperti'' perché non si tiene traccia degli affondamenti, quindi si è in modalità target;
+ma l'unica posa che li spiega non tocca alcuna cella inesplorata, e quindi non assegna
+voti a nessuno. Se tutti i colpi a segno aperti sono in questa condizione il posteriore è
+\emph{tutto zero}, \texttt{argmax} restituisce sempre $(0,0)$, si spara all'infinito sulla
+stessa cella e il contatore dei colpi a segno non avanza più.
+
+Il rimedio è il ripiego in due passi: se il posteriore in modalità target è nullo si
+ricalcola in modalità hunt, e se è nullo anche quello si spara su una qualsiasi cella
+inesplorata. Vale la pena saperlo perché il sintomo (il notebook che non finisce mai)
+non assomiglia per niente alla causa.
+\end{attenzione}
+
+\begin{attenzione}[il peso $10^{n\_hit}$ è un'euristica, non Bayes]
+Il filtro sui colpi a vuoto è un calcolo bayesiano esatto; il peso $10^{n\_hit}$ no, è
+una scorciatoia per dire ``le pose che spiegano più colpi sono molto più plausibili''.
+Il calcolo rigoroso richiederebbe di enumerare le disposizioni \emph{congiunte} delle
+cinque navi compatibili con tutti i dati, che sono troppe per essere contate a ogni
+turno. Vale la pena saperlo, perché in sede d'esame la differenza tra ``esatto'' e
+``approssimato'' è il tipo di cosa su cui si viene interrogati.
+\end{attenzione}
+
+\begin{extra}[che cosa manca rispetto alle regole vere]
+Nelle regole, quando una nave affonda l'avversario deve dichiarare \emph{quale} nave era.
+L'implementazione sopra non usa questa informazione: tiene sempre tutte e cinque le
+lunghezze in \texttt{SIZES}. Tenere traccia delle navi affondate e rimuoverle dalla lista
+(e marcare come ``chiusi'' i loro colpi a segno) rende il posteriore più preciso e fa
+guadagnare qualche turno. È il primo miglioramento da provare.
+\end{extra}
+
+\subsection{Risultati misurati}
+
+Le tre strategie sono state eseguite sulle stesse partite generate casualmente
+(2000 partite per le prime due, 300 per la ricerca bayesiana, che è molto più pesante:
+ricostruisce il posteriore da zero a ogni turno).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{lrrr}
+\toprule
+ & Casuale & Hunt and target & Ricerca bayesiana \\
+\midrule
+Partite simulate            & $2000$ & $2000$ & $300$ \\
+\midrule
+Turni medi                  & $95{,}3$ & $59{,}8$ & $54{,}2$ \\
+Mediana                     & $97$ & $61$ & $54$ \\
+Minimo                      & $66$ & $30$ & $29$ \\
+Massimo                     & $100$ & $80$ & $77$ \\
+Partite chiuse entro 50 turni & $0\%$ & $17{,}6\%$ & $35{,}0\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Il salto grosso è il primo: passare dal caso a \en{hunt and target} fa risparmiare
+circa 35 turni, cioè oltre un terzo della partita. Il secondo salto è molto più piccolo,
+circa 6 turni in media, ma cambia la \emph{forma} della distribuzione: la quota di partite
+chiuse entro 50 turni raddoppia (dal 17{,}6\% al 35\%). La ricerca bayesiana non è tanto
+più veloce nel caso tipico, quanto più \kw{affidabile}: sbaglia meno spesso in grande.
+
+\begin{attenzione}[questi 54 turni si possono migliorare parecchio]
+Le implementazioni pubblicate di ricerca bayesiana per la battaglia navale arrivano
+attorno ai 42--45 turni. La differenza viene quasi tutta da due semplificazioni fatte
+sopra: non si tiene traccia delle navi affondate (quindi il posteriore continua a cercare
+navi che non ci sono più) e il peso $10^{n\_hit}$ è un'euristica. Il numero riportato è
+quello \emph{effettivamente misurato con questo codice}, non il migliore ottenibile:
+vale la pena saperlo prima di citarlo.
+\end{attenzione}
+
+\subsection{Che cosa portarsi dietro}
+
+\begin{itemize}
+  \item Le tre strategie sono tre livelli di uso dell'informazione: nessuno (casuale),
+        locale (hunt and target), globale (bayesiana).
+  \item La ricerca bayesiana non ha regole scritte a mano: si limita a massimizzare
+        l'utilità attesa rispetto a una distribuzione aggiornata. Il comportamento
+        ``intelligente'' (sparare a scacchiera all'inizio, seguire l'orientamento della
+        nave dopo due colpi) \kw{emerge} dal calcolo.
+  \item È lo schema che si ritrova nelle vere applicazioni di \en{search theory}: i paper
+        in \texttt{labs/02-battleship/papers/} raccontano come la stessa idea sia stata usata per
+        ritrovare il relitto del volo Air France 447.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item Le preferenze sono una relazione $\pref$ su $X$; se è completa e transitiva è una
+        \emph{relazione di preferenza}, e da essa si derivano $\spref$ e $\indif$.
+  \item \textbf{Teorema 1}: con $X$ finito, $\pref$ è rappresentabile da $u : X \to \R$
+        se e solo se è completa e transitiva. L'utilità è \emph{ordinale}: invariante per
+        trasformazioni strettamente crescenti, quindi i numeri non si interpretano.
+  \item Con l'incertezza si passa alle \emph{lotterie}. Una lotteria composta si riduce a
+        una semplice moltiplicando le probabilità lungo i rami.
+  \item \textbf{Teorema VNM}: $\pref$ su $\lott$ ammette utilità attesa
+        $U(L) = \sum_i p_i u(x_i)$ se e solo se vale ordine di preferenza, continuità e
+        indipendenza. L'utilità è \emph{cardinale}: unica a meno di trasformazioni affini
+        $aU + b$ con $a>0$.
+  \item Il \emph{paradosso di Allais} mostra che le persone violano l'indipendenza: VNM è
+        una teoria normativa, non descrittiva.
+  \item Atteggiamento verso il rischio = curvatura di $u$: lineare $\to$ neutrale,
+        concava $\to$ avverso, convessa $\to$ amante. Con $u(x) = \sqrt{x}$ la
+        condivisione del rischio e l'assicurazione creano valore per entrambe le parti
+        (premio $P \in [50,75]$ nell'esempio).
+  \item \textbf{Lab}: la ricerca bayesiana sceglie a ogni turno la cella di massima utilità
+        attesa, aggiornando il posteriore con i colpi a vuoto e a segno.
+\end{itemize}
+\textbf{Prossima lezione}: giochi non cooperativi in forma normale, \en{best response} ed
+equilibrio di Nash.
+\end{riepilogo}

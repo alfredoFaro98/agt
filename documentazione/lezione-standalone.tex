@@ -1,0 +1,48 @@
+% =====================================================================
+%  Wrapper per compilare UNA lezione come PDF a sé stante.
+%  Non si compila direttamente: ci pensa compila.ps1, che passa
+%  \lezNum (numero della lezione) e \lezPath (percorso del sorgente):
+%
+%    pdflatex -jobname=lezione-02-utilita
+%      "\def\lezNum{2}\def\lezPath{lezioni/02-utilita/lezione}\input{lezione-standalone}"
+%
+%  Lo stesso file lezione.tex finisce anche in main.tex, senza modifiche.
+% =====================================================================
+\documentclass[11pt, a4paper, oneside, openany]{book}
+\input{preambolo}
+
+\providecommand{\lezNum}{1}
+\providecommand{\lezPath}{lezioni/01-introduzione/lezione}
+
+% Il capitolo deve portare il numero della lezione anche da solo.
+\setcounter{chapter}{\lezNum}
+\addtocounter{chapter}{-1}
+
+% L'intestazione va dentro al titolo del capitolo: \chapter apre comunque
+% una pagina nuova, quindi metterla prima la lascerebbe da sola su pagina 1.
+\newcommand{\intestazione}{%
+  \begin{center}
+    {\sffamily\bfseries\color{unical}\small UNIVERSITÀ DELLA CALABRIA\par}
+    \vspace{0.15em}
+    {\sffamily\color{grigio}\small Algorithmic Game Theory --- a.a.\ 2026/2027
+     --- Sebastiano A.\ Piccolo\par}
+    \vspace{0.15em}
+    {\sffamily\color{grigio}\footnotesize Appunti in italiano, parte di
+     \texttt{main.pdf} --- \today\par}
+  \end{center}
+  \vspace{-0.3em}
+  {\color{blu}\rule{\linewidth}{1pt}}
+  \vspace{1.2em}
+  \par}
+
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\bfseries\color{blu}}
+  {\intestazione\large\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {0.3em}
+  {\Huge}
+  [\vspace{0.3em}{\color{unical}\titlerule[1.2pt]}]
+
+\begin{document}
+\pagenumbering{arabic}
+\input{\lezPath}
+\end{document}
