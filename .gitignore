@@ -17,3 +17,6 @@ labs/
 __pycache__/
 .ipynb_checkpoints/
 .venv/
+
+# Istanze generate dal collaudo del quiz
+quiz/test/istanze.json

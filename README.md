@@ -9,6 +9,8 @@ Tutti i PDF generati stanno in [`documentazione/pdf/`](documentazione/pdf/):
 - [`main.pdf`](documentazione/pdf/main.pdf): tutte le lezioni in un unico documento
 - [`project.pdf`](documentazione/pdf/project.pdf): documento di lavoro per il progetto d'esame (metodo, idee, domande aperte, decisioni)
 
+Per esercitarsi: **[`quiz/index.html`](quiz/)**, da aprire con un doppio clic nel browser (non serve installare nulla). Domande divise per lezione con spiegazione e rimando alla sezione degli appunti, più esercizi di calcolo con numeri sempre nuovi; le domande sbagliate si possono ripetere.
+
 | Lezione | Argomento | Laboratorio |
 |---|---|---|
 | 1 | Introduzione all'AGT, giochi combinatori | Minimax e alpha-beta per il tris |
@@ -33,6 +35,12 @@ documentazione/              il LaTeX che scriviamo noi
   lezione-standalone.tex          wrapper per i PDF di singola lezione
   compila.ps1                     script di compilazione
 
+quiz/                        applicativo dei quiz
+  index.html, app.js, motore.js   interfaccia e calcoli
+  banche/NN-nome.js               una banca di domande per lezione
+  test/                           collaudo: node quiz/test/verifica.js,
+                                  poi python quiz/test/verifica_generatori.py
+
 lessons/                     slide del docente
 labs/
   01-minimax/                     notebook del laboratorio 1
@@ -51,7 +59,8 @@ vanno messi a mano in locale.
 
 Per aggiungere una lezione: creare `documentazione/lezioni/NN-nome/lezione.tex`
 e includerlo in `main.tex`. Il PDF singolo lo genera `compila.ps1` da solo,
-leggendo il nome della cartella.
+leggendo il nome della cartella. Per il quiz: aggiungere `quiz/banche/NN-nome.js`
+e una riga `<script>` in `quiz/index.html`, poi lanciare i due test.
 
 ## Compilazione
 

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz di AGT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: una colonna di lettura (max 46rem) sotto una testata a fascia; tre viste che si alternano. */
+:root {
+  --bg: #F3F5F9;
+  --surface: #FFFFFF;
+  --surface-2: #E9EEF6;
+  --ink: #141A2E;
+  --muted: #5A6378;
+  --line: #D3DAE6;
+  --accent: #0B3A91;
+  --accent-ink: #FFFFFF;
+  --brand: #B00000;
+  --good: #1E7B34;
+  --good-bg: #E3F2E7;
+  --bad: #B42318;
+  --bad-bg: #FBE8E6;
+  --warn: #A9530B;
+  --warn-bg: #FCEEE0;
+  --f-ui: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-text: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1322; --surface: #161C2F; --surface-2: #1F2742; --ink: #E7EAF3; --muted: #9BA4BC;
+    --line: #2C3654; --accent: #8EAEFF; --accent-ink: #0E1322; --brand: #FF7A7A;
+    --good: #63C985; --good-bg: #15301F; --bad: #FF8578; --bad-bg: #3A1B19; --warn: #F4A964; --warn-bg: #3A2715;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1322; --surface: #161C2F; --surface-2: #1F2742; --ink: #E7EAF3; --muted: #9BA4BC;
+  --line: #2C3654; --accent: #8EAEFF; --accent-ink: #0E1322; --brand: #FF7A7A;
+  --good: #63C985; --good-bg: #15301F; --bad: #FF8578; --bad-bg: #3A1B19; --warn: #F4A964; --warn-bg: #3A2715;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.55 var(--f-ui);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.wrap {
+  max-width: 46rem; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ------------------------------------------------ testata */
+.testata { background: var(--accent); color: var(--accent-ink); padding-top: env(safe-area-inset-top, 0px); }
+.testata .wrap { padding-block: 18px 20px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.marchio {
+  font: 600 0.72rem/1 var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--brand); color: #fff; padding: 5px 8px; border-radius: 3px;
+}
+:root[data-theme="dark"] .marchio { color: #1a0b0b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .marchio { color: #1a0b0b; } }
+.testata h1 { font: 600 1.45rem/1.2 var(--f-ui); }
+.testata p { margin: 0; font-size: 0.9rem; opacity: 0.85; flex-basis: 100%; }
+
+main { padding-block: 24px 48px; }
+.blocco { display: grid; gap: 12px; margin-bottom: 28px; }
+.etichetta {
+  font: 600 0.74rem/1 var(--f-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+}
+.etichetta button { font: 500 0.82rem var(--f-ui); letter-spacing: 0; text-transform: none; }
+
+/* ------------------------------------------------ lezioni */
+.lezioni { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr)); }
+.lez {
+  text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r);
+  padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; min-width: 0;
+}
+.lez:hover { border-color: var(--accent); }
+.lez[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--surface-2); }
+.lez .num { font: 500 0.78rem var(--f-mono); color: var(--muted); display: flex; justify-content: space-between; }
+.lez .num .spunta { color: var(--accent); visibility: hidden; font-family: var(--f-ui); font-weight: 700; }
+.lez[aria-pressed="true"] .num .spunta { visibility: visible; }
+.lez .tit { font-weight: 600; line-height: 1.25; }
+.lez .info { font-size: 0.82rem; color: var(--muted); }
+.lez .ultimo { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------ modalità */
+.modi { display: grid; gap: 8px; }
+.modo {
+  display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: start;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; cursor: pointer;
+}
+.modo input { margin: 4px 0 0; accent-color: var(--accent); grid-row: span 2; }
+.modo b { font-weight: 600; }
+.modo span { color: var(--muted); font-size: 0.88rem; grid-column: 2; }
+.modo:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
+.modo:has(input:disabled) { opacity: 0.55; cursor: default; }
+.quanti { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 2; margin-top: 6px; }
+.quanti button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 12px;
+  font-size: 0.85rem; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.quanti button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.primario {
+  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: var(--r);
+  padding: 13px 22px; font-weight: 600; font-size: 1rem; cursor: pointer;
+}
+.primario:disabled { opacity: 0.45; cursor: not-allowed; }
+.secondario {
+  background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: var(--r);
+  padding: 11px 18px; font-weight: 600; cursor: pointer;
+}
+.testo-btn { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 4px 2px; font-weight: 500; }
+.nota { font-size: 0.85rem; color: var(--muted); margin: 0; }
+.azioni { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ------------------------------------------------ domanda */
+.barra-quiz { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.progresso-testo { font: 500 0.85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.progresso { height: 5px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-bottom: 18px; }
+.progresso i { display: block; height: 100%; background: var(--accent); width: 0; transition: width 0.25s; }
+.scheda { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.chip-riga { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip {
+  font: 500 0.76rem/1.3 var(--f-ui); padding: 3px 8px; border-radius: 4px; background: var(--surface-2); color: var(--muted);
+}
+.chip.sez { font-family: var(--f-mono); color: var(--accent); }
+.chip.trappola { background: var(--warn-bg); color: var(--warn); font-weight: 600; }
+.chip.gen { background: var(--good-bg); color: var(--good); font-weight: 600; }
+.domanda { font: 1.08rem/1.6 var(--f-text); min-width: 0; }
+.domanda p { margin: 0.4em 0; }
+.formula { font-family: var(--f-mono); font-size: 0.92rem; background: var(--surface-2); padding: 8px 10px; border-radius: 6px; }
+code { font-family: var(--f-mono); font-size: 0.88em; background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+.tab-scroll { overflow-x: auto; margin: 10px 0; }
+table.gioco, table.dati { border-collapse: collapse; font: 0.95rem/1.3 var(--f-ui); font-variant-numeric: tabular-nums; }
+table.gioco th, table.gioco td, table.dati th, table.dati td { border: 1px solid var(--line); padding: 6px 12px; text-align: center; white-space: nowrap; }
+table.gioco thead th, table.gioco tbody th, table.dati thead th { background: var(--surface-2); font-weight: 600; color: var(--muted); }
+table.gioco .angolo { font-weight: 500; font-size: 0.78rem; }
+.suggerimento { font-size: 0.85rem; color: var(--muted); margin: -4px 0 0; }
+
+.opzioni { display: grid; gap: 8px; }
+.opz {
+  display: grid; grid-template-columns: 1.7rem 1fr; gap: 10px; align-items: start; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r); padding: 10px 12px; cursor: pointer; min-width: 0;
+}
+.opz:hover:not(:disabled) { border-color: var(--accent); }
+.opz .tasto {
+  font: 500 0.8rem/1.7rem var(--f-mono); text-align: center; border-radius: 6px; background: var(--surface-2); color: var(--muted);
+}
+.opz[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-2); }
+.opz[aria-pressed="true"] .tasto { background: var(--accent); color: var(--accent-ink); }
+.opz.giusta { border-color: var(--good); background: var(--good-bg); }
+.opz.giusta .tasto { background: var(--good); color: var(--surface); }
+.opz.sbagliata { border-color: var(--bad); background: var(--bad-bg); }
+.opz.sbagliata .tasto { background: var(--bad); color: var(--surface); }
+.opz:disabled { cursor: default; color: var(--ink); }
+.vf { grid-template-columns: 1fr 1fr; }
+.numero-riga { display: flex; gap: 10px; flex-wrap: wrap; }
+.numero-riga input {
+  flex: 1 1 10rem; min-width: 0; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: var(--r);
+  background: var(--surface); font-family: var(--f-mono); font-size: 1.05rem;
+}
+.numero-riga input.giusta { border-color: var(--good); background: var(--good-bg); }
+.numero-riga input.sbagliata { border-color: var(--bad); background: var(--bad-bg); }
+
+.esito { border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; border-left: 4px solid; }
+.esito.ok { background: var(--good-bg); border-color: var(--good); }
+.esito.no { background: var(--bad-bg); border-color: var(--bad); }
+.esito h3 { font: 600 1rem var(--f-ui); }
+.esito.ok h3 { color: var(--good); }
+.esito.no h3 { color: var(--bad); }
+.esito .corretta { font-weight: 600; }
+.esito .perche { font: 0.98rem/1.6 var(--f-text); }
+.esito .rimando { font-size: 0.85rem; color: var(--muted); }
+
+/* ------------------------------------------------ risultato */
+.punteggio { display: grid; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.punteggio .grande { font: 700 2.6rem/1 var(--f-ui); font-variant-numeric: tabular-nums; }
+.punteggio .grande small { font-size: 1.1rem; font-weight: 500; color: var(--muted); }
+.giudizio { color: var(--muted); }
+.per-lezione { display: grid; gap: 8px; }
+.riga-lez { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; font-size: 0.92rem; }
+.riga-lez .barra { grid-column: 1 / -1; height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.riga-lez .barra i { display: block; height: 100%; background: var(--good); }
+.riga-lez .val { font-variant-numeric: tabular-nums; color: var(--muted); }
+.rileggere { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.rileggere li { display: flex; justify-content: space-between; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.92rem; }
+.rileggere .s { font-family: var(--f-mono); color: var(--accent); margin-right: 6px; }
+.rileggere .c { color: var(--bad); font-variant-numeric: tabular-nums; white-space: nowrap; }
+details.errore { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+details.errore summary { cursor: pointer; font-weight: 500; }
+details.errore summary .s { font-family: var(--f-mono); color: var(--accent); font-size: 0.85rem; margin-right: 6px; }
+details.errore .corpo { display: grid; gap: 8px; padding-top: 10px; font: 0.96rem/1.55 var(--f-text); }
+.lista-errori { display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+<header class="testata">
+  <div class="wrap">
+    <span class="marchio">UniCal</span>
+    <h1>Quiz di AGT</h1>
+    <p>Algorithmic Game Theory, a.a. 2026/2027 · domande dagli appunti, esercizi con numeri sempre nuovi</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ======================================================= HOME -->
+  <section id="home">
+    <div class="blocco">
+      <div class="etichetta"><span>Lezioni</span><button class="testo-btn" id="tutte" type="button">Seleziona tutte</button></div>
+      <div class="lezioni" id="lezioni"></div>
+    </div>
+
+    <div class="blocco">
+      <div class="etichetta"><span>Modalità</span></div>
+      <div class="modi">
+        <label class="modo"><input type="radio" name="modo" id="modo-completo" value="completo" checked>
+          <b>Ripasso completo</b>
+          <span>Tutte le domande, nell'ordine degli appunti, con un esercizio di calcolo per ogni tipo. È la modalità per uscire sapendo tutta la lezione.</span>
+        </label>
+        <label class="modo"><input type="radio" name="modo" id="modo-rapido" value="rapido">
+          <b>Quiz rapido</b>
+          <span>Domande ed esercizi a caso.</span>
+          <span class="quanti" data-per="rapido"></span>
+        </label>
+        <label class="modo"><input type="radio" name="modo" id="modo-calcolo" value="calcolo">
+          <b>Esercizi di calcolo</b>
+          <span>Solo esercizi generati: numeri nuovi a ogni giro, soluzione spiegata passo per passo.</span>
+          <span class="quanti" data-per="calcolo"></span>
+        </label>
+        <label class="modo"><input type="radio" name="modo" id="modo-errori" value="errori">
+          <b>Ripeti gli errori</b>
+          <span id="errori-info">Le domande che hai sbagliato nei quiz precedenti.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="azioni">
+      <button class="primario" id="inizia" type="button">Inizia</button>
+      <p class="nota" id="inizia-nota"></p>
+    </div>
+  </section>
+
+  <!-- ======================================================= QUIZ -->
+  <section id="quiz" hidden>
+    <div class="barra-quiz">
+      <span class="progresso-testo" id="prog-testo"></span>
+      <button class="testo-btn" id="termina" type="button">Termina e vedi il risultato</button>
+    </div>
+    <div class="progresso" aria-hidden="true"><i id="prog-barra"></i></div>
+
+    <article class="scheda" aria-live="polite">
+      <div class="chip-riga" id="chips"></div>
+      <div class="domanda" id="testo"></div>
+      <p class="suggerimento" id="suggerimento"></p>
+      <div id="risposta"></div>
+      <div id="esito" hidden></div>
+      <div class="azioni">
+        <button class="primario" id="conferma" type="button" disabled>Conferma</button>
+        <button class="primario" id="avanti" type="button" hidden>Avanti</button>
+      </div>
+    </article>
+    <p class="nota" style="margin-top:10px">Tastiera: 1–8 per scegliere, V/F per vero o falso, Invio per confermare e andare avanti.</p>
+  </section>
+
+  <!-- ======================================================= RISULTATO -->
+  <section id="risultato" hidden>
+    <div class="blocco">
+      <div class="punteggio">
+        <span class="etichetta"><span>Risultato</span></span>
+        <div class="grande" id="ris-numero"></div>
+        <div class="giudizio" id="ris-giudizio"></div>
+      </div>
+    </div>
+    <div class="blocco" id="ris-lezioni-blocco">
+      <div class="etichetta"><span>Per lezione</span></div>
+      <div class="per-lezione" id="ris-lezioni"></div>
+    </div>
+    <div class="blocco" id="ris-sezioni-blocco">
+      <div class="etichetta"><span>Sezioni da rileggere</span></div>
+      <ul class="rileggere" id="ris-sezioni"></ul>
+    </div>
+    <div class="blocco" id="ris-errori-blocco">
+      <div class="etichetta"><span>Le risposte sbagliate</span></div>
+      <div class="lista-errori" id="ris-errori"></div>
+    </div>
+    <div class="azioni">
+      <button class="primario" id="ripeti-errori" type="button">Ripeti subito gli errori</button>
+      <button class="secondario" id="nuovo" type="button">Nuovo quiz</button>
+    </div>
+  </section>
+</main>
+
+<script src="motore.js"></script>
+<script src="banche/01-introduzione.js"></script>
+<script src="banche/02-utilita.js"></script>
+<script src="banche/03-non-cooperativi.js"></script>
+<script src="banche/04-non-cooperativi-2.js"></script>
+<script src="banche/05-coalizionali.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
