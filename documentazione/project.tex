@@ -383,14 +383,42 @@ Proposta da aggiornare quando saranno note le date ufficiali.
 \textbf{Periodo} & \textbf{Obiettivo} \\
 \midrule
 Ottobre    & seguire le lezioni, aggiungere idee alla banca, avere risposta alle domande aperte \\
-Novembre   & \textbf{siamo qui}: le domande aperte sono ancora senza risposta e il tema non è
-             scelto. Scegliere il tema entro fine mese; scrivere la formalizzazione
-             (Capitolo~\ref{cap:metodo}, domande 1--7) \\
-Dicembre   & implementazione ed esperimenti \\
-Gennaio    & relazione, rifinitura, preparazione della discussione \\
+Novembre   & \textbf{siamo qui}. Lavoro leggero: fare le domande aperte al docente e scegliere
+             un tema provvisorio; continuare con gli appunti delle lezioni \\
+Dicembre   & seguire le ultime lezioni; prima di Natale avere tema confermato e
+             formalizzazione abbozzata (Capitolo~\ref{cap:metodo}, domande 1--7) \\
+Natale     & \textbf{preparazione vera e propria}: implementazione, esperimenti, relazione;
+             ripasso della teoria (con i quiz, se pronti) \\
+Gennaio    & rifinitura e preparazione della discussione, fino all'appello \\
 \bottomrule
 \end{tabularx}
 \end{center}
+
+\section{Strumenti di studio in programma}
+
+\subsection*{Generatore di quiz per lezione \hfill\stato{arancio}{DA FARE}}
+
+Un applicativo snello per esercitarsi su ogni lezione. Non fa parte del progetto d'esame:
+serve a preparare la parte di teoria e a verificare di aver capito i laboratori.
+
+\begin{itemize}
+  \item \kw{Domande a risposta chiusa} (scelta multipla, vero/falso) scritte a partire dagli
+        appunti: definizioni, enunciati dei teoremi e, soprattutto, i box \emph{Attenzione},
+        che sono le trappole più probabili.
+  \item \kw{Esercizi generati}: numeri casuali e soluzione calcolata con il codice già
+        verificato dei laboratori. Esempi: equilibrio misto di un gioco $2\times2$ casuale,
+        best response a una strategia data, valore minimax, valore di Shapley e appartenenza
+        al core di un gioco a 3 giocatori, lotteria equa e premio di assicurazione con
+        $u(x)=\sqrt{x}$. Così gli esercizi non finiscono mai e la soluzione è sempre giusta.
+  \item \kw{Selezione}: per lezione, per tipo di domanda, o un mix di tutto il corso per il
+        ripasso finale; a fine quiz il punteggio e, per ogni errore, il rimando alla sezione
+        degli appunti da rileggere.
+  \item \kw{Forma minima}: le domande in un file di dati per lezione (facile da estendere
+        quando arriva una lezione nuova) e un'interfaccia semplice, da riga di comando in
+        Python oppure una pagina web locale. Da decidere quando si comincia.
+  \item \kw{Quando}: dopo aver fissato il tema del progetto, che ha la precedenza; le
+        lezioni 1--5 si possono coprire subito, le altre man mano.
+\end{itemize}
 
 \section{Registro delle decisioni}
 
@@ -408,6 +436,12 @@ Gennaio    & relazione, rifinitura, preparazione della discussione \\
              apprendimento, giochi coalizionali) con i laboratori 3--5, e sei nuove idee
              (6--11). Aggiornata la Lezione 2 con le slide del Lab 2: con le navi affondate
              la ricerca bayesiana scende da 54 a 41--44 colpi. Nessun tema scelto. \\
+02/11/2026 & Messo in programma un generatore di quiz per lezione (strumento di studio,
+             separato dal progetto d'esame). Verificato che nelle lezioni 2--5 e nei lab
+             non si parla del progetto: l'unica informazione resta quella della Lezione~1. \\
+02/11/2026 & Deciso di concentrare la preparazione dell'esame nelle vacanze di Natale. Prima
+             di allora: domande al docente e tema scelto, per arrivare a Natale pronti a
+             implementare. \\
 \bottomrule
 \end{tabularx}
 \end{center}
