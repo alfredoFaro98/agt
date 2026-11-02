@@ -1,0 +1,228 @@
+% =====================================================================
+%  Guida allo studio — come usare gli appunti, in due pagine grafiche
+%  Compilazione:  powershell -File compila.ps1 guida-studio
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[a4paper, landscape, hmargin=1.1cm, vmargin=0.8cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[scaled=0.88]{beramono}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{unical}{HTML}{B00000}
+\definecolor{blu}{HTML}{0B3A91}
+\definecolor{verde}{HTML}{1E7B34}
+\definecolor{arancio}{HTML}{C0620A}
+\definecolor{grigio}{HTML}{4A4A4A}
+\definecolor{sfondo}{HTML}{F5F6F8}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Algorithmic Game Theory -- Guida allo studio}, pdflang={it}}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\tikzset{
+  titolo/.style={font=\sffamily\bfseries\LARGE, text=blu, anchor=north west},
+  sottotitolo/.style={font=\sffamily\small, text=grigio, anchor=north west},
+  sezione/.style={font=\sffamily\bfseries\large, text=blu, anchor=south west},
+  passo/.style={rounded corners=3pt, fill=sfondo, draw=blu!35, line width=0.6pt,
+    text width=11.9cm, minimum height=2.45cm, inner sep=7pt, align=left,
+    font=\normalsize, anchor=west},
+  numero/.style={circle, fill=blu, text=white, font=\sffamily\bfseries\Large,
+    minimum size=1.05cm, inner sep=0pt},
+  etichetta/.style={font=\sffamily\bfseries\scriptsize, text=white, inner xsep=4pt,
+    inner ysep=2.5pt, rounded corners=1.5pt},
+  scheda/.style={rounded corners=3pt, draw=grigio!40, fill=white, text width=3.25cm,
+    minimum height=2.2cm, inner sep=6pt, align=left, font=\small, anchor=north west},
+  freccia/.style={-{Stealth[length=7pt]}, line width=1.1pt, color=blu!70},
+}
+\newcommand{\file}[1]{\texttt{\small #1}}
+
+% Riga della legenda dei box: y, colore bordo, sfondo, nome, descrizione, priorità, colore priorità
+\newcommand{\legenda}[7]{%
+  \fill[#3] (16.4,#1) rectangle ++(11.0,-1.12);
+  \fill[#2] (16.4,#1) rectangle ++(0.11,-1.12);
+  \node[anchor=north west, font=\sffamily\bfseries\small, text=#2] at (16.65,#1-0.1) {#4};
+  \node[anchor=north west, text width=6.6cm, font=\small, align=left] at (16.65,#1-0.48) {#5};
+  \node[etichetta, fill=#7, anchor=east] at (27.25,#1-0.56) {#6};
+}
+
+\begin{document}
+% =====================================================================
+%  PAGINA 1 — il metodo
+% =====================================================================
+\noindent
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \useasboundingbox (0,0) rectangle (27.5,18.8);
+
+  \node[titolo] at (0,18.8) {Come studiare dagli appunti};
+  \node[sottotitolo] at (0.02,17.85) {Algorithmic Game Theory --- UniCal, a.a.\ 2026/2027.
+    Il metodo per ogni lezione, i box degli appunti e quale PDF aprire.};
+
+  % ---------------- i cinque passi ----------------
+  \node[sezione] at (0,16.55) {Per ogni lezione, cinque passi};
+
+  \foreach \n/\y/\tit/\testo in {
+    1/15.2/Orientati/{Leggi prima il box \textbf{Riepilogo} in fondo alla lezione: in cinque
+      minuti sai dove si va. Poi apri accanto le slide del docente, in \file{lessons/}.},
+    2/12.45/Teoria/{Leggi gli appunti nell'ordine. \textbf{Definizioni} e \textbf{Teoremi}
+      sono quello che devi saper ripetere; gli \textbf{Esempi} rifalli con carta e penna
+      \emph{prima} di leggere la soluzione.},
+    3/9.7/Punti critici/{Rileggi i box arancioni \textbf{Attenzione}: segnalano errori nelle
+      slide e nei notebook, e i passaggi dove è facile sbagliare. È lì che si vede se hai
+      capito davvero.},
+    4/6.95/Laboratorio/{Apri il notebook vuoto in \file{labs/NN-.../} e prova a completarlo
+      da solo. Poi confronta con il codice degli appunti e con i \textbf{risultati misurati}:
+      i tuoi numeri devono tornare.},
+    5/4.2/Progetto/{Apri \file{project.pdf}: ogni lezione ``sblocca'' nuove idee nella
+      \textbf{banca delle idee}. Annota quale ti convince e quali domande fare al docente.}
+  }{
+    \node[numero] (n\n) at (0.6,\y) {\n};
+    \node[passo] (p\n) at (1.45,\y) {{\sffamily\bfseries\color{blu}\tit}\\[2pt]\testo};
+  }
+  \foreach \a/\b in {1/2, 2/3, 3/4, 4/5} \draw[freccia] (n\a.south) -- (n\b.north);
+
+  % ritorno alla lezione successiva
+  \draw[freccia, dashed, color=grigio!70] (p5.east) -- ++(0.9,0) |- (p1.east)
+    node[pos=0.25, right, font=\sffamily\scriptsize, text=grigio, align=left]
+    {lezione\\successiva};
+
+  % ---------------- legenda dei box ----------------
+  \node[sezione] at (16.4,16.55) {I box degli appunti};
+  \legenda{16.3}{blu}{blu!5}{Definizione}{L'enunciato preciso di un concetto.}{ESSENZIALE}{unical}
+  \legenda{15.03}{unical}{unical!5}{Teorema}{Enunciato e idea della dimostrazione.}{ESSENZIALE}{unical}
+  \legenda{13.76}{verde}{verde!5}{Esempio}{Rifallo a mano: è l'allenamento per l'esame.}{IMPORTANTE}{arancio}
+  \legenda{12.49}{arancio}{arancio!7}{Attenzione}{Errori di slide e notebook, trappole tipiche.}{IMPORTANTE}{arancio}
+  \legenda{11.22}{grigio}{sfondo}{Osservazione}{Perché le cose funzionano come funzionano.}{IMPORTANTE}{arancio}
+  \legenda{9.95}{grigio!60}{white}{Approfondimento}{Oltre le slide: da leggere se hai tempo.}{FACOLTATIVO}{grigio!70}
+  \legenda{8.68}{blu}{blu!4}{Riepilogo}{L'intera lezione in poche righe.}{RIPASSO}{blu}
+
+  \node[anchor=north west, font=\small, text width=10.8cm, align=left] at (16.4,7.35)
+    {Ogni lezione ha due metà:
+     \tikz[baseline=(t.base)]\node[etichetta, fill=blu](t){TEORIA}; e
+     \tikz[baseline=(t.base)]\node[etichetta, fill=unical](t){LAB}; (codice verificato,
+     con i numeri misurati).};
+
+  % ---------------- quale PDF ----------------
+  \node[sezione] at (16.4,5.55) {Quale PDF aprire};
+  \node[scheda] (s1) at (16.4,5.45)
+    {{\sffamily\bfseries\color{blu}lezione-NN-\ldots.pdf}\\[2pt]
+     Per studiare una lezione alla volta, con le slide accanto.};
+  \node[scheda, right=0.18cm of s1] (s2)
+    {{\sffamily\bfseries\color{blu}main.pdf}\\[2pt]
+     Tutto il corso con un indice unico: per il ripasso.};
+  \node[scheda, right=0.18cm of s2] (s3)
+    {{\sffamily\bfseries\color{unical}project.pdf}\\[2pt]
+     Metodo, idee, domande e decisioni per il progetto d'esame.};
+  \node[anchor=north west, font=\sffamily\scriptsize, text=grigio] at (16.4,3.05)
+    {Tutti in \file{documentazione/pdf/}.};
+
+  % ---------------- se hai poco tempo ----------------
+  \node[rounded corners=3pt, fill=unical!6, draw=unical!50, text width=26.8cm,
+        inner sep=7pt, anchor=south west, align=left, font=\small] at (0,0.1)
+    {{\sffamily\bfseries\color{unical}Se hai poco tempo.}\quad
+     Leggi i \textbf{Riepiloghi} di tutte le lezioni, poi i box \textbf{Attenzione}, poi
+     rifai i laboratori 3, 4 e 5: il loro codice (best response, minimax e equilibri correlati
+     con programmazione lineare, core, Shapley) è quello che più probabilmente riuserai nel
+     progetto. L'esame è un progetto: saper \emph{modellare} e \emph{implementare} conta più
+     che ricordare le dimostrazioni.};
+\end{tikzpicture}
+
+\newpage
+% =====================================================================
+%  PAGINA 2 — la mappa del corso
+% =====================================================================
+\noindent
+\begin{tikzpicture}[x=1cm, y=1cm,
+  testa/.style={fill=blu, text=white, text width=4.8cm, inner sep=5pt, align=left,
+    font=\sffamily\small, minimum height=1.05cm, anchor=north},
+  corpo/.style={fill=blu!5, text width=4.8cm, inner sep=5pt, align=left,
+    font=\small, minimum height=3.55cm, anchor=north},
+  lab/.style={fill=unical!6, draw=unical!45, text width=4.8cm, inner sep=5pt,
+    align=left, font=\small, minimum height=1.25cm, anchor=north},
+  dipendenza/.style={-{Stealth[length=6pt]}, line width=0.9pt, color=blu!60},
+  punto/.style={circle, fill=#1, minimum size=0.32cm, inner sep=0pt},
+  nota/.style={font=\scriptsize, text width=4.6cm, align=center, anchor=north},
+]
+  \useasboundingbox (0,0) rectangle (27.5,18.8);
+
+  \node[titolo] at (0,18.8) {La mappa del corso};
+  \node[sottotitolo] at (0.02,17.85) {Che cosa c'è in ogni lezione, che cosa usa delle
+    precedenti, e i fili che le attraversano.};
+
+  % ---------------- colonne delle lezioni ----------------
+  \foreach \i/\x/\tit/\usa/\punti/\lab in {
+    1/2.55/Introduzione all'AGT/{punto di partenza}/
+      {Le aree dell'AGT\\Dilemma del prigioniero\\Giochi combinatori\\Minimax e alpha-beta}/
+      {Tris: Minimax e alpha-beta},
+    2/8.1/Teoria dell'utilità/{indipendente dalla L1}/
+      {Preferenze, utilità ordinale\\Lotterie e teorema VNM\\Allais, avversione al rischio\\Ricerca bayesiana}/
+      {Battaglia navale: ricerca bayesiana},
+    3/13.65/Giochi non cooperativi/{L1 (minimax), L2 (utilità attesa)}/
+      {Dominanza e IESDS\\Nash puro e misto\\Condizione del supporto\\Minimax nei giochi a somma zero}/
+      {Nash, minimax con PL, label propagation},
+    4/19.2/Equilibri e apprendimento/{L3 (Nash, strategie miste, PL)}/
+      {Esistenza: Brouwer\\Complessità: PPAD, NP\\Equilibri correlati\\Fictitious play, regret matching}/
+      {Equilibri correlati, apprendimento},
+    5/24.75/Giochi coalizionali/{L1 (Shapley), L4 (cooperazione)}/
+      {Struttura di coalizione\\Core e superadditività\\Nucleolo\\Valore di Shapley}/
+      {Core, Shapley, nucleolo}
+  }{
+    \node[testa] (t\i) at (\x,14.85)
+      {{\scriptsize LEZIONE \i}\\[-1pt]\textbf{\tit}};
+    \node[corpo] (c\i) at (t\i.south)
+      {{\scriptsize\color{grigio}\textit{Usa:} \usa}\\[4pt]\punti};
+    \node[lab] (l\i) at ($(c\i.south)+(0,-0.22)$)
+      {{\sffamily\bfseries\color{unical}LAB \i}\quad \lab};
+  }
+
+  % ---------------- dipendenze ----------------
+  \foreach \a/\b in {2/3, 3/4, 4/5}
+    \draw[dipendenza] ($(t\a.north east)+(-0.8,0)$) to[bend left=60]
+      ($(t\b.north west)+(0.8,0)$);
+  \draw[dipendenza] (t1.north) |- (13.65,15.95)
+    node[pos=0.75, above, font=\sffamily\scriptsize, text=blu]
+    {minimax: dalle mosse a turni alle mosse simultanee} -- (t3.north);
+  \draw[dipendenza, dashed] ($(t1.north west)+(0.4,0)$) |- (24.75,16.85)
+    node[pos=0.75, above, font=\sffamily\scriptsize, text=blu]
+    {Shapley: anticipato nella lezione 1, formalizzato nella 5} -- (t5.north);
+
+  % ---------------- fili conduttori ----------------
+  \node[sezione] at (0,7.75) {Fili conduttori};
+
+  % \filo{y}{colore}{nome}: la linea; \tappa{y}{colore}{x}{nota}: una lezione sul filo
+  \newcommand{\filo}[3]{%
+    \node[anchor=south west, font=\sffamily\bfseries\small, text=#2] at (0,#1+0.08) {#3};
+    \draw[line width=1.6pt, color=#2!35] (0.1,#1) -- (27.4,#1);}
+  \newcommand{\tappa}[4]{%
+    \node[punto=#2] at (#3,#1) {};
+    \node[nota] at (#3,#1-0.2) {#4};}
+
+  \filo{6.65}{verde}{Probabilità e incertezza}
+  \tappa{6.65}{verde}{8.1}{lotterie, Bayes}
+  \tappa{6.65}{verde}{13.65}{strategie miste}
+  \tappa{6.65}{verde}{19.2}{distribuzioni sui profili}
+
+  \filo{4.95}{arancio}{Programmazione lineare}
+  \tappa{4.95}{arancio}{13.65}{minimax}
+  \tappa{4.95}{arancio}{19.2}{equilibri correlati}
+  \tappa{4.95}{arancio}{24.75}{nucleolo, core vuoto}
+
+  \filo{3.25}{unical}{Complessità di calcolo}
+  \tappa{3.25}{unical}{2.55}{alpha-beta: 549\,946 $\to$ 18\,297 nodi}
+  \tappa{3.25}{unical}{19.2}{PPAD, NP}
+  \tappa{3.25}{unical}{24.75}{$B_n$, $O(3^n)$, Shapley $2^n$}
+
+  % ---------------- in arrivo ----------------
+  \node[rounded corners=3pt, draw=grigio!50, dashed, fill=white, text width=26.8cm,
+        inner sep=7pt, anchor=south west, align=left, font=\small] at (0,0.1)
+    {{\sffamily\bfseries\color{grigio}In arrivo nel corso.}\quad
+     Scelta sociale computazionale (voto, Condorcet)\ \textbullet\ Matching markets
+     (matching stabile)\ \textbullet\ Mechanism design (aste)\ \textbullet\ Fair division.
+     Gli appunti e la mappa si aggiornano a ogni lezione nuova.};
+\end{tikzpicture}
+
+\end{document}

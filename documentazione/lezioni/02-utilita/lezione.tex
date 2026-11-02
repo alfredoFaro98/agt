@@ -651,7 +651,7 @@ finale}, non al guadagno della singola scommessa.
 % =====================================================================
 \partelab{Battaglia navale e ricerca bayesiana}
 % =====================================================================
-\fonte{Battleship\_Blank.ipynb}
+\fonte{Battleship\_Blank.ipynb, Lab\_2\_Battleship.pdf}
 
 \textbf{Obiettivo}: costruire un'IA per la \kw{battaglia navale}, partendo da strategie
 euristiche semplici e arrivando a una strategia \kw{adattiva} che a ogni turno spara dove
@@ -707,14 +707,14 @@ else:
 riga sta in $[0,8]$ (la riga 9 non esce mai) e la colonna di partenza in
 $[0,\,9-\texttt{length}]$, cioè l'ultima cella occupata arriva al più alla colonna 8.
 Simmetricamente per le navi verticali. Il risultato è che \kw{l'ultima riga e l'ultima
-colonna non sono mai occupate}: su 2000 partite generate, le celle della riga 9 e della
-colonna 9 risultano vuote in tutte e 2000 (contro circa 2800 occupazioni per la riga 0 e
-per la colonna 0). Gli estremi corretti sarebbero
+colonna non sono mai occupate}: su 500 partite generate, le celle della riga 9 e della
+colonna 9 non contengono mai una nave, mentre con il generatore corretto sono occupate
+rispettivamente 642 e 660 volte. Gli estremi corretti sarebbero
 \texttt{randint(0, grid\_size)} e \texttt{randint(0, grid\_size - length + 1)}.
 
-Conseguenza pratica: le cifre misurate sotto sono un po' ottimistiche, perché il 19\% del
-campo è di fatto acqua garantita. Il confronto \emph{tra} le strategie resta però valido,
-dato che tutte giocano sulle stesse partite.
+Conseguenza pratica: con il generatore del notebook il 19\% del campo è di fatto acqua
+garantita e le cifre misurate sono un po' ottimistiche. Più sotto i risultati sono
+riportati con entrambi i generatori: la differenza arriva a circa 3 turni.
 \end{attenzione}
 
 \subsection{Strategia 1: tiro casuale}
@@ -801,6 +801,7 @@ def hunt_and_target_strategy(grid):
                 a, b = i + di, j + dj
                 if 0 <= a < 10 and 0 <= b < 10 and shot_grid[a, b] == 0:
                     targets.append((a, b))
+    return shot_grid, turns
 \end{lstlisting}
 
 \begin{attenzione}[la pila può contenere celle già colpite]
@@ -818,152 +819,415 @@ le celle adiacenti nell'altra direzione. La ricerca bayesiana della prossima sez
 ottiene questo effetto \emph{automaticamente}, senza regole scritte a mano.
 \end{extra}
 
-\subsection{Strategia 3: ricerca bayesiana}
+\subsection{La teoria della ricerca bayesiana}
+\fonte{Lab\_2\_Battleship.pdf}
 
-Qui si usa davvero la teoria della lezione. A ogni turno si costruisce una
-\kw{distribuzione a posteriori} sulla posizione delle navi e si spara dove la probabilità
-di colpire è massima, cioè dove è massima l'\kw{utilità attesa} (con utilità $1$ per il
-colpo a segno e $0$ per il colpo a vuoto, l'utilità attesa di una cella \emph{è} la sua
-probabilità di contenere una nave).
+L'idea della strategia 3 viene dalla \kw{teoria della ricerca bayesiana}
+(\en{Bayesian search theory}), nata negli anni '40 per ritrovare relitti di navi, aerei e
+sottomarini. Si sovrappone una griglia all'area in cui si trova l'oggetto e si guida la
+ricerca calcolando e ricalcolando la posizione \emph{più probabile}: è un algoritmo
+iterativo e adattivo basato sul \kw{massimo a posteriori}.
 
-Il conteggio è semplice: per ogni nave rimasta e per ogni sua possibile posa
-(orizzontale o verticale) \emph{compatibile} con quanto si sa, si aggiunge un voto a
-ciascuna cella coperta. Una posa è compatibile se non copre nessuna cella risultata a
-vuoto. Si distinguono due regimi:
-\begin{itemize}
-  \item nessun colpo a segno ``aperto'' (\kw{hunt}): si contano tutte le pose compatibili;
-  \item ci sono colpi a segno (\kw{target}): si contano solo le pose che \emph{spiegano}
-        almeno un colpo a segno, pesandole con $10^{(\text{colpi coperti})}$ per premiare
-        le pose che ne spiegano di più.
-\end{itemize}
-In entrambi i casi i voti si assegnano solo alle celle ancora \kw{inesplorate}: sparare
-dove si è già sparato non ha alcun valore.
+\begin{definizione}[Ricerca bayesiana, schema generale]
+\begin{enumerate}
+  \item \kw{Inizializzazione}: si calcola la distribuzione a priori con l'informazione disponibile.
+  \item \kw{A ogni iterazione}:
+  \begin{itemize}
+    \item \emph{scelta dell'azione}: si sceglie la cella di massima utilità;
+    \item \emph{osservazione}: si esegue l'azione e se ne osserva l'esito;
+    \item \emph{aggiornamento}: si aggiorna la distribuzione a posteriori in base all'esito.
+  \end{itemize}
+\end{enumerate}
+\end{definizione}
+
+\subsubsection*{Il caso base: un oggetto in $n$ scatole}
+
+Ci sono $n$ scatole $S = \{1,\dots,n\}$ e un solo oggetto. Il vettore a priori è
+$\mathbf{p}^{(0)} = (p_1^{(0)},\dots,p_n^{(0)})$, dove $p_i^{(0)}$ è la probabilità che
+l'oggetto sia nella scatola $i$. Ispezionare la scatola $i$ costa $c_i$ (tempo o denaro) e
+la ricerca è \kw{imperfetta}: se l'oggetto è in $i$, ispezionando $i$ lo si trova con
+probabilità $q_i \in (0,1]$ (\kw{probabilità di rilevazione}).
+
+Si supponga di ispezionare al passo $t$ la scatola $k$ senza trovare nulla (evento $F_k$).
+La probabilità di questo evento è $\Pr(F_k) = 1 - p_k^{(t)} q_k$, e con il teorema di
+Bayes:
+\begin{align*}
+  \text{scatola ispezionata } k:\quad
+  p_k^{(t+1)} &= \Pr(\text{oggetto in } k \mid F_k)
+               = \frac{\Pr(F_k \mid \text{oggetto in } k)\, p_k^{(t)}}{\Pr(F_k)}
+               = \frac{(1-q_k)\, p_k^{(t)}}{1 - p_k^{(t)} q_k},\\[2pt]
+  \text{altre scatole } j \neq k:\quad
+  p_j^{(t+1)} &= \Pr(\text{oggetto in } j \mid F_k)
+               = \frac{p_j^{(t)}}{1 - p_k^{(t)} q_k}.
+\end{align*}
+
+\begin{osservazione}[come leggere l'aggiornamento]
+Un'ispezione fallita \emph{abbassa} la probabilità della scatola ispezionata (non la
+azzera, se $q_k < 1$: l'oggetto potrebbe esserci e non essere stato visto) e
+\emph{alza} in proporzione quella di tutte le altre. Il denominatore comune serve solo a
+rinormalizzare: le probabilità tornano a sommare 1.
+\end{osservazione}
+
+\begin{definizione}[Indice di ricerca]
+L'utilità di ispezionare la scatola $i$ al tempo $t$ è la probabilità di trovare l'oggetto
+\emph{per unità di costo}:
+\[
+  I_i^{(t)} = \frac{p_i^{(t)}\, q_i}{c_i}.
+\]
+\end{definizione}
+
+\begin{teorema}[ottimalità della ricerca golosa]
+Quando si cerca \emph{un solo} oggetto in $n$ scatole \emph{indipendenti}, la strategia
+\kw{golosa} (\en{greedy}) che a ogni passo ispeziona la scatola con l'indice $I_i^{(t)}$
+più alto è ottimale.
+\end{teorema}
+
+\begin{esempio}[il volo Air France 447]
+Il 1° giugno 2009 il volo AF~447 (Rio de Janeiro--Parigi) scomparve sull'Atlantico. Le
+slide mostrano l'area di ricerca: l'ultima posizione nota, la rotta prevista e un cerchio
+di 40 miglia nautiche attorno, con il prior e un posteriore disegnati sulla griglia.
+
+Secondo il paper di Stone et al.\ incluso nel materiale, il prior era una
+\emph{miscela} di tre distribuzioni: uniforme nel cerchio, basata sui dati di incidenti
+precedenti, e ottenuta ripercorrendo all'indietro la deriva dei rottami recuperati. Le
+campagne di ricerca degli anni precedenti, fallite, sono state usate come ispezioni senza
+successo per aggiornarlo, tenendo conto anche della possibilità che i segnalatori acustici
+delle scatole nere non avessero funzionato. Nel 2011 la ricerca cominciò dal centro del
+posteriore e trovò il relitto in una settimana.
+\fonte{Search\_for\_the\_Wreckage\_of\_Air\_France\_Flight\_AF\_447.pdf}
+\end{esempio}
+
+\subsection{Strategia 3: ricerca bayesiana per la battaglia navale}
+
+Nella battaglia navale i costi sono uniformi ($c_i = 1$) e la rilevazione è perfetta
+($q_i = 1$: se si spara su una nave la si colpisce). Ma ci sono \kw{5 bersagli} e le
+caselle \kw{non sono indipendenti} (una nave occupa celle contigue): l'ottimalità della
+strategia golosa non vale più. La ricerca bayesiana resta però un'ottima euristica:
+\begin{enumerate}
+  \item si calcola una mappa di probabilità sulla griglia per \emph{ciascuna} nave
+        (5 mappe di densità);
+  \item le si somma in un'unica mappa (il \emph{prior});
+  \item a ogni colpo si sa se è a segno o a vuoto e si aggiorna la mappa (il \emph{posteriore}).
+\end{enumerate}
+
+\paragraph{Come si costruisce la mappa.}
+Per ogni cella e per ogni nave \kw{non ancora affondata} si contano le \kw{configurazioni
+valide}, cioè le pose (orizzontali o verticali) della nave che coprono quella cella senza
+uscire dal bordo e senza toccare celle incompatibili. Su un campo vuoto il conteggio
+favorisce il centro: una cella d'angolo è coperta da poche pose, una centrale da molte.
+Sommando le cinque navi si ottiene il prior:
+
+\begin{center}
+\begin{tikzpicture}[scale=0.42]
+  \fill[blu!0] (0,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,0.5) {10};
+  \fill[blu!18] (1,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,0.5) {15};
+  \fill[blu!33] (2,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (2.5,0.5) {19};
+  \fill[blu!41] (3,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (3.5,0.5) {21};
+  \fill[blu!45] (4,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (4.5,0.5) {22};
+  \fill[blu!45] (5,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (5.5,0.5) {22};
+  \fill[blu!41] (6,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (6.5,0.5) {21};
+  \fill[blu!33] (7,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (7.5,0.5) {19};
+  \fill[blu!18] (8,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,0.5) {15};
+  \fill[blu!0] (9,0) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,0.5) {10};
+  \fill[blu!18] (0,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-0.5) {15};
+  \fill[blu!37] (1,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,-0.5) {20};
+  \fill[blu!52] (2,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (2.5,-0.5) {24};
+  \fill[blu!60] (3,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-0.5) {26};
+  \fill[blu!63] (4,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-0.5) {27};
+  \fill[blu!63] (5,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-0.5) {27};
+  \fill[blu!60] (6,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-0.5) {26};
+  \fill[blu!52] (7,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (7.5,-0.5) {24};
+  \fill[blu!37] (8,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,-0.5) {20};
+  \fill[blu!18] (9,-1) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-0.5) {15};
+  \fill[blu!33] (0,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-1.5) {19};
+  \fill[blu!52] (1,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,-1.5) {24};
+  \fill[blu!67] (2,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-1.5) {28};
+  \fill[blu!75] (3,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-1.5) {30};
+  \fill[blu!78] (4,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-1.5) {31};
+  \fill[blu!78] (5,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-1.5) {31};
+  \fill[blu!75] (6,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-1.5) {30};
+  \fill[blu!67] (7,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-1.5) {28};
+  \fill[blu!52] (8,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,-1.5) {24};
+  \fill[blu!33] (9,-2) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-1.5) {19};
+  \fill[blu!41] (0,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-2.5) {21};
+  \fill[blu!60] (1,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (1.5,-2.5) {26};
+  \fill[blu!75] (2,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-2.5) {30};
+  \fill[blu!82] (3,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-2.5) {32};
+  \fill[blu!86] (4,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-2.5) {33};
+  \fill[blu!86] (5,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-2.5) {33};
+  \fill[blu!82] (6,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-2.5) {32};
+  \fill[blu!75] (7,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-2.5) {30};
+  \fill[blu!60] (8,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (8.5,-2.5) {26};
+  \fill[blu!41] (9,-3) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-2.5) {21};
+  \fill[blu!45] (0,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-3.5) {22};
+  \fill[blu!63] (1,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (1.5,-3.5) {27};
+  \fill[blu!78] (2,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-3.5) {31};
+  \fill[blu!86] (3,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-3.5) {33};
+  \fill[blu!90] (4,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-3.5) {34};
+  \fill[blu!90] (5,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-3.5) {34};
+  \fill[blu!86] (6,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-3.5) {33};
+  \fill[blu!78] (7,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-3.5) {31};
+  \fill[blu!63] (8,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (8.5,-3.5) {27};
+  \fill[blu!45] (9,-4) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-3.5) {22};
+  \fill[blu!45] (0,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-4.5) {22};
+  \fill[blu!63] (1,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (1.5,-4.5) {27};
+  \fill[blu!78] (2,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-4.5) {31};
+  \fill[blu!86] (3,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-4.5) {33};
+  \fill[blu!90] (4,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-4.5) {34};
+  \fill[blu!90] (5,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-4.5) {34};
+  \fill[blu!86] (6,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-4.5) {33};
+  \fill[blu!78] (7,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-4.5) {31};
+  \fill[blu!63] (8,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (8.5,-4.5) {27};
+  \fill[blu!45] (9,-5) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-4.5) {22};
+  \fill[blu!41] (0,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-5.5) {21};
+  \fill[blu!60] (1,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (1.5,-5.5) {26};
+  \fill[blu!75] (2,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-5.5) {30};
+  \fill[blu!82] (3,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-5.5) {32};
+  \fill[blu!86] (4,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-5.5) {33};
+  \fill[blu!86] (5,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-5.5) {33};
+  \fill[blu!82] (6,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-5.5) {32};
+  \fill[blu!75] (7,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-5.5) {30};
+  \fill[blu!60] (8,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (8.5,-5.5) {26};
+  \fill[blu!41] (9,-6) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-5.5) {21};
+  \fill[blu!33] (0,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-6.5) {19};
+  \fill[blu!52] (1,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,-6.5) {24};
+  \fill[blu!67] (2,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (2.5,-6.5) {28};
+  \fill[blu!75] (3,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-6.5) {30};
+  \fill[blu!78] (4,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-6.5) {31};
+  \fill[blu!78] (5,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-6.5) {31};
+  \fill[blu!75] (6,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-6.5) {30};
+  \fill[blu!67] (7,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (7.5,-6.5) {28};
+  \fill[blu!52] (8,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,-6.5) {24};
+  \fill[blu!33] (9,-7) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-6.5) {19};
+  \fill[blu!18] (0,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-7.5) {15};
+  \fill[blu!37] (1,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,-7.5) {20};
+  \fill[blu!52] (2,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (2.5,-7.5) {24};
+  \fill[blu!60] (3,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (3.5,-7.5) {26};
+  \fill[blu!63] (4,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (4.5,-7.5) {27};
+  \fill[blu!63] (5,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (5.5,-7.5) {27};
+  \fill[blu!60] (6,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=white] at (6.5,-7.5) {26};
+  \fill[blu!52] (7,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (7.5,-7.5) {24};
+  \fill[blu!37] (8,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,-7.5) {20};
+  \fill[blu!18] (9,-8) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-7.5) {15};
+  \fill[blu!0] (0,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (0.5,-8.5) {10};
+  \fill[blu!18] (1,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (1.5,-8.5) {15};
+  \fill[blu!33] (2,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (2.5,-8.5) {19};
+  \fill[blu!41] (3,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (3.5,-8.5) {21};
+  \fill[blu!45] (4,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (4.5,-8.5) {22};
+  \fill[blu!45] (5,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (5.5,-8.5) {22};
+  \fill[blu!41] (6,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (6.5,-8.5) {21};
+  \fill[blu!33] (7,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (7.5,-8.5) {19};
+  \fill[blu!18] (8,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (8.5,-8.5) {15};
+  \fill[blu!0] (9,-9) rectangle ++(1,1); \node[font=\tiny\sffamily, text=black] at (9.5,-8.5) {10};
+  \draw[white, line width=0.3pt, step=1, shift={(0,1)}] (0,-10) grid (10,0);
+\end{tikzpicture}
+\end{center}
+{\small\sffamily\color{grigio}\hspace*{\fill}Prior: numero di pose valide che coprono ogni
+cella, sommato sulle cinque navi (calcolato col codice sotto).\hspace*{\fill}}
+
+\begin{osservazione}[da dove vengono 10 e 34]
+Nell'angolo $(0,0)$ ogni nave ha esattamente 2 pose che lo coprono (una orizzontale, una
+verticale): $5 \times 2 = 10$. Al centro una nave da $\ell$ celle ha $\ell$ pose orizzontali
+e $\ell$ verticali: $2(5+4+3+3+2) = 34$. Il rapporto 3,4 tra centro e angolo è il motivo
+per cui conviene cominciare dal centro.
+\end{osservazione}
+
+\paragraph{Aggiornamento dopo un colpo a vuoto.}
+Una nave non può stare su una cella risultata vuota: si scartano tutte le pose che la
+coprono e si ricontano.
+
+\paragraph{Aggiornamento dopo un colpo a segno.}
+Si entra in \kw{modalità target} per affondare la nave colpita: si contano \emph{solo} le
+configurazioni valide che \kw{passano per il colpo a segno}. Si resta in modalità target
+finché c'è almeno una nave colpita ma non ancora affondata.
+
+\paragraph{Affondamento.}
+Quando una nave affonda, l'avversario dichiara quale: la si toglie dall'elenco di quelle da
+cercare e le sue celle smettono di contare come colpi a segno ``aperti''.
 
 \begin{lstlisting}
-SIZES = [5, 4, 3, 3, 2]
+SHIPS = {1: 5, 2: 4, 3: 3, 4: 3, 5: 2}       # id nave -> lunghezza
+UNEXPLORED, MISS, HIT, SUNK = 0, 1, 2, 3
 
-def update_posterior(shot_map, sizes):
-    post = conta_pose(shot_map, sizes, targeting=(shot_map == 2).any())
-    if post.max() == 0:                     # nessuna posa spiega i colpi a segno
-        post = conta_pose(shot_map, sizes, targeting=False)
-    if post.max() == 0:                     # nessuna posa compatibile: cella libera
-        post = (shot_map == 0).astype(float)
-    return post
+def placements(length):
+    out = []
+    for horizontal in (True, False):
+        for i in range(10 if horizontal else 10 - length + 1):
+            for j in range(10 - length + 1 if horizontal else 10):
+                out.append([(i, j + k) if horizontal else (i + k, j)
+                            for k in range(length)])
+    return out
 
-def conta_pose(shot_map, sizes, targeting):
+PLACEMENTS = {L: placements(L) for L in set(SHIPS.values())}
+
+def likelihood_map(shot, remaining):
     post = np.zeros((10, 10))
-    for length in sizes:
-        for horizontal in (True, False):
-            righe = 10 if horizontal else 10 - length + 1
-            colonne = 10 - length + 1 if horizontal else 10
-            for i in range(righe):
-                for j in range(colonne):
-                    cells = [(i, j + k) if horizontal else (i + k, j)
-                             for k in range(length)]
-                    if any(shot_map[a, b] == 1 for a, b in cells):
-                        continue                 # la posa copre un colpo a vuoto
-                    n_hit = sum(shot_map[a, b] == 2 for a, b in cells)
-                    if targeting and n_hit == 0:
-                        continue                 # non spiega nessun colpo a segno
-                    peso = 10 ** n_hit
-                    for a, b in cells:
-                        if shot_map[a, b] == 0:
-                            post[a, b] += peso
+    targeting = (shot == HIT).any()          # c'e' una nave colpita e non affondata
+    for length in remaining:                 # solo le navi ancora a galla
+        for cells in PLACEMENTS[length]:
+            if any(shot[a, b] in (MISS, SUNK) for a, b in cells):
+                continue                     # posa incompatibile
+            n_hit = sum(shot[a, b] == HIT for a, b in cells)
+            if targeting and n_hit == 0:
+                continue                     # in target: solo pose per i colpi
+            for a, b in cells:
+                if shot[a, b] == UNEXPLORED:
+                    post[a, b] += n_hit if targeting else 1
     return post
-
-def get_best_coordinates(posterior_map):
-    return np.unravel_index(np.argmax(posterior_map), posterior_map.shape)
 
 def bayesian_search_strategy(grid):
-    shot_grid = np.zeros((10, 10), dtype=int)
-    hits = turns = 0
-    while hits < 17:
-        i, j = get_best_coordinates(update_posterior(shot_grid, SIZES))
-        shot_grid[i, j] = 2 if grid[i, j] else 1
+    shot = np.zeros((10, 10), dtype=int)
+    remaining = list(SHIPS.values())
+    hits_on = {sid: 0 for sid in SHIPS}
+    turns = 0
+    while remaining:
+        post = likelihood_map(shot, remaining)
+        i, j = np.unravel_index(np.argmax(post), post.shape)
         turns += 1
-        if grid[i, j]:
-            hits += 1
-    return shot_grid, turns
+        sid = grid[i, j]
+        if sid == 0:
+            shot[i, j] = MISS
+            continue
+        shot[i, j] = HIT
+        hits_on[sid] += 1
+        if hits_on[sid] == SHIPS[sid]:       # affondata: l'avversario lo dichiara
+            shot[grid == sid] = SUNK
+            remaining.remove(SHIPS[sid])
+    return shot, turns
 \end{lstlisting}
+
+\begin{osservazione}[il peso in modalità target]
+Ogni posa che passa per $h$ colpi a segno viene contata $h$ volte, una per ciascun colpo
+attraverso cui ``passa''. È esattamente quello che si ottiene seguendo alla lettera le
+slide (``per ogni colpo a segno, conta le configurazioni che ci passano'') e ha l'effetto
+desiderato: dopo due colpi allineati, le pose lungo quella linea pesano doppio e la
+strategia prosegue nella direzione giusta senza regole scritte a mano.
+\end{osservazione}
 
 \begin{osservazione}[dov'è il teorema di Bayes]
 Il nome ``bayesiana'' è giustificato anche se nel codice non compare la formula. Il
-prior è uniforme su tutte le disposizioni possibili; una cella risultata a vuoto ha
-verosimiglianza $0$ per ogni disposizione che la occupa, quindi tutte quelle
-disposizioni vengono eliminate dal posteriore. Contare le pose sopravvissute è
-esattamente calcolare la probabilità a posteriori marginale di ogni cella, a meno della
-costante di normalizzazione, che non serve perché si cerca solo l'\emph{argmax}.
+prior è uniforme su tutte le pose di ogni nave; una cella risultata a vuoto ha
+verosimiglianza $0$ per ogni posa che la occupa, quindi tutte quelle pose vengono eliminate
+dal posteriore. Contare le pose sopravvissute è calcolare la probabilità a posteriori
+marginale di ogni cella, a meno della costante di normalizzazione, che non serve perché
+si cerca solo l'\emph{argmax}. È il caso $q_i = 1$ dell'aggiornamento visto sopra: una
+ricerca fallita azzera la cella.
 \end{osservazione}
 
-\begin{attenzione}[il posteriore può azzerarsi, e il programma si blocca]
-Scritta nel modo ovvio (solo il conteggio, senza i due \texttt{if} iniziali) questa
-strategia entra in \kw{ciclo infinito}. Succede così: una nave da 2 celle viene colpita
-tutta e si trova circondata da celle già esplorate. I suoi due colpi a segno restano
-``aperti'' perché non si tiene traccia degli affondamenti, quindi si è in modalità target;
-ma l'unica posa che li spiega non tocca alcuna cella inesplorata, e quindi non assegna
-voti a nessuno. Se tutti i colpi a segno aperti sono in questa condizione il posteriore è
-\emph{tutto zero}, \texttt{argmax} restituisce sempre $(0,0)$, si spara all'infinito sulla
-stessa cella e il contatore dei colpi a segno non avanza più.
-
-Il rimedio è il ripiego in due passi: se il posteriore in modalità target è nullo si
-ricalcola in modalità hunt, e se è nullo anche quello si spara su una qualsiasi cella
-inesplorata. Vale la pena saperlo perché il sintomo (il notebook che non finisce mai)
-non assomiglia per niente alla causa.
+\begin{attenzione}[le navi si contano una alla volta, non insieme]
+Il conteggio tratta ogni nave come se fosse sola sul campo: due navi possono
+``sovrapporsi'' nel conteggio anche se nella realtà non possono. Il calcolo esatto
+richiederebbe di enumerare le disposizioni \emph{congiunte} delle cinque navi compatibili
+con tutti i dati, che sono troppe per essere contate a ogni turno (vedi l'analisi
+informativa più sotto). Sommare le mappe delle singole navi è un'approssimazione: è il
+motivo per cui le slide la chiamano \emph{euristica}.
 \end{attenzione}
 
-\begin{attenzione}[il peso $10^{n\_hit}$ è un'euristica, non Bayes]
-Il filtro sui colpi a vuoto è un calcolo bayesiano esatto; il peso $10^{n\_hit}$ no, è
-una scorciatoia per dire ``le pose che spiegano più colpi sono molto più plausibili''.
-Il calcolo rigoroso richiederebbe di enumerare le disposizioni \emph{congiunte} delle
-cinque navi compatibili con tutti i dati, che sono troppe per essere contate a ogni
-turno. Vale la pena saperlo, perché in sede d'esame la differenza tra ``esatto'' e
-``approssimato'' è il tipo di cosa su cui si viene interrogati.
+\begin{attenzione}[senza le navi affondate il programma si blocca]
+Una prima versione ``ingenua'' di questa strategia, che \emph{non} tiene traccia delle
+navi affondate e cerca sempre tutte e cinque, entra in \kw{ciclo infinito}. Succede così:
+una nave da 2 celle viene colpita tutta e si trova circondata da celle già esplorate. I
+suoi colpi a segno restano ``aperti'', quindi si è in modalità target; ma l'unica posa che
+li spiega non tocca alcuna cella inesplorata e quindi non assegna voti a nessuno. Se tutti
+i colpi aperti sono in questa condizione il posteriore è \emph{tutto zero},
+\texttt{argmax} restituisce sempre $(0,0)$ e si spara all'infinito sulla stessa cella.
+
+Con la traccia delle navi affondate il problema scompare da solo: un colpo a segno aperto
+appartiene sempre a una nave ancora a galla, e la posa \emph{vera} di quella nave è
+valida e tocca almeno una cella inesplorata, quindi il posteriore non può essere nullo.
+Nella simulazione lo si è controllato con un \texttt{assert post[i, j] > 0} a ogni turno,
+su tutte le partite.
 \end{attenzione}
 
-\begin{extra}[che cosa manca rispetto alle regole vere]
-Nelle regole, quando una nave affonda l'avversario deve dichiarare \emph{quale} nave era.
-L'implementazione sopra non usa questa informazione: tiene sempre tutte e cinque le
-lunghezze in \texttt{SIZES}. Tenere traccia delle navi affondate e rimuoverle dalla lista
-(e marcare come ``chiusi'' i loro colpi a segno) rende il posteriore più preciso e fa
-guadagnare qualche turno. È il primo miglioramento da provare.
+\begin{extra}[una semplificazione della simulazione]
+Quando una nave affonda, il codice marca come \texttt{SUNK} esattamente le sue celle
+leggendole dalla griglia vera (\texttt{shot[grid == sid] = SUNK}). Un giocatore reale sa
+\emph{quale} nave è affondata ma non sempre \emph{quali} dei suoi colpi a segno le
+appartenessero (due navi possono toccarsi). Di solito lo si deduce, ma non sempre: la
+simulazione è quindi leggermente ottimistica rispetto al gioco vero.
 \end{extra}
 
 \subsection{Risultati misurati}
 
-Le tre strategie sono state eseguite sulle stesse partite generate casualmente
-(2000 partite per le prime due, 300 per la ricerca bayesiana, che è molto più pesante:
-ricostruisce il posteriore da zero a ogni turno).
+Le quattro strategie (le tre del notebook più la versione bayesiana senza navi affondate,
+per confronto) sono state eseguite sulle \emph{stesse} 500 partite, generate sia con il
+generatore del notebook sia con quello corretto.
 
 \begin{center}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{lrrr}
+\renewcommand{\arraystretch}{1.22}
+\small
+\begin{tabular}{lrrrr}
 \toprule
- & Casuale & Hunt and target & Ricerca bayesiana \\
+ & Casuale & Hunt and target & Bayes senza & Bayes con \\
+ &         &                 & affondate   & affondate \\
 \midrule
-Partite simulate            & $2000$ & $2000$ & $300$ \\
+\multicolumn{5}{l}{\emph{Generatore del notebook (riga 9 e colonna 9 sempre vuote)}}\\
+Turni medi             & $95{,}2$ & $60{,}9$ & $54{,}6$ & $\mathbf{41{,}3}$ \\
+Deviazione standard    & $5{,}1$  & $9{,}1$  & $9{,}4$  & $9{,}0$ \\
+Mediana                & $97$     & $62$     & $54$     & $41$ \\
+Minimo -- massimo      & 68--100  & 34--79   & 27--77   & 23--67 \\
+Partite entro 50 turni & $0\%$    & $16{,}0\%$ & $33{,}8\%$ & $84{,}4\%$ \\
 \midrule
-Turni medi                  & $95{,}3$ & $59{,}8$ & $54{,}2$ \\
-Mediana                     & $97$ & $61$ & $54$ \\
-Minimo                      & $66$ & $30$ & $29$ \\
-Massimo                     & $100$ & $80$ & $77$ \\
-Partite chiuse entro 50 turni & $0\%$ & $17{,}6\%$ & $35{,}0\%$ \\
+\multicolumn{5}{l}{\emph{Generatore corretto}}\\
+Turni medi             & $95{,}6$ & $61{,}3$ & $56{,}1$ & $\mathbf{44{,}3}$ \\
+Deviazione standard    & $4{,}4$  & $8{,}9$  & $8{,}6$  & $8{,}4$ \\
+Mediana                & $97$     & $62$     & $56$     & $43$ \\
+Minimo -- massimo      & 76--100  & 31--80   & 31--78   & 27--68 \\
+Partite entro 50 turni & $0\%$    & $12{,}0\%$ & $25{,}0\%$ & $76{,}8\%$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Il salto grosso è il primo: passare dal caso a \en{hunt and target} fa risparmiare
-circa 35 turni, cioè oltre un terzo della partita. Il secondo salto è molto più piccolo,
-circa 6 turni in media, ma cambia la \emph{forma} della distribuzione: la quota di partite
-chiuse entro 50 turni raddoppia (dal 17{,}6\% al 35\%). La ricerca bayesiana non è tanto
-più veloce nel caso tipico, quanto più \kw{affidabile}: sbaglia meno spesso in grande.
+\begin{itemize}
+  \item Il primo salto (dal caso a \en{hunt and target}) fa risparmiare circa 35 turni.
+  \item Il secondo è la ricerca bayesiana \emph{fatta bene}: altri 20 turni in meno, con
+        oltre tre partite su quattro chiuse entro 50 colpi. I 41--44 turni misurati sono in
+        linea con i 40--44 dichiarati nelle slide del docente.
+  \item Senza la traccia delle navi affondate la ricerca bayesiana guadagna solo 6 turni su
+        hunt and target: \kw{l'informazione dell'affondamento vale da sola circa 13 turni}.
+  \item Il bug del generatore abbassa di circa 3 turni la media della ricerca bayesiana
+        (41,3 contro 44,3) e di meno di un turno quella di hunt and target. Con le navi
+        confinate in una griglia $9\times 9$ le configurazioni possibili sono meno, quindi
+        c'è meno informazione da scoprire: ne approfitta di più la strategia che sfrutta
+        meglio l'informazione.
+\end{itemize}
 
-\begin{attenzione}[questi 54 turni si possono migliorare parecchio]
-Le implementazioni pubblicate di ricerca bayesiana per la battaglia navale arrivano
-attorno ai 42--45 turni. La differenza viene quasi tutta da due semplificazioni fatte
-sopra: non si tiene traccia delle navi affondate (quindi il posteriore continua a cercare
-navi che non ci sono più) e il peso $10^{n\_hit}$ è un'euristica. Il numero riportato è
-quello \emph{effettivamente misurato con questo codice}, non il migliore ottenibile:
-vale la pena saperlo prima di citarlo.
+\subsection{Analisi in teoria dell'informazione}
+
+\paragraph{Quanta informazione c'è in una partita.}
+Su una griglia $10\times10$ una nave da 2 celle si può posare in $2 \times 10 \times 9 = 180$
+modi, una da 3 in 160, una da 4 in 140, una da 5 in 120. Le configurazioni possibili delle
+cinque navi sono quindi
+\[
+  \Omega = 180 \times 160 \times 160 \times 140 \times 120 = 7{,}74\cdot 10^{10}
+         \approx 2^{36{,}17}.
+\]
+Circa metà sono inammissibili perché le navi si sovrappongono: le configurazioni legali sono
+circa $2^{35}$, quindi una disposizione contiene circa \kw{35 bit} di informazione.
+
+\paragraph{Quanta ne porta un colpo.}
+L'informazione media di un colpo è la sua \kw{entropia di Shannon},
+$H = -\sum_i p_i \log_2 p_i$. Se si colpisce una nave con probabilità $17/100$ e si manca
+con probabilità $83/100$:
+\[
+  H(\text{colpo}) = -\left(\tfrac{17}{100}\log_2\tfrac{17}{100}
+                    + \tfrac{83}{100}\log_2\tfrac{83}{100}\right) \approx 0{,}66 \text{ bit},
+  \qquad
+  \Ev(\#\text{colpi}) \approx \frac{35 \text{ bit}}{0{,}66 \text{ bit/colpo}} \approx 53 .
+\]
+La ricerca bayesiana ne impiega 40--44, il 17\% in meno: estrae circa $35/42 \approx
+0{,}8$ bit per colpo, perché sceglie le celle in modo da \emph{livellare} il posteriore e
+rendere ogni tiro il più informativo possibile.
+
+\begin{attenzione}[53 non è un limite inferiore]
+Le slide dicono che la ricerca bayesiana ``migliora il limite del 17\%''. Un limite che si
+può battere non è un limite: 53 è il numero di colpi che servirebbero se \emph{ogni}
+colpo avesse probabilità di successo $17/100$, cioè se fosse informativo quanto un tiro a
+caso. Un buon giocatore sceglie celle con probabilità di successo più vicina a $1/2$, e un
+colpo con due esiti porta al più 1 bit quando i due esiti sono equiprobabili. Il vero
+limite informativo è quindi attorno ai \emph{35 colpi} (ignorando l'informazione extra
+degli annunci di affondamento), oltre al vincolo banale di almeno 17 colpi. La cifra di
+53 va letta come ``quanto vale un tiro poco informato'', non come soglia.
 \end{attenzione}
 
 \subsection{Che cosa portarsi dietro}
@@ -971,13 +1235,14 @@ vale la pena saperlo prima di citarlo.
 \begin{itemize}
   \item Le tre strategie sono tre livelli di uso dell'informazione: nessuno (casuale),
         locale (hunt and target), globale (bayesiana).
-  \item La ricerca bayesiana non ha regole scritte a mano: si limita a massimizzare
-        l'utilità attesa rispetto a una distribuzione aggiornata. Il comportamento
-        ``intelligente'' (sparare a scacchiera all'inizio, seguire l'orientamento della
-        nave dopo due colpi) \kw{emerge} dal calcolo.
-  \item È lo schema che si ritrova nelle vere applicazioni di \en{search theory}: i paper
-        in \texttt{labs/02-battleship/papers/} raccontano come la stessa idea sia stata usata per
-        ritrovare il relitto del volo Air France 447.
+  \item La ricerca bayesiana non ha regole scritte a mano: massimizza l'utilità attesa
+        rispetto a una distribuzione aggiornata. Il comportamento ``intelligente''
+        (cominciare dal centro, seguire l'orientamento della nave dopo due colpi)
+        \kw{emerge} dal calcolo.
+  \item Ogni informazione disponibile va usata: tenere conto delle navi affondate vale da
+        solo una dozzina di turni.
+  \item È lo stesso schema delle applicazioni reali di \en{search theory}, come la ricerca
+        del relitto del volo AF~447.
 \end{itemize}
 
 % ---------------------------------------------------------------------
@@ -1001,7 +1266,8 @@ vale la pena saperlo prima di citarlo.
         condivisione del rischio e l'assicurazione creano valore per entrambe le parti
         (premio $P \in [50,75]$ nell'esempio).
   \item \textbf{Lab}: la ricerca bayesiana sceglie a ogni turno la cella di massima utilità
-        attesa, aggiornando il posteriore con i colpi a vuoto e a segno.
+        attesa, aggiornando il posteriore con colpi a vuoto, a segno e affondamenti.
+        Media misurata: $41$--$44$ colpi, contro $61$ di hunt and target e $95$ del caso.
 \end{itemize}
 \textbf{Prossima lezione}: giochi non cooperativi in forma normale, \en{best response} ed
 equilibrio di Nash.

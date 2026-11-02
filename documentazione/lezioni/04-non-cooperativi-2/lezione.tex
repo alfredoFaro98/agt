@@ -1,0 +1,754 @@
+% =====================================================================
+%  Lezione 4 — Equilibri alternativi e apprendimento nei giochi
+%  Materiale: Lesson_4_Non_Cooperative_Game_Theory_II.pdf,
+%             Lesson4-NonCooperativeGameTheory_with_Learning_in_Games.ipynb
+% =====================================================================
+\chapter{Equilibri alternativi e apprendimento}
+
+\parteteoria
+
+La lezione 3 ha lasciato quattro concetti di soluzione, ognuno con un limite:
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+Concetto & Limite \\
+\midrule
+Eliminazione iterata (IESDS) & non tutti i giochi sono risolvibili per dominanza \\
+Equilibrio di Nash puro & non tutti i giochi ne hanno uno \\
+Equilibrio di Nash misto & esiste sempre nei giochi finiti (Nash, 1950), ma è difficile da
+calcolare oltre i giochi piccoli \\
+Minimax & vale per i giochi a somma zero, dove si calcola in modo efficiente \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Questa lezione risponde a tre domande:
+\begin{enumerate}[label=\arabic*.]
+  \item \emph{perché} l'equilibrio di Nash misto esiste sempre;
+  \item quanto è \emph{difficile} calcolarlo;
+  \item che cosa si può fare in alternativa: \kw{equilibri correlati} e \kw{apprendimento}
+        nei giochi ripetuti.
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\section{Esistenza dell'equilibrio di Nash misto}
+
+\begin{teorema}[Nash, 1950]
+Ogni gioco finito ha un equilibrio di Nash misto.
+\end{teorema}
+
+\textbf{Idea della dimostrazione}: \emph{ridurre} l'esistenza di un equilibrio misto
+all'esistenza di un \kw{punto fisso} di una funzione.
+
+\subsection{Il teorema del punto fisso di Brouwer}
+
+\begin{teorema}[Brouwer, 1911]
+Ogni funzione \kw{continua} $f$ che manda un insieme euclideo \kw{compatto} e \kw{convesso}
+in sé stesso ha un punto $x_0$ tale che $f(x_0) = x_0$.
+\end{teorema}
+
+Ricordando le definizioni:
+\begin{itemize}
+  \item un insieme di $\R^d$ è \kw{compatto} se è chiuso e limitato;
+  \item un insieme $C$ è \kw{convesso} se per ogni $x, y \in C$ e ogni
+        $\epsilon \in [0,1]$ vale $\epsilon x + (1-\epsilon)y \in C$: contiene il segmento tra
+        due suoi punti qualsiasi.
+\end{itemize}
+
+Ogni ipotesi serve. Le slide mostrano un controesempio per ciascuna, sull'intervallo
+(o sull'anello) e con il grafico di $f$ confrontato con la bisettrice $y = x$: un punto fisso
+è un punto in cui il grafico incontra la bisettrice.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+Ipotesi tolta & Funzione senza punto fisso \\
+\midrule
+Insieme limitato & $f(x) = x + 0{,}1$ su $\R$: una retta parallela alla bisettrice \\
+Insieme chiuso & $f(x) = x^2$ sull'aperto $(0,1)$: i punti fissi di $x^2$ sono $0$ e $1$,
+ entrambi fuori dall'insieme \\
+Insieme convesso & una rotazione dell'anello attorno al centro: il centro, che sarebbe il punto
+fisso, non sta nell'insieme \\
+Funzione continua & $f(x) = x + \tfrac12$ per $x < \tfrac12$, $f(x) = x - \tfrac12$ per
+ $x \ge \tfrac12$ su $[0,1]$: il grafico ``salta'' oltre la bisettrice \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{La costruzione di Nash}
+
+Il piano della dimostrazione:
+\begin{enumerate}
+  \item mostrare che l'insieme $S = S_1 \times S_2 \times \dots \times S_n$ dei profili di
+        strategie miste è compatto e convesso;
+  \item costruire una funzione continua $f : S \to S$ con $f(\sigma) = \sigma$ se e solo se
+        $\sigma$ è un equilibrio misto;
+  \item applicare Brouwer a $f$.
+\end{enumerate}
+
+\paragraph{Passo 1: l'insieme dei profili.}
+Le strategie miste del giocatore $i$ formano il \kw{simplesso standard}
+\[
+  S_i = \bigl\{ x \in \R^{|A_i|} \;:\; x \ge \mathbf{0},\ \uno^T x = 1 \bigr\},
+\]
+che è compatto e convesso. Il prodotto cartesiano di compatti è compatto e il prodotto di
+convessi è convesso, quindi anche $S$ lo è.
+
+\begin{attenzione}[``compatto e chiuso'']
+Le slide scrivono che $S$ è ``convesso, compatto e chiuso'' nel piano della dimostrazione e
+poi solo ``compatto e chiuso'' nel passo 1. In $\R^d$ un compatto è già chiuso; ciò che
+serve per Brouwer, e che i due teoremi enunciati subito dopo dimostrano, è
+\emph{compatto e convesso}.
+\end{attenzione}
+
+\paragraph{Passo 2: la funzione.}
+L'idea è una funzione che prende un profilo e ne restituisce uno \emph{diverso}, a meno che
+il profilo non sia un equilibrio. La best response sarebbe la scelta naturale, ma non è una
+funzione (può avere più valori) e può essere discontinua. Si usa invece il \kw{guadagno}
+che $i$ otterrebbe passando dalla sua strategia mista all'azione pura $a_i^j$:
+\[
+  g\bigl(a_i^j, \sigma\bigr) = \max\Bigl\{0,\ u_i\bigl(a_i^j, \sigma_{-i}\bigr) - u_i(\sigma)\Bigr\},
+\]
+e si sposta la probabilità verso le azioni che fanno guadagnare:
+\[
+  f(\sigma) = \sigma', \qquad
+  \sigma'_{i,a_j} = \frac{\sigma_{i,a_j} + g(a_i^j, \sigma)}
+                         {\sum_{k \in A_i} \bigl(\sigma_{i,a_k} + g(a_i^k, \sigma)\bigr)} .
+\]
+La funzione è continua (composizione di funzioni continue, con denominatore $\ge 1$), manda
+$S$ in sé (il risultato è ancora una distribuzione di probabilità) e ha un punto fisso se e
+solo se $\sigma$ è un equilibrio misto. Per Brouwer un punto fisso esiste, quindi esiste un
+equilibrio. $\square$
+
+\begin{extra}[il passaggio che le slide non dimostrano]
+Che un equilibrio sia un punto fisso è facile: all'equilibrio nessuna azione pura migliora,
+tutti i $g$ sono 0 e $f(\sigma) = \sigma$. Il viceversa è il passo delicato. Sia $\sigma$
+un punto fisso e sia $G_i = \sum_k g(a_i^k, \sigma)$; allora per ogni azione
+\[
+  \sigma_{i,a_j} = \frac{\sigma_{i,a_j} + g(a_i^j,\sigma)}{1 + G_i}
+  \quad\Longleftrightarrow\quad
+  \sigma_{i,a_j}\,G_i = g(a_i^j, \sigma).
+\]
+L'utilità $u_i(\sigma)$ è la media delle $u_i(a_i^j, \sigma_{-i})$ pesata con $\sigma_i$,
+quindi almeno un'azione del supporto ha $u_i(a_i^j,\sigma_{-i}) \le u_i(\sigma)$, cioè
+$g(a_i^j,\sigma) = 0$. Per quell'azione $\sigma_{i,a_j} > 0$ e $\sigma_{i,a_j} G_i = 0$,
+quindi $G_i = 0$: \emph{nessuna} azione pura fa guadagnare $i$, e $\sigma_i$ è una best
+response. Vale per ogni $i$, quindi $\sigma$ è un equilibrio.
+\end{extra}
+
+\begin{attenzione}[refusi]
+Il nome è \emph{Brouwer}, non ``Brower''; e $f$ manda $S$ \emph{in} sé stesso (\en{into}),
+non necessariamente \emph{su} tutto $S$ (\en{onto}): Brouwer non richiede la suriettività.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{Complessità del calcolo degli equilibri}
+
+\subsection{Equilibri misti: PPAD-completezza}
+
+\begin{itemize}
+  \item La riduzione appena vista mostra che trovare un equilibrio misto non è più difficile
+        che trovare un punto fisso.
+  \item Una riduzione (molto più elaborata) mostra il contrario: trovare un punto fisso non
+        è più difficile che trovare un equilibrio misto.
+  \item Insieme: trovare un equilibrio misto è \emph{esattamente} difficile quanto trovare
+        un punto fisso. Il problema è \kw{PPAD-completo}.
+\end{itemize}
+
+\begin{definizione}[La classe PPAD]
+\kw{PPAD} (\en{Polynomial Parity Argument on Directed graphs}) contiene i problemi di punto
+fisso. Il suo problema rappresentativo è \kw{End of Line}: è dato implicitamente un grafo
+orientato $G = (V,E)$ con $|V| = 2^n$ nodi, in cui ogni nodo ha grado entrante e uscente al
+più 1, tramite due circuiti
+\[
+  S : \{0,1\}^n \to \{0,1\}^n \ (\text{successore}),\qquad
+  P : \{0,1\}^n \to \{0,1\}^n \ (\text{predecessore}).
+\]
+Dato un nodo sorgente $s$, si deve trovare un pozzo $t$ (la ``fine della linea'').
+\end{definizione}
+
+\begin{osservazione}[perché è difficile e perché la soluzione esiste]
+La soluzione esiste sempre: seguendo i successori da $s$ si arriva prima o poi a un nodo
+senza successore, perché i nodi sono finiti e non si possono ripetere. Ma il grafo ha
+$2^n$ nodi e la linea può essere lunga in modo esponenziale; i circuiti $S$ e $P$ non
+dicono dove finisce. È lo stesso tipo di problema di Nash: si sa che la soluzione c'è,
+non si sa come trovarla in fretta.
+\end{osservazione}
+
+\paragraph{Il lemma di Sperner.}
+È la controparte discreta di Brouwer. Si prende un reticolo triangolato e se ne colorano i
+nodi di bordo con tre colori secondo la regola delle slide (rosso sul lato sinistro, giallo
+in basso, blu in alto e a destra). Comunque si colorino i nodi interni, esiste un
+\kw{triangolo tricromatico}, anzi ne esiste un numero \emph{dispari}. Trovarne uno è
+PPAD-completo.
+
+L'argomento che lo dimostra è proprio un ``End of Line'': si considerano i triangoli come
+nodi e le ``porte'' rosso-giallo come archi, e si attraversa ogni porta tenendo il rosso a
+sinistra. Partendo dalla porta sul bordo si cammina di triangolo in triangolo, e il cammino
+può finire solo in un triangolo tricromatico. Le slide riassumono la catena di riduzioni:
+\[
+  \textsc{EoL} \le_p \textsc{Sperner} \le_p \textsc{Brouwer} \le_p \textsc{Nash}.
+\]
+
+\begin{osservazione}[come leggere la catena]
+$X \le_p Y$ significa ``$X$ si riduce a $Y$'': chi sa risolvere $Y$ sa risolvere $X$, quindi
+$Y$ è almeno difficile quanto $X$. La catena dice che Nash è almeno difficile quanto End of
+Line, cioè PPAD-\emph{difficile}. La costruzione di Nash (Brouwer applicato a $f$) dà la
+direzione opposta, l'appartenenza a PPAD. Insieme: PPAD-completo.
+\end{osservazione}
+
+\subsection{Equilibri puri: NP-difficoltà}
+
+\kw{Trovare un equilibrio di Nash puro è NP-difficile.} Lo si dimostra riducendo a esso
+il problema della \kw{3-colorabilità}: dato un grafo $G = (V,E)$, decidere se si possono
+colorare i nodi con tre colori senza che due nodi adiacenti abbiano lo stesso colore.
+
+Si usano i \kw{giochi su grafo}: i giocatori sono i nodi e il payoff di ciascuno dipende
+solo dalle interazioni locali (la sua azione e quelle dei vicini).
+
+\paragraph{Primo tentativo.}
+Nodi = giocatori, azioni = $\{R, G, B\}$, payoff $+10$ se il colore scelto non è in
+conflitto con nessun vicino, $-10$ se lo è. Se $G$ è 3-colorabile c'è un equilibrio con
+benessere massimo; se non lo è c'è comunque un equilibrio, solo con benessere più basso.
+Questo dimostra che trovare l'equilibrio \emph{di benessere massimo} è NP-difficile, ma non
+che lo sia trovarne \emph{uno}.
+
+\paragraph{La costruzione giusta.}
+Si aggiunge un \kw{nodo sfidante} collegato a tutti gli altri:
+\begin{itemize}
+  \item azioni dei nodi del grafo: $\{R, G, B, X, Y\}$; azioni dello sfidante: $\{X, Y\}$;
+  \item payoff di un nodo: $+10$ se sceglie un colore senza conflitti, $-10$ se il colore è
+        in conflitto, $0$ se sceglie $X$/$Y$ \emph{copiando} lo sfidante, $-5$ se sceglie
+        $X$/$Y$ senza copiarlo;
+  \item payoff dello sfidante: $+10$ se nessun nodo lo copia, $-10$ se qualcuno lo copia.
+\end{itemize}
+Allora il gioco ha un equilibrio puro \emph{se e solo se} $G$ è 3-colorabile.
+
+\begin{extra}[perché funziona]
+\begin{itemize}
+  \item \emph{Se $G$ è 3-colorabile}: i nodi giocano una colorazione corretta ($+10$
+        ciascuno) e lo sfidante una lettera qualsiasi ($+10$, nessuno lo copia). Nessun
+        nodo ha interesse a passare a una lettera ($\le 0 < 10$), lo sfidante è già al
+        massimo: equilibrio.
+  \item \emph{Se non lo è}, si supponga per assurdo un equilibrio. Un nodo che gioca una
+        lettera senza copiare prende $-5$ e preferirebbe copiare ($0$); quindi in
+        equilibrio chi gioca una lettera copia lo sfidante. Ma se almeno un nodo lo copia,
+        lo sfidante prende $-10$ e, cambiando lettera, nessuno lo copierebbe più ($+10$):
+        devierebbe. Quindi nessun nodo gioca lettere: tutti giocano colori. Poiché $G$ non
+        è 3-colorabile, qualche nodo è in conflitto ($-10$) e preferirebbe copiare lo
+        sfidante ($0$). Contraddizione.
+\end{itemize}
+Verificato con una ricerca esaustiva su tutti i profili: il triangolo e il ciclo da 4 nodi
+(3-colorabili) hanno un equilibrio puro, il grafo completo $K_4$ (non 3-colorabile) no.
+\end{extra}
+
+\begin{attenzione}[NP-difficile rispetto a che cosa]
+Se un gioco è dato in forma normale \emph{esplicita} (la tabella completa dei payoff),
+trovare un equilibrio puro è facile: basta controllare ogni cella, in tempo polinomiale
+nella dimensione della tabella. La difficoltà nasce perché nei giochi su grafo la
+rappresentazione è \emph{compatta}: con $|V|$ nodi e 5 azioni la tabella avrebbe
+$5^{|V|}\cdot 2$ celle, ma il gioco si descrive con poche regole locali. Il risultato
+vale rispetto a questa descrizione compatta, ed è quella che conta nei problemi reali.
+\end{attenzione}
+
+\subsection{Il quadro complessivo}
+
+\begin{itemize}
+  \item Trovare un equilibrio di Nash misto è \kw{PPAD-completo}.
+  \item Trovare un equilibrio di Nash puro è \kw{NP-difficile}.
+  \item Trovare l'equilibrio che massimizza il benessere sociale è \kw{NP-difficile}.
+\end{itemize}
+Conseguenza: se calcolare un equilibrio è difficile per un algoritmo centralizzato e
+ottimizzato, non ci si può aspettare che un sistema di agenti autonomi che interagiscono
+lo raggiunga da solo nei giochi generici. È la motivazione per le nozioni alternative di
+equilibrio e per l'apprendimento.
+
+% ---------------------------------------------------------------------
+\section{Equilibri correlati}
+
+\subsection{L'intuizione: il semaforo}
+
+Il gioco dell'\kw{attraversamento}: due auto arrivano a un incrocio e ciascuna sceglie se
+passare (\emph{Go}) o fermarsi (\emph{Stop}).
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{Go} & \multicolumn{1}{c}{Stop}\\ \cline{2-3}
+Go   & \pay{-10}{-10} & \pay{5}{0} \\ \cline{2-3}
+Stop & \pay{0}{5}     & \pay{-1}{-1} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+\begin{itemize}
+  \item Due equilibri puri: (Go, Stop) con $u = (5, 0)$ e (Stop, Go) con $u = (0, 5)$.
+        Sbilanciati.
+  \item Un equilibrio misto: entrambi giocano Go con probabilità $\tfrac38$, con
+        $u_1 = u_2 = -\tfrac58$. Equo ma pessimo: ci si scontra con probabilità
+        $\tfrac{9}{64}$.
+\end{itemize}
+
+Nella realtà il problema si risolve con un \kw{semaforo}: un \emph{dispositivo di
+coordinamento} che raccomanda un'azione a ciascun giocatore. Lo si modella come una
+distribuzione di probabilità sui profili:
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{Go} & \multicolumn{1}{c}{Stop}\\ \cline{2-3}
+Go   & $0$         & $\tfrac12$ \\ \cline{2-3}
+Stop & $\tfrac12$  & $0$ \\ \cline{2-3}
+\end{tabular}
+\end{center}
+Se entrambi seguono la raccomandazione ottengono $u_1 = u_2 = 2{,}5$. E \kw{deviare dalla
+raccomandazione non conviene}, assumendo che l'altro la segua: chi riceve ``Stop'' sa che
+l'altro ha ricevuto ``Go'' e, passando, prenderebbe $-10$ invece di $0$; chi riceve ``Go'' sa
+che l'altro si ferma e, fermandosi, prenderebbe $-1$ invece di $5$.
+
+\subsection{Definizione}
+
+\begin{definizione}[Equilibrio correlato]
+Un \kw{equilibrio correlato} (CE) è una distribuzione di probabilità sui profili di azioni
+\[
+  p : A_1 \times A_2 \times \dots \times A_n \to [0,1]
+\]
+tale che per ogni giocatore $i$ e ogni coppia di azioni $a_i, a_i' \in A_i$
+\[
+  \sum_{a_{-i} \in A_{-i}} p(a_i, a_{-i})\, u_i(a_i, a_{-i})
+  \ \ge\ \sum_{a_{-i} \in A_{-i}} p(a_i, a_{-i})\, u_i(a_i', a_{-i}).
+\]
+\end{definizione}
+In parole: se il dispositivo raccomanda $a_i$ al giocatore $i$, la probabilità condizionata
+degli altri profili è proporzionale a $p(a_i, \cdot)$, e contro quella distribuzione seguire
+la raccomandazione è almeno buono quanto passare a qualunque $a_i'$.
+
+\begin{teorema}[Esistenza]
+Ogni gioco finito ha un equilibrio correlato.
+\end{teorema}
+
+\begin{extra}[perché esiste, e che rapporto c'è con Nash]
+Ogni equilibrio di Nash misto $\sigma$ è anche un equilibrio correlato: basta prendere
+$p(a) = \prod_j \sigma_j(a_j)$, la distribuzione dei profili quando ognuno randomizza per
+conto suo. L'esistenza segue quindi dal teorema di Nash. Il viceversa non vale: il semaforo
+è un equilibrio correlato ma non è il prodotto di due strategie indipendenti (ha
+probabilità nulla su (Go,Go) e su (Stop,Stop), cosa impossibile per un prodotto con
+entrambe le marginali $(\tfrac12,\tfrac12)$). Gli equilibri correlati sono un insieme più
+grande, e quindi possono contenere esiti migliori.
+\end{extra}
+
+\subsection{Le disuguaglianze nell'esempio}
+
+Per il giocatore 1 (riga) le due raccomandazioni danno:
+\begin{align*}
+  \text{raccomandato Go:}\quad
+  & p(G,G)\cdot(-10) + p(G,S)\cdot 5 \ \ge\ p(G,G)\cdot 0 + p(G,S)\cdot(-1)\\
+  \text{raccomandato Stop:}\quad
+  & p(S,G)\cdot 0 + p(S,S)\cdot(-1) \ \ge\ p(S,G)\cdot(-10) + p(S,S)\cdot 5
+\end{align*}
+e per il giocatore 2 (colonna):
+\begin{align*}
+  \text{raccomandato Go:}\quad
+  & p(G,G)\cdot(-10) + p(S,G)\cdot 5 \ \ge\ p(G,G)\cdot 0 + p(S,G)\cdot(-1)\\
+  \text{raccomandato Stop:}\quad
+  & p(G,S)\cdot 0 + p(S,S)\cdot(-1) \ \ge\ p(G,S)\cdot(-10) + p(S,S)\cdot 5
+\end{align*}
+Semplificando:
+\[
+  p(G,S) \ge \tfrac53\,p(G,G), \quad
+  p(S,G) \ge \tfrac35\,p(S,S), \quad
+  p(S,G) \ge \tfrac53\,p(G,G), \quad
+  p(G,S) \ge \tfrac35\,p(S,S).
+\]
+Il semaforo $p(G,G) = p(S,S) = 0$, $p(G,S) = p(S,G) = \tfrac12$ le soddisfa tutte.
+
+\subsection{Calcolo con la programmazione lineare}
+
+Le condizioni sono \kw{lineari} nelle incognite $p(a)$: un equilibrio correlato si trova
+risolvendo un programma lineare, cioè in tempo polinomiale nella dimensione del gioco.
+Gli equilibri correlati sono quindi \emph{più facili} da calcolare di quelli di Nash. Si può
+scegliere l'obiettivo che si preferisce:
+\[
+\begin{aligned}
+  \max\ & \text{[obiettivo a scelta]}\\
+  \text{s.t. }\ & \sum_{a_{-i}} p(a_i, a_{-i})\bigl(u_i(a_i, a_{-i}) - u_i(a_i', a_{-i})\bigr) \ge 0
+  && \forall i,\ \forall a_i, a_i' \in A_i\\
+  & \textstyle\sum_{a \in A} p(a) = 1,\qquad p(a) \ge 0 .
+\end{aligned}
+\]
+Due obiettivi tipici:
+\begin{itemize}
+  \item \kw{benessere totale}: $\max \sum_{a \in A} p(a) \sum_i u_i(a)$;
+  \item \kw{regola maximin}: $\max \min_i \sum_{a \in A} p(a)\,u_i(a)$, cioè rendere il più
+        alto possibile il payoff atteso del giocatore che sta peggio.
+\end{itemize}
+
+\begin{attenzione}[tre errori nelle slide del programma lineare]
+\begin{itemize}
+  \item Nel vincolo, a destra le slide scrivono $p(a_i', a_{-i})\,u_i(a_i', a_{-i})$. La
+        probabilità corretta è $p(a_i, a_{-i})$, la stessa del lato sinistro: si sta
+        confrontando che cosa succede \emph{con la stessa raccomandazione} se si gioca
+        $a_i$ oppure $a_i'$. Manca anche la sommatoria a destra. La definizione data
+        qualche slide prima è giusta; lo è anche il notebook del docente.
+  \item L'obiettivo ``$\max \sum_i p(a)\,u_i(a)$'' manca della somma sui profili $a$.
+  \item ``$\max\min_i p(a)\,u_i(a)$'' non è un programma lineare così com'è (il minimo non
+        è lineare). Lo diventa con una variabile ausiliaria $t$:
+        $\max t$ s.t.\ $t \le \sum_a p(a)\,u_i(a)$ per ogni $i$.
+\end{itemize}
+\end{attenzione}
+
+\section{Altri concetti di soluzione}
+
+\begin{itemize}
+  \item \kw{Trattare il gioco come a somma zero} e calcolare una strategia minimax: approccio
+        conservativo, utile se si crede che l'avversario voglia danneggiarci o se non si
+        conosce la sua utilità.
+  \item \kw{Minimizzare il massimo rimpianto}. Il \kw{rimpianto} (\en{regret}) di un'azione
+        è quanto si perde rispetto alla migliore risposta, a posteriori:
+        \[
+          R(a_i, a_{-i}) = \Bigl[\max_{a_i' \in A_i} u_i(a_i', a_{-i})\Bigr] - u_i(a_i, a_{-i}),
+          \qquad
+          a_i^* \in \argmin_{a_i \in A_i}\ \max_{a_{-i} \in A_{-i}} R(a_i, a_{-i}).
+        \]
+        È meno conservativo del minimax, utile quando l'avversario è imprevedibile più che
+        ostile.
+\end{itemize}
+
+\begin{extra}[minimax e minimo rimpianto nell'attraversamento]
+Per il giocatore 1: contro Go la risposta migliore vale $0$ (Stop), contro Stop vale $5$
+(Go). I rimpianti sono:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccc}
+\toprule
+ & contro Go & contro Stop & rimpianto massimo \\
+\midrule
+Go   & $0 - (-10) = 10$ & $5 - 5 = 0$ & $10$ \\
+Stop & $0 - 0 = 0$ & $5 - (-1) = 6$ & $\mathbf{6}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Il minimo rimpianto massimo è Stop. Anche il criterio maximin sceglie Stop (caso peggiore
+$-1$ contro $-10$). Qui i due criteri coincidono, ma in generale no: il maximin guarda solo
+i payoff assoluti, il rimpianto li confronta con quello che si sarebbe potuto ottenere.
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Apprendimento nei giochi}
+
+Si immagini ora che i giocatori giochino lo stesso gioco $G$ \emph{ripetutamente}, per $T$
+turni. Si vogliono algoritmi adattivi con cui i giocatori \kw{imparino} a giocare strategie
+di equilibrio. Poiché calcolare un equilibrio di Nash è PPAD-completo, non ci si aspetta di
+impararlo in \emph{ogni} gioco. Due algoritmi classici:
+\begin{itemize}
+  \item \kw{fictitious play} (Robinson, 1951);
+  \item \kw{regret matching} (Hart e Mas-Colell, 2000).
+\end{itemize}
+
+\subsection{Fictitious play}
+
+Ogni giocatore stima la strategia degli avversari dalle frequenze osservate e gioca la best
+response a quella stima.
+\begin{enumerate}
+  \item A ogni turno aggiorna il conteggio di quante volte gli avversari hanno giocato
+        ciascuna azione: $\text{count}_{a_{-i}}[a_j]$.
+  \item Normalizza il conteggio in una distribuzione, la stima della strategia avversaria:
+        \[
+          \sigma_{-i}^t[a_j] = \frac{\text{count}_{a_{-i}}[a_j]}{t - 1}.
+        \]
+  \item Gioca una best response alla stima:
+        $a_i^t \in \argmax_{a_i} \Ev\bigl[u_i(a_i, a_{-i}) \mid \sigma_{-i}^t\bigr]$.
+\end{enumerate}
+
+Proprietà:
+\begin{itemize}
+  \item aggiorna le credenze assumendo che gli altri giocatori siano \kw{stazionari}
+        (giochino sempre la stessa strategia mista), il che non è vero: anche loro imparano;
+  \item non è garantito che converga; ma \emph{se} le frequenze $\sigma_{-i}^t$ convergono,
+        convergono a un equilibrio di Nash;
+  \item converge sicuramente a un equilibrio di Nash nei giochi a due giocatori a somma zero,
+        nei giochi risolvibili per eliminazione iterata delle strategie strettamente
+        dominate e nei giochi a due giocatori $2\times N$.
+\end{itemize}
+
+\begin{osservazione}[che cosa converge]
+Le \emph{azioni} giocate in fictitious play sono sempre pure e possono ciclare per sempre:
+in sasso-carta-forbici l'algoritmo gioca sasso per un po', poi carta, poi forbici, \ldots\ Ciò
+che converge all'equilibrio $(\tfrac13,\tfrac13,\tfrac13)$ sono le \emph{frequenze
+empiriche}, cioè le medie nel tempo. Il grafico delle slide mostra proprio queste
+oscillazioni sempre più strette attorno a $\tfrac13$.
+\end{osservazione}
+
+\subsection{Regret matching}
+
+Ogni giocatore decide quanto spesso giocare un'azione in base a \emph{quanto avrebbe
+guadagnato in più} giocandola sempre, col senno di poi.
+\begin{enumerate}
+  \item A ogni turno calcola il \kw{rimpianto cumulato} di ciascuna azione $a$ rispetto a
+        ciò che ha effettivamente giocato:
+        \[
+          R_i^t(a) = \sum_{s \le t} \Bigl( u_i\bigl(a, \sigma_{-i}^s\bigr)
+                     - u_i\bigl(\sigma_i^s, \sigma_{-i}^s\bigr) \Bigr).
+        \]
+  \item Aggiorna la strategia in proporzione alla \emph{parte positiva} del rimpianto:
+        \[
+          \sigma_i^{t+1}(a) = \frac{\max(0, R_i^t(a))}{\sum_{a'} \max(0, R_i^t(a'))},
+        \]
+        e gioca in modo uniforme se tutti i rimpianti sono $\le 0$.
+\end{enumerate}
+
+\begin{attenzione}[la formula delle slide è un'altra cosa]
+Le slide scrivono $R_i^t(a) = \sum_{s \le t} \max\bigl(0,\ u_i(a,\sigma_{-i}^s) -
+u_i(\sigma^s)\bigr)$: la somma delle parti positive di ogni turno, invece della parte
+positiva della somma. Non è la stessa cosa: con la versione delle slide i rimpianti non
+possono mai diminuire, e un'azione che è stata buona in passato e poi pessima continua a
+essere giocata. Il regret matching di Hart e Mas-Colell, quello con le garanzie
+teoriche, usa $\max(0, \sum_s \dots)$.
+
+L'effetto si misura nel laboratorio. In sasso-carta-forbici entrambe le versioni sembrano
+funzionare, perché per simmetria finiscono comunque attorno a $\tfrac13$. Su un gioco a
+somma zero asimmetrico, con strategia minimax $(0{,}33;\ 0{,}56;\ 0{,}11)$, la versione
+corretta converge a $(0{,}34;\ 0{,}56;\ 0{,}10)$, quella delle slide a
+$(0{,}41;\ 0{,}35;\ 0{,}24)$, che non è un equilibrio. Le slide inoltre non dicono che
+cosa fare quando tutti i rimpianti sono nulli (denominatore zero): si gioca uniforme.
+\end{attenzione}
+
+Proprietà secondo le slide:
+\begin{itemize}
+  \item nei giochi generali la media nel tempo converge all'insieme degli
+        \kw{equilibri correlati};
+  \item converge a un equilibrio di Nash nelle stesse classi di giochi di fictitious play
+        (somma zero a due giocatori, risolvibili per dominanza, $2\times N$).
+\end{itemize}
+
+\begin{attenzione}[che cosa converge, e a che cosa]
+Due precisazioni sull'enunciato delle slide, utili se all'esame si chiede ``a che cosa
+converge il regret matching''.
+\begin{itemize}
+  \item \emph{Che cosa converge.} Le slide parlano della media delle strategie,
+        $\bar\sigma^T = \tfrac1T\sum_t \sigma_t$. Ma un equilibrio correlato è una
+        distribuzione sui \emph{profili congiunti}, non una strategia per giocatore: ciò
+        che converge è la \emph{distribuzione empirica dei profili giocati}, cioè la
+        frazione di turni in cui si è giocato ciascun $(a_1,\dots,a_n)$.
+  \item \emph{A che cosa.} La versione vista sopra confronta ogni azione con la strategia
+        giocata nel suo complesso (rimpianto \emph{incondizionato}, o ``esterno''). La
+        teoria garantisce allora la convergenza agli \kw{equilibri correlati grossolani}
+        (\en{coarse correlated equilibria}): distribuzioni da cui nessun giocatore vorrebbe
+        sganciarsi \emph{prima} di ricevere la raccomandazione, per giocare sempre una
+        stessa azione fissa. La convergenza agli equilibri correlati veri e propri vale per
+        la variante del paper di Hart e Mas-Colell con rimpianti \emph{condizionati}, che
+        confronta ogni azione effettivamente giocata con ciascuna alternativa (``avrei
+        fatto meglio a giocare $k$ \emph{ogni volta che} ho giocato $j$?'').
+\end{itemize}
+\end{attenzione}
+
+\begin{extra}[perché nei giochi a somma zero si arriva comunque a Nash]
+Nei giochi a due giocatori a somma zero la distinzione non conta: le marginali di qualunque
+equilibrio correlato, anche grossolano, sono strategie minimax. Se nessuno dei due ha
+rimpianti verso un'azione fissa, ciascuno ottiene almeno il valore del gioco; poiché la somma
+dei payoff è zero, entrambi ottengono esattamente il valore, e le frequenze di ciascuno sono
+una strategia ottima. Analogamente, un giocatore senza rimpianti gioca sempre più di rado
+un'azione strettamente dominata da un'altra azione pura (ogni volta che la gioca accumula
+rimpianto verso quella che la domina), il che spiega il caso dei giochi risolvibili per
+dominanza.
+\end{extra}
+
+% =====================================================================
+\partelab{Equilibri correlati e apprendimento}
+% =====================================================================
+\fonte{Lesson4-NonCooperativeGameTheory\_with\_Learning\_in\_Games.ipynb}
+
+Il notebook ripete la prima parte del laboratorio 3 (best response, equilibri, minimax,
+equilibri $2\times2$: vedi lezione 3) e aggiunge tre esercizi: il programma lineare per gli
+equilibri correlati, fictitious play e regret matching. Il notebook contiene gli output
+della soluzione del docente: tutti i numeri sotto li riproducono.
+
+\subsection{Equilibri correlati con \texttt{linprog}}
+
+Le incognite sono le $m\cdot n$ probabilità $p(i,j)$, appiattite riga per riga. Ogni coppia
+(azione raccomandata, deviazione) dà un vincolo. \texttt{linprog} vuole vincoli $\le 0$ e un
+problema di minimo, quindi si cambia segno.
+
+\begin{lstlisting}
+import numpy as np
+from scipy.optimize import linprog
+
+def build_ce_lp(A1, A2):
+    A1, A2 = np.asarray(A1, float), np.asarray(A2, float)
+    m, n = A1.shape
+    idx = lambda i, j: i * n + j
+    rows = []
+    for i in range(m):                    # giocatore 1: raccomandato i, devia a k
+        for k in range(m):
+            if k != i:
+                r = np.zeros(m * n)
+                for j in range(n):
+                    r[idx(i, j)] = -(A1[i, j] - A1[k, j])
+                rows.append(r)
+    for j in range(n):                    # giocatore 2: raccomandato j, devia a l
+        for l in range(n):
+            if l != j:
+                r = np.zeros(m * n)
+                for i in range(m):
+                    r[idx(i, j)] = -(A2[i, j] - A2[i, l])
+                rows.append(r)
+    A_ub, b_ub = np.array(rows), np.zeros(len(rows))
+    A_eq, b_eq = np.ones((1, m * n)), np.array([1.0])
+    c = -(A1 + A2).flatten()              # max benessere = min -benessere
+    bounds = [(0, None)] * (m * n)
+    return c, A_ub, b_ub, A_eq, b_eq, bounds, (m, n)
+
+def solve_ce_max_social_welfare(A1, A2, method='highs'):
+    c, A_ub, b_ub, A_eq, b_eq, bounds, (m, n) = build_ce_lp(A1, A2)
+    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
+                  bounds=bounds, method=method)
+    dist = res.x.reshape(m, n)
+    return {"distribution": dist,
+            "social_welfare": float((dist * (A1 + A2)).sum()),
+            "linprog_result": res}
+\end{lstlisting}
+
+\paragraph{Risultati.}
+\begin{itemize}
+  \item \emph{Attraversamento}: benessere massimo $5{,}0$, distribuzione
+        $\bigl(\begin{smallmatrix}0&1\\0&0\end{smallmatrix}\bigr)$, cioè l'equilibrio puro
+        (Go, Stop). La matrice dei vincoli è identica a quella del notebook:
+        \[
+          A_{ub} = \begin{pmatrix}
+            10 & -6 & 0 & 0\\ 0 & 0 & -10 & 6\\ 10 & 0 & -6 & 0\\ 0 & -10 & 0 & 6
+          \end{pmatrix}
+          \qquad\text{(variabili: } p_{GG}, p_{GS}, p_{SG}, p_{SS}\text{)}.
+        \]
+  \item \emph{Rigori}: benessere $0$, distribuzione uniforme $0{,}25$ su ogni cella.
+\end{itemize}
+
+\begin{osservazione}[il programma lineare sceglie un vertice]
+Anche il semaforo ha benessere $5$ (verificato: è un equilibrio correlato), ma il risolutore
+restituisce (Go, Stop): quando più soluzioni hanno lo stesso valore ottimo, ne restituisce
+una qualsiasi, di solito un vertice del poliedro. Se si vuole la soluzione \emph{equa}
+bisogna chiederla, con l'obiettivo maximin: risolvendo $\max t$ s.t.\
+$t \le \Ev_p[u_i]$ si ottiene esattamente il semaforo,
+$\bigl(\begin{smallmatrix}0&\frac12\\\frac12&0\end{smallmatrix}\bigr)$, con $2{,}5$ a testa.
+\end{osservazione}
+
+\begin{osservazione}[il commento sui rigori]
+Il notebook motiva la distribuzione uniforme con ``il suo equilibrio di Nash è
+$[0{,}5; 0{,}5]$''. Il motivo vero è più netto: nei rigori i quattro vincoli diventano
+$p_{12} \le p_{11} \le p_{21} \le p_{22} \le p_{12}$, una catena chiusa che forza tutte le
+probabilità a essere uguali. L'equilibrio correlato è \emph{unico}, e l'obiettivo non conta
+(in un gioco a somma zero il benessere è $0$ per qualunque distribuzione).
+\end{osservazione}
+
+\subsection{Fictitious play}
+
+\begin{lstlisting}
+def fictitious_play(P, iterations=1000):
+    p1_counts, p2_counts = np.ones(3), np.ones(3)   # 1 per evitare divisioni per 0
+    sigma_p1, sigma_p2 = [], []
+    for _ in range(iterations):
+        p1_prob = p1_counts / p1_counts.sum()        # frequenze empiriche
+        p2_prob = p2_counts / p2_counts.sum()
+        a1 = np.argmax(P @ p2_prob)                  # BR alla stima sull'altro
+        a2 = np.argmax(-P.T @ p1_prob)               # somma zero: payoff -P
+        p1_counts[a1] += 1
+        p2_counts[a2] += 1
+        sigma_p1.append(p1_counts / p1_counts.sum())
+        sigma_p2.append(p2_counts / p2_counts.sum())
+    return p1_prob, p2_prob, np.array(sigma_p1), np.array(sigma_p2)
+\end{lstlisting}
+
+In sasso-carta-forbici le frequenze si avvicinano a $\tfrac13$, con oscillazioni che si
+stringono:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{rcc}
+\toprule
+Turni & Frequenze del giocatore 1 & Scarto massimo da $\tfrac13$ \\
+\midrule
+100    & $(0{,}359;\ 0{,}301;\ 0{,}340)$ & $0{,}032$ \\
+1000   & $(0{,}347;\ 0{,}319;\ 0{,}334)$ & $0{,}014$ \\
+10000  & $(0{,}332;\ 0{,}336;\ 0{,}333)$ & $0{,}002$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{osservazione}[\texttt{argmax} e i pareggi]
+\texttt{np.argmax} restituisce sempre il \emph{primo} massimo: è una regola di pareggio
+deterministica. In sasso-carta-forbici la matrice è antisimmetrica ($-P^T = P$), quindi i due
+giocatori calcolano la stessa best response a partire dagli stessi conteggi: giocano sempre
+la stessa azione e hanno frequenze identiche. Non è un errore, ma è un artefatto da tenere presente se si usa fictitious play
+per confronti nel progetto.
+\end{osservazione}
+
+\subsection{Regret matching}
+
+\begin{lstlisting}
+def regret_matching(P, T=10000, seed=0):
+    rng = np.random.default_rng(seed)
+    R1, R2 = np.zeros(3), np.zeros(3)          # rimpianti cumulati
+    p1 = p2 = np.ones(3) / 3
+    counts1 = np.zeros(3)
+    for t in range(T):
+        a1, a2 = rng.choice(3, p=p1), rng.choice(3, p=p2)
+        counts1[a1] += 1
+        R1 += P[:, a2] - P[a1, a2]             # quanto avrei preso con ogni azione
+        R2 += -P[a1, :] + P[a1, a2]            # payoff della colonna = -P
+        pos1, pos2 = np.maximum(R1, 0), np.maximum(R2, 0)
+        p1 = pos1 / pos1.sum() if pos1.sum() > 0 else np.ones(3) / 3
+        p2 = pos2 / pos2.sum() if pos2.sum() > 0 else np.ones(3) / 3
+    return counts1 / T
+\end{lstlisting}
+
+Qui le azioni sono campionate e il rimpianto si calcola sull'azione effettivamente giocata
+dall'avversario; le slide usano le strategie miste (utilità attese). Il rimpianto campionato
+è una stima non distorta di quello atteso, quindi le due versioni si comportano allo stesso
+modo in media.
+
+\paragraph{Risultati.}
+In sasso-carta-forbici, dopo 10\,000 turni, la frequenza del giocatore 1 è
+$(0{,}335;\ 0{,}332;\ 0{,}333)$, con scarto massimo da $\tfrac13$ tra $0{,}002$ e $0{,}010$
+su 5 semi. La versione con la formula delle slide dà scarti simili su questo gioco, ed è per
+questo che il difetto non si vede nel notebook. Il confronto su un gioco asimmetrico
+\[
+  M = \begin{pmatrix} 2 & -1 & 1 \\ -1 & 1 & 0 \\ 1 & 0 & -1 \end{pmatrix},
+  \qquad \text{minimax della riga } (0{,}333;\ 0{,}556;\ 0{,}111),\ \text{valore } 0{,}222,
+\]
+dopo 20\,000 turni su 3 semi:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lc}
+\toprule
+Versione & Frequenze della riga \\
+\midrule
+$\max(0, \sum_s r_s)$ (Hart, Mas-Colell) & $(0{,}34;\ 0{,}56;\ 0{,}10)$, $(0{,}34;\ 0{,}56;\ 0{,}11)$, $(0{,}35;\ 0{,}57;\ 0{,}08)$ \\
+$\sum_s \max(0, r_s)$ (slide) & $(0{,}41;\ 0{,}35;\ 0{,}24)$, $(0{,}41;\ 0{,}35;\ 0{,}24)$, $(0{,}41;\ 0{,}35;\ 0{,}24)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+La seconda converge in modo stabile, ma al punto sbagliato: contro la seconda colonna la
+strategia $(0{,}41;\ 0{,}35;\ 0{,}24)$ ottiene $-0{,}06$, mentre il minimax garantisce
+$0{,}222$ contro qualunque colonna.
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item \textbf{Nash (1950)} via \textbf{Brouwer}: l'insieme dei profili misti è compatto
+        e convesso, la funzione dei ``guadagni'' è continua e i suoi punti fissi sono
+        esattamente gli equilibri.
+  \item Trovare un equilibrio misto è \textbf{PPAD-completo} (End of Line, Sperner);
+        trovare un equilibrio puro, o quello di benessere massimo, è \textbf{NP-difficile}
+        (riduzione da 3-colorabilità con un nodo sfidante).
+  \item \textbf{Equilibrio correlato}: una distribuzione sui profili da cui a nessuno
+        conviene deviare data la propria raccomandazione. Ogni Nash è un CE; il semaforo è
+        un CE che non è Nash. Si calcola con un programma lineare.
+  \item Altri criteri: minimax (avversario ostile), minimo rimpianto massimo
+        (avversario imprevedibile).
+  \item \textbf{Fictitious play}: best response alle frequenze osservate; converge nei
+        giochi a somma zero, risolvibili per dominanza, $2\times N$.
+        \textbf{Regret matching}: si gioca in proporzione al rimpianto cumulato positivo;
+        la distribuzione dei profili converge agli equilibri correlati (grossolani, per la
+        versione con rimpianti incondizionati), e al minimax nei giochi a somma zero.
+  \item \textbf{Lab}: CE con \texttt{linprog} (semaforo con l'obiettivo maximin),
+        fictitious play e regret matching su RPS; la formula del rimpianto delle slide
+        converge al punto sbagliato su un gioco asimmetrico.
+\end{itemize}
+\textbf{Prossima lezione}: giochi coalizionali (core, nucleolo, valore di Shapley).
+\end{riepilogo}

@@ -39,7 +39,7 @@
   \vspace{1.5cm}
   {\large Documento di lavoro: requisiti, metodo, idee, decisioni\par}
   \vfill
-  {\small\color{grigio} Aggiornato fino alla Lezione 2 \quad·\quad Ultima compilazione: \today\par}
+  {\small\color{grigio} Aggiornato fino alla Lezione 5 \quad·\quad Ultima compilazione: \today\par}
 \end{titlepage}
 \hypersetup{pageanchor=true}
 
@@ -223,16 +223,126 @@ lotterie e utilità attesa, atteggiamento verso il rischio, ricerca bayesiana
         di un progetto più grande, una volta visti Nash o Shapley.
 \end{itemize}
 
+\section{Giochi non cooperativi (Lezioni 3 e 4)}
+
+Strumenti disponibili: forma normale, dominanza e IESDS, best response, equilibri di Nash
+puri e misti, condizione del supporto, minimax con programmazione lineare, giochi
+potenziali e dinamica di best response, equilibri correlati con programmazione lineare,
+fictitious play e regret matching. Codice già scritto e verificato nei laboratori 3 e 4.
+
+\subsection*{Idea 6: giochi di sicurezza (pattugliamento) \hfill\sbloccata{3}}
+\begin{itemize}
+  \item \kw{Modello}: un difensore con $k$ risorse (pattuglie, guardie) deve proteggere $n$
+        bersagli; un attaccante sceglie quale colpire. Ogni bersaglio ha un valore diverso
+        per i due giocatori. È uno degli esempi di applicazione citati nella lezione 1.
+  \item \kw{Perché è interessante}: è un problema reale (aeroporti, porti, parchi naturali)
+        e mostra il valore della randomizzazione: un difensore prevedibile viene aggirato.
+        Nel caso a somma zero il minimax del laboratorio 3 risolve direttamente il problema.
+  \item \kw{Concetto di soluzione}: strategia minimax del difensore; confronto con la
+        strategia ``ingenua'' che protegge sempre i bersagli più preziosi.
+  \item \kw{Esperimenti}: perdita attesa al variare di $k$ e di $n$; tempo del programma
+        lineare quando le strategie pure del difensore (sottoinsiemi di $k$ bersagli)
+        esplodono combinatoriamente, il che porta naturalmente a rappresentazioni compatte.
+  \item \kw{Rischio}: basso-medio. La base (minimax con \texttt{linprog}) c'è già; la parte
+        non banale è la crescita del numero di strategie.
+\end{itemize}
+
+\subsection*{Idea 7: rilevamento di comunità come gioco potenziale \hfill\sbloccata{3}}
+\begin{itemize}
+  \item \kw{Modello}: il gioco del laboratorio 3, con nodi che scelgono un cluster. Si
+        estende con utilità diverse (per esempio penalizzando i cluster troppo grandi, per
+        evitare l'equilibrio banale ``tutti insieme'').
+  \item \kw{Perché è interessante}: il laboratorio ha mostrato che l'equilibrio raggiunto
+        dipende dal punto di partenza e che il massimo del potenziale è la soluzione
+        sbagliata. Studiare quando la dinamica trova le comunità giuste è una domanda vera.
+  \item \kw{Esperimenti}: modelli a blocchi stocastici con rapporto $p/q$ variabile;
+        accuratezza (per esempio con l'indice NMI) e numero di turni; confronto con Louvain
+        di \texttt{networkx}.
+  \item \kw{Rischio}: basso. Il codice c'è e gira in pochi secondi su 400 nodi.
+\end{itemize}
+
+\subsection*{Idea 8: apprendimento negli equilibri \hfill\sbloccata{4}}
+\begin{itemize}
+  \item \kw{Modello}: giochi ripetuti; giocatori che usano fictitious play, regret matching o
+        varianti, anche uno contro l'altro.
+  \item \kw{Perché è interessante}: il laboratorio 4 ha mostrato che una variante del regret
+        matching (quella delle slide) converge al punto sbagliato su un gioco asimmetrico. Un
+        confronto sistematico (giochi a somma zero, coordinamento, giochi con equilibri
+        correlati diversi da Nash) dice quando e a che cosa converge ogni algoritmo.
+  \item \kw{Esperimenti}: distanza dall'equilibrio nel tempo; distribuzione congiunta del
+        regret matching confrontata con il politopo degli equilibri correlati calcolato con
+        programmazione lineare; giochi con cicli (Shapley $3\times3$, dove fictitious play
+        non converge).
+  \item \kw{Rischio}: basso. Molto ``sperimentale'', meno ``modellazione di un problema
+        reale'': da chiarire se è nello spirito richiesto.
+\end{itemize}
+
+\begin{osservazione}[il semaforo come progetto]
+Il calcolo degli equilibri correlati con l'obiettivo maximin ha restituito esattamente il
+semaforo nell'attraversamento. Un progetto che progetta dispositivi di coordinamento
+(incroci, accesso a un canale radio, turni di utilizzo di una risorsa) mettendo a confronto
+benessere ed equità sarebbe una buona sintesi delle lezioni 3 e 4.
+\end{osservazione}
+
+\section{Giochi coalizionali (Lezione 5)}
+
+Strumenti disponibili: giochi in funzione caratteristica, superadditività, struttura di
+coalizione con programmazione dinamica, core, nucleolo (Kopelowitz), valore di Shapley.
+Codice già scritto e verificato nel laboratorio 5, compresi la programmazione dinamica e il
+nucleolo.
+
+\subsection*{Idea 9: ripartizione equa di costi o ricavi \hfill\sbloccata{5}}
+\begin{itemize}
+  \item \kw{Modello}: un problema concreto di condivisione, per esempio aziende che
+        condividono un impianto, utenti che si dividono la bolletta di un servizio comune,
+        comuni che finanziano un'infrastruttura. La funzione caratteristica si ricava da un
+        modello di costo (spesso analitico).
+  \item \kw{Perché è interessante}: permette di confrontare sullo stesso problema tre
+        concetti di soluzione (core, nucleolo, Shapley) e di misurare il conflitto tra
+        stabilità ed equità, visto più volte nella lezione.
+  \item \kw{Esperimenti}: il core è vuoto? Shapley vi appartiene? Quanto distano nucleolo e
+        Shapley? Tempi di calcolo al crescere di $n$ e approssimazione di Shapley per
+        campionamento di permutazioni quando $2^n$ diventa troppo.
+  \item \kw{Rischio}: basso-medio. La parte delicata è costruire una funzione caratteristica
+        credibile.
+\end{itemize}
+
+\subsection*{Idea 10: valore di Shapley per spiegare un modello (SHAP) \hfill\sbloccata{5}}
+\begin{itemize}
+  \item \kw{Modello}: le feature di un modello di machine learning sono i giocatori, $v(C)$
+        è la qualità della predizione usando solo le feature in $C$. È l'applicazione
+        citata nella lezione 1.
+  \item \kw{Perché è interessante}: collega il corso al machine learning e pone subito il
+        problema computazionale (con 20 feature, $2^{20}$ coalizioni da valutare).
+  \item \kw{Esperimenti}: Shapley esatto su un dataset piccolo, confronto con
+        l'approssimazione per campionamento e con la libreria \texttt{shap}; verifica degli
+        assiomi (efficienza, giocatore nullo) sui risultati.
+  \item \kw{Rischio}: medio. Va definito con cura che cosa vuol dire ``usare solo le feature
+        in $C$''.
+\end{itemize}
+
+\subsection*{Idea 11: struttura di coalizione per formare squadre \hfill\sbloccata{5}}
+\begin{itemize}
+  \item \kw{Modello}: assegnare persone a gruppi di lavoro (o veicoli a rotte, o server a
+        compiti) quando il valore di un gruppo non è additivo. Non superadditivo: gruppi
+        troppo grandi rendono meno.
+  \item \kw{Perché è interessante}: la programmazione dinamica esatta in $O(3^n)$ diventa
+        impraticabile già con poche decine di agenti; si confronta con euristiche (greedy,
+        clustering, simulated annealing), misurando quanto ci si allontana dall'ottimo
+        dove questo si può ancora calcolare.
+  \item \kw{Rischio}: medio. Aiuta avere già il codice esatto per avere un riferimento.
+\end{itemize}
+
 \section{Argomenti ancora da affrontare}
 
 \begin{center}
 \renewcommand{\arraystretch}{1.25}
 \begin{tabularx}{\linewidth}{@{}l X@{}}
 \toprule
-\textbf{Argomento} & \textbf{Anticipazioni dalla Lezione 1 (possibili spunti)} \\
+\textbf{Argomento} & \textbf{Anticipazioni (possibili spunti)} \\
 \midrule
-Giochi non cooperativi         & equilibri di Nash; applicazioni a sicurezza (pattugliamento), GAN \\
-Giochi coalizionali            & valore di Shapley; SHAP per spiegare modelli, potere di voto, centralità nelle reti \\
+Giochi coalizionali (seconda parte) & il notebook del lab 5 annuncia rappresentazioni compatte
+ e approssimazioni; potere di voto, centralità nelle reti \\
 Scelta sociale computazionale  & regole di voto, paradosso di Condorcet; \en{ensemble} di modelli \\
 Matching markets               & matching stabile; studenti--alloggi, donatori di rene, lavoratori--compiti \\
 Mechanism design               & aste, incentivi a dire il vero \\
@@ -273,7 +383,9 @@ Proposta da aggiornare quando saranno note le date ufficiali.
 \textbf{Periodo} & \textbf{Obiettivo} \\
 \midrule
 Ottobre    & seguire le lezioni, aggiungere idee alla banca, avere risposta alle domande aperte \\
-Novembre   & scegliere il tema; scrivere la formalizzazione (Capitolo~\ref{cap:metodo}, domande 1--7) \\
+Novembre   & \textbf{siamo qui}: le domande aperte sono ancora senza risposta e il tema non è
+             scelto. Scegliere il tema entro fine mese; scrivere la formalizzazione
+             (Capitolo~\ref{cap:metodo}, domande 1--7) \\
 Dicembre   & implementazione ed esperimenti \\
 Gennaio    & relazione, rifinitura, preparazione della discussione \\
 \bottomrule
@@ -292,6 +404,10 @@ Gennaio    & relazione, rifinitura, preparazione della discussione \\
 03/10/2026 & Riorganizzato il repository in \texttt{lessons/}, \texttt{labs/},
              \texttt{documentazione/}. Aggiunta la Lezione~2 e due nuove idee
              (ricerca bayesiana, atteggiamento verso il rischio). Nessun tema scelto. \\
+02/11/2026 & Aggiunte le Lezioni 3--5 (giochi non cooperativi, equilibri correlati e
+             apprendimento, giochi coalizionali) con i laboratori 3--5, e sei nuove idee
+             (6--11). Aggiornata la Lezione 2 con le slide del Lab 2: con le navi affondate
+             la ricerca bayesiana scende da 54 a 41--44 colpi. Nessun tema scelto. \\
 \bottomrule
 \end{tabularx}
 \end{center}

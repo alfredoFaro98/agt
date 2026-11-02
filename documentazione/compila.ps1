@@ -7,7 +7,7 @@
 param(
     # ValueFromRemainingArguments: cosi' "compila.ps1 02 main" passa entrambi.
     [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$Cosa = @('lezioni', 'main', 'project')
+    [string[]]$Cosa = @('lezioni', 'main', 'project', 'guida-studio')
 )
 
 Set-Location $PSScriptRoot

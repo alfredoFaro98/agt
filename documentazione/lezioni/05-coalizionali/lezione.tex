@@ -1,0 +1,819 @@
+% =====================================================================
+%  Lezione 5 — Giochi coalizionali e concetti di soluzione
+%  Materiale: Lesson_5_Coalitional_Game_Theory_I.pdf,
+%             Lab_5-Coalitional_Game_Theory_Core_Shapley.pdf,
+%             CoalitionalGames_Frozensets_blank.ipynb
+% =====================================================================
+\chapter{Giochi coalizionali}
+
+\parteteoria
+
+Il percorso della lezione:
+\begin{enumerate}[label=\arabic*.]
+  \item introduzione ai giochi coalizionali;
+  \item come rappresentarli;
+  \item quali coalizioni si formano;
+  \item come dividere il payoff: \kw{stabilità} (core) e \kw{equità} (nucleolo, valore di
+        Shapley).
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\section{Dai giochi non cooperativi a quelli coalizionali}
+
+\begin{itemize}
+  \item I giochi non cooperativi modellano giocatori egoisti e in competizione.
+  \item Giochi come il dilemma del prigioniero o l'attraversamento mostrano che la
+        competizione può portare a esiti subottimi.
+  \item Gli equilibri correlati modellano (e rendono possibile) la cooperazione, ma
+        introducono un dispositivo di coordinamento, un \emph{mediatore}.
+  \item Nella realtà, però, le persone formano spontaneamente \kw{coalizioni} e prendono
+        \kw{accordi vincolanti}.
+\end{itemize}
+
+La situazione tipica che si modella con un gioco coalizionale è questa:
+\begin{itemize}
+  \item i giocatori possono trarre vantaggio dal formare coalizioni;
+  \item a ogni coalizione è associato un \kw{valore};
+  \item il valore totale va \kw{distribuito} tra i giocatori.
+\end{itemize}
+
+Servono due scelte di modellazione:
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}l X X@{}}
+\toprule
+ & Domanda & Modello \\
+\midrule
+Coalizioni & il risultato di una coalizione è indipendente dalle altre? &
+ sì $\to$ coalizioni singole; no $\to$ più coalizioni insieme (giochi in funzione di
+ partizione) \\
+Valore & l'utilità è trasferibile? & sì $\to$ un solo numero per coalizione (TU);
+ no $\to$ un insieme di vettori di utilità (NTU) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{definizione}[Utilità trasferibile e non trasferibile]
+L'utilità è \kw{trasferibile} (TU) se è la stessa per tutti i membri della coalizione e si
+può ridistribuire tra loro: i payoff sono monetari (o convertibili in denaro), i giocatori
+possono farsi pagamenti laterali, e la ridistribuzione non cambia il valore totale.
+Esempi: dividere profitti, ripartire costi, assegnare seggi in parlamento.
+
+L'utilità è \kw{non trasferibile} (NTU) se ogni membro ha la propria e la coalizione non
+può convertirla o ridistribuirla liberamente. Esempi: il prestigio di un articolo scientifico
+scritto insieme, i benefici personali di una collaborazione, i vantaggi legati a indicatori
+di prestazione individuali.
+\end{definizione}
+
+\begin{attenzione}[denaro non vuol dire utilità trasferibile]
+Il notebook lo dice bene: poter trasferire \emph{denaro} non implica che sia trasferibile
+l'\emph{utilità}. Un giocatore ricco e uno povero possono trarre utilità molto diverse dalla
+stessa somma (lezione 2: la funzione di Bernoulli è concava). Assumere TU significa assumere
+che tutti valutino il denaro allo stesso modo, cioè utilità lineari nel denaro.
+\end{attenzione}
+
+\section{Giochi in funzione caratteristica}
+
+\begin{definizione}[Gioco in funzione caratteristica]
+Un gioco in funzione caratteristica è una coppia $(N, v)$ dove:
+\begin{itemize}
+  \item $N = \{1,\dots,n\}$ è l'insieme dei giocatori, detto anche \kw{grande coalizione};
+  \item $v : 2^N \to \R$ è la \kw{funzione caratteristica}: per ogni sottoinsieme $C$ di
+        giocatori, $v(C)$ è quanto possono guadagnare i membri di $C$ lavorando insieme.
+        L'utilità $v(C)$ è trasferibile.
+\end{itemize}
+Di solito si assume che $v$ sia
+\begin{itemize}
+  \item \kw{normalizzata}: $v(\emptyset) = 0$;
+  \item \kw{non negativa}: $v(C) \ge 0$ per ogni $C \subseteq N$;
+  \item \kw{monotona}: $v(C) \le v(D)$ se $C \subseteq D$.
+\end{itemize}
+\end{definizione}
+
+\begin{esempio}[il gelato]
+Tre persone vogliono comprare del gelato e possono mettere insieme i soldi.
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lc@{\qquad\qquad}lc}
+\toprule
+Giocatore & Soldi & Vaschetta & Prezzo \\
+\midrule
+A & \$6 & 500 g & \$7 \\
+B & \$3 & 750 g & \$9 \\
+C & \$3 & 1000 g & \$11 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Il valore di una coalizione è la quantità massima di gelato che può comprare:
+\[
+\begin{aligned}
+  v(\emptyset) &= v(\{A\}) = v(\{B\}) = v(\{C\}) = 0
+    &&\text{(nessuno ha \$7 da solo)}\\
+  v(\{A,B\}) &= v(\{A,C\}) = 750
+    &&\text{(\$9: la vaschetta da 750 g)}\\
+  v(\{B,C\}) &= 0 &&\text{(\$6: non basta per nulla)}\\
+  v(\{A,B,C\}) &= 1000 &&\text{(\$12: la vaschetta da 1000 g).}
+\end{aligned}
+\]
+\end{esempio}
+
+\paragraph{Oltre la funzione caratteristica.}
+I giochi in funzione caratteristica modellano utilità trasferibile e risultati di una
+coalizione indipendenti da ciò che fanno gli altri. Se i risultati dipendono dalle altre
+coalizioni si usano i \kw{giochi in funzione di partizione}, con valori $v(C, P)$ dove $C$
+è una coalizione della partizione $P$; se l'utilità non è trasferibile si usano i
+\kw{giochi NTU}, dove a ogni coalizione è associato un \emph{insieme} di vettori di utilità.
+Ogni gioco TU si può rappresentare come un gioco NTU con un continuo di azioni, quindi
+\[
+  \text{NTU} \supset \text{TU} \supset \text{giochi in funzione caratteristica};
+\]
+nella pratica si usano soprattutto questi ultimi, che spesso si chiamano semplicemente
+``giochi TU''.
+
+\paragraph{Le due domande.}
+I giochi coalizionali servono a rispondere a due domande:
+\begin{enumerate}
+  \item quali coalizioni si formeranno?
+  \item come si divide il payoff all'interno di una coalizione?
+\end{enumerate}
+Nel gioco del gelato la coalizione con il benessere più alto è $\{A,B,C\}$. Ma dividere in
+parti uguali non è equo: $A$ è più decisivo di $B$ e $C$, perché senza di lui non si compra
+nulla.
+
+% ---------------------------------------------------------------------
+\section{Struttura di coalizione}
+
+\begin{definizione}[Generazione della struttura di coalizione]
+Dato un gioco $G = (N,v)$ si cerca la \kw{struttura di coalizione} $CS(G)$, cioè una
+\emph{partizione} di $N$ in coalizioni disgiunte, che massimizza il benessere sociale
+$\sum_{C \in CS(G)} v(C)$.
+\end{definizione}
+
+\begin{attenzione}[partizione, non ricoprimento]
+Le slide dicono che una struttura di coalizione è un ``ricoprimento'' (\en{cover}) di $N$.
+Un ricoprimento può avere insiemi sovrapposti, e un giocatore che sta in due coalizioni
+verrebbe contato due volte. Quello che si intende, e che le slide stesse scrivono più
+avanti, è una \kw{partizione}: le coalizioni coprono $N$ e sono a due a due disgiunte.
+\end{attenzione}
+
+\begin{esempio}[quando non conviene la grande coalizione]
+\[
+\begin{aligned}
+  v(\emptyset) &= 0, & v(\{A\}) &= 0, & v(\{B\}) &= 300, & v(\{C\}) &= 0,\\
+  v(\{A,B\}) &= 750, & v(\{A,C\}) &= 750, & v(\{B,C\}) &= 400, & v(\{A,B,C\}) &= 1000.
+\end{aligned}
+\]
+La struttura di coalizione che massimizza il benessere è $\{\{A,C\}, \{B\}\}$, con
+$750 + 300 = 1050 > 1000$: qui la grande coalizione \emph{non} è la scelta migliore.
+\end{esempio}
+
+\subsection{Il problema è difficile}
+
+Le partizioni di un insieme di $n$ elementi sono il \kw{numero di Bell} $B_n$, che soddisfa
+\[
+  \left(\frac{n}{4}\right)^{n/2} \le B_n < n^n .
+\]
+Enumerarle tutte è impraticabile. Gli algoritmi usati sono la programmazione dinamica, il
+grafo delle partizioni e le euristiche per giochi strutturati.
+
+\subsection{Programmazione dinamica}
+
+Sia $v^*(S)$ il massimo benessere ottenibile con una struttura di coalizione dei giocatori
+di $S$, e $CS^*(S)$ la struttura che lo realizza: $v(CS^*(S)) = v^*(S)$.
+
+\begin{teorema}[Equazione della programmazione dinamica]
+Per ogni $C \subseteq N$:
+\[
+  v^*(C) = \max\Bigl\{ v(C),\ \max_{\substack{C' \cup C'' = C\\ C' \cap C'' = \emptyset}}
+            \bigl(v^*(C') + v^*(C'')\bigr) \Bigr\}.
+\]
+\end{teorema}
+O la coalizione $C$ resta intera, o la si divide in due parti, ciascuna delle quali va poi
+organizzata nel modo migliore.
+
+\paragraph{Dimostrazione.}
+($\ge$) $v^*(C) \ge v(C)$, perché $\{C\}$ è una struttura di coalizione di $C$; e
+$v^*(C) \ge v^*(C') + v^*(C'')$, perché unendo le strutture ottime delle due parti si ottiene
+una struttura di $C$.
+($\le$) Se $CS^*(C) = \{C\}$ allora $v^*(C) = v(C)$. Altrimenti sia $C'$ una coalizione di
+$CS^*(C)$ e $C'' = C \setminus C'$. Il resto, $CS^*(C) \setminus \{C'\}$, è una struttura
+di coalizione di $C''$, quindi $v^*(C'') \ge v^*(C) - v(C')$; inoltre
+$v^*(C') \ge v(C')$. Sommando, $v^*(C') + v^*(C'') \ge v^*(C)$. $\square$
+
+\begin{esempio}[la tabella della programmazione dinamica]
+Con la funzione caratteristica dell'esempio precedente, procedendo per dimensione crescente:
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{lll}
+\toprule
+$C$ & $v^*(C)$ & $CS^*(C)$ \\
+\midrule
+$\{A\}$ & $0$ & $\{A\}$ \\
+$\{B\}$ & $300$ & $\{B\}$ \\
+$\{C\}$ & $0$ & $\{C\}$ \\
+$\{A,B\}$ & $\max(v^*(A)+v^*(B),\ v(AB)) = \max(300, 750) = 750$ & $\{A,B\}$ \\
+$\{A,C\}$ & $\max(0, 750) = 750$ & $\{A,C\}$ \\
+$\{B,C\}$ & $\max(300, 400) = 400$ & $\{B,C\}$ \\
+$\{A,B,C\}$ & $\max\bigl(1000,\ 750 + 0,\ 750 + 300,\ 400 + 0\bigr) = 1050$ & $\{\{A,C\},\{B\}\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Per $\{A,B,C\}$ le divisioni in due parti sono tre: $\{A,B\}|\{C\}$, $\{A,C\}|\{B\}$,
+$\{B,C\}|\{A\}$. La migliore è la seconda.
+\end{esempio}
+
+\begin{attenzione}[un errore nella tabella delle slide]
+Le slide scrivono $v^*(\{B,C\}) = \max(300, 400) = 750$ e riportano 750 in tabella. Il
+massimo è 400. L'errore non cambia il risultato finale (1050 viene dalla divisione
+$\{A,C\}|\{B\}$, che non usa $v^*(\{B,C\})$), ma nel passo successivo le slide elencano due
+volte la divisione $\{A,B\}|\{C\}$ e mai $\{B,C\}|\{A\}$, proprio quella che userebbe il
+valore sbagliato. Il codice del laboratorio conferma la tabella corretta.
+\end{attenzione}
+
+L'approccio è \kw{esatto}, ma il tempo è $O(3^n)$: non è praticabile per $n \ge 20$.
+
+\begin{extra}[da dove viene $3^n$]
+Si considerano tutte le coppie (coalizione $C$, sua parte $C'$). Ogni giocatore, in una
+coppia, può stare in $C'$, in $C \setminus C'$ o fuori da $C$: tre possibilità per ciascuno
+degli $n$ giocatori, cioè $3^n$ coppie. Con $n = 20$ sono circa $3{,}5$ miliardi.
+\end{extra}
+
+\paragraph{Grafo delle partizioni.}
+Le partizioni si possono disporre su livelli, dal livello 1 (la sola grande coalizione) al
+livello $n$ (tutti singoli); due partizioni sono collegate se una si ottiene dall'altra
+fondendo due coalizioni. Le slide mostrano il grafo per 4 giocatori senza svilupparlo; l'idea
+degli algoritmi che lo usano è esplorare per primi pochi livelli scelti bene e fermarsi
+quando si ha una garanzia sufficiente sulla distanza dall'ottimo.
+
+\paragraph{In pratica.}
+Si usano euristiche e rappresentazioni compatte della funzione caratteristica: funzioni
+caratteristiche analitiche, algoritmi di clustering (formazione delle coalizioni per
+similarità o distanza, partizionamento di grafi), metaeuristiche (algoritmi genetici,
+\en{simulated annealing}, \ldots).
+
+% ---------------------------------------------------------------------
+\section{Dividere il payoff}
+
+\begin{definizione}[Esito di un gioco TU]
+Un \kw{esito} di un gioco TU $G = (N,v)$ è una coppia $(CS, x)$ dove:
+\begin{itemize}
+  \item $CS = (C_1, \dots, C_k)$ è una struttura di coalizione, cioè una partizione di $N$:
+        $\bigcup_i C_i = N$, $C_i \cap C_j = \emptyset$ per $i \ne j$;
+  \item $x = (x_1,\dots,x_n)$ è un \kw{vettore di payoff} che distribuisce il valore di ogni
+        coalizione di $CS$: $\sum_{i \in C} x_i = v(C)$ per ogni $C \in CS$
+        (\kw{efficienza}).
+\end{itemize}
+Un esito è un'\kw{imputazione} se soddisfa la \kw{razionalità individuale}:
+$x_i \ge v(\{i\})$ per ogni $i \in N$.
+\end{definizione}
+
+\begin{esempio}[esiti]
+Con $v(\{1,2,3\}) = 9$ e $v(\{4,5\}) = 4$:
+\begin{itemize}
+  \item $\bigl((\{1,2,3\},\{4,5\}),\ (3,3,3,3,1)\bigr)$ è un esito: $3+3+3 = 9$, $3+1 = 4$;
+  \item $\bigl((\{1,2,3\},\{4,5\}),\ (2,3,2,3,3)\bigr)$ \emph{non} lo è: la prima
+        coalizione distribuisce $7$ e la seconda $6$. Non sono ammessi trasferimenti
+        \emph{tra} coalizioni.
+\end{itemize}
+\end{esempio}
+
+\subsection{Superadditività}
+
+\begin{definizione}[Gioco superadditivo]
+Un gioco $(N,v)$ è \kw{superadditivo} se
+\[
+  v(C_1 \cup C_2) \ge v(C_1) + v(C_2)
+  \qquad \forall C_1, C_2 \subset N \text{ con } C_1 \cap C_2 = \emptyset .
+\]
+\end{definizione}
+
+Il gioco del gelato è superadditivo: per esempio $v(\{A,B\}) = 750 \ge v(\{A\}) + v(\{B\}) = 0$,
+$v(\{B,C\}) = 0 \ge 0 + 0$, $v(\{A,B,C\}) = 1000 \ge 750 + 0$.
+
+Nei giochi superadditivi due coalizioni possono sempre fondersi senza perdere nulla: si può
+assumere che si formi la \kw{grande coalizione}. Non c'è il problema della struttura di
+coalizione e la notazione si semplifica: un esito è solo un vettore
+$x = (x_1,\dots,x_n)$ con $\sum_{i\in N} x_i = v(N)$.
+
+\begin{osservazione}[un'avvertenza delle slide]
+Molti articoli definiscono gli esiti in questo modo, come semplici vettori con
+$\sum x_i = v(N)$, \emph{anche} quando il gioco non è superadditivo. Va tenuto presente
+quando si leggono: nel gioco della programmazione dinamica, per esempio, dividere $v(N)=1000$
+sarebbe sbagliato, perché la struttura migliore produce $1050$.
+\end{osservazione}
+
+Da qui in poi si considerano solo giochi TU superadditivi.
+
+% ---------------------------------------------------------------------
+\section{Stabilità: il core}
+
+Nel gioco del gelato si deve dividere $1000$. Se la divisione è $(200, 200, 600)$, $A$ e $B$
+possono comprare da soli la vaschetta da 750 g e dividersela a metà, $375$ a testa: meglio
+di $200$. L'esito $(200,200,600)$ \kw{non è stabile}.
+
+\begin{definizione}[Core]
+Il \kw{core} di un gioco è l'insieme degli esiti stabili, quelli da cui nessuna coalizione
+vuole sganciarsi:
+\[
+  \core(G) = \Bigl\{ x \ \Big|\ x_i \ge 0\ \forall i \in N,\
+  \sum_{i \in N} x_i = v(N),\
+  \sum_{i \in C} x_i \ge v(C)\ \forall C \subseteq N \Bigr\}.
+\]
+Ogni coalizione riceve almeno quanto guadagnerebbe da sola.
+\end{definizione}
+
+\begin{esempio}[esiti nel core]
+\begin{itemize}
+  \item Con $v(\{1,2,3\}) = 9$, $v(\{4,5\}) = 4$ e $v(\{2,4\}) = 7$, l'esito
+        $(3,3,3,3,1)$ \emph{non} è nel core: i giocatori 2 e 4 ricevono $3 + 3 = 6 < 7$ e
+        preferiscono formare la coalizione $\{2,4\}$.
+  \item Nel gelato, $(200,200,600)$ non è nel core perché
+        $v(\{A,B\}) = 750 > x_A + x_B = 400$.
+  \item Nel gelato, $(500,250,250)$ \emph{è} nel core: $x_A + x_B = 750 \ge 750$,
+        $x_A + x_C = 750 \ge 750$, $x_B + x_C = 500 \ge 0$. Nessuna deviazione dà di più.
+\end{itemize}
+\end{esempio}
+
+\begin{osservazione}[il primo esempio]
+L'esempio con $(3,3,3,3,1)$ usa una struttura di coalizione $\{\{1,2,3\},\{4,5\}\}$, mentre la
+definizione di core appena data è quella per la grande coalizione. Il concetto è lo stesso
+(nessuna coalizione deve poter fare meglio da sola), ma nella versione con strutture di
+coalizione l'efficienza si chiede coalizione per coalizione.
+\end{osservazione}
+
+\begin{extra}[com'è fatto il core del gelato]
+I vincoli che contano sono due. Da $x_A + x_B \ge 750$ e $x_A + x_B + x_C = 1000$ segue
+$x_C \le 250$; analogamente $x_B \le 250$. Il core è quindi
+\[
+  \core = \{ x \ge 0 : x_B \le 250,\ x_C \le 250,\ x_A = 1000 - x_B - x_C \},
+\]
+e in particolare $x_A \ge 500$ in ogni esito stabile. Si vede bene il potere di $A$: se $B$
+chiedesse più di 250, $A$ potrebbe accordarsi con $C$ e dividere 750 dando a entrambi più di
+quanto ricevono; lo stesso vale a parti invertite. $B$ e $C$ sono in concorrenza tra loro
+per essere il partner di $A$.
+\end{extra}
+
+\subsection{Due cattive notizie}
+
+\begin{esempio}[il core può essere vuoto]
+\[
+  v(\{1\}) = v(\{2\}) = v(\{3\}) = 0,\quad
+  v(\{1,2\}) = 7,\ v(\{1,3\}) = 6,\ v(\{2,3\}) = 5,\quad
+  v(\{1,2,3\}) = 8.
+\]
+Per stare nel core serve stabilità, $x_1 + x_2 \ge 7$, $x_1 + x_3 \ge 6$, $x_2 + x_3 \ge 5$,
+ed efficienza, $x_1 + x_2 + x_3 = 8$. Sommando le tre disuguaglianze:
+$2(x_1+x_2+x_3) \ge 18$, cioè $x_1+x_2+x_3 \ge 9 > 8$. Impossibile: il core è vuoto. E il
+gioco è superadditivo, quindi la superadditività non basta a garantire un core non vuoto.
+\end{esempio}
+
+\begin{esempio}[il core può contenere esiti iniqui]
+Nel gelato $(1000, 0, 0)$ è nel core: $x_A + x_B = 1000 \ge 750$, $x_A + x_C = 1000 \ge 750$,
+$x_B + x_C = 0 \ge 0$, e la somma è $1000$. $B$ e $C$ mettono metà dei soldi e non ricevono
+nulla, ma nessuna coalizione può fare meglio da sola. \kw{Stabilità non vuol dire equità.}
+\end{esempio}
+
+% ---------------------------------------------------------------------
+\section{Il nucleolo}
+
+\begin{definizione}[Eccesso]
+L'\kw{eccesso} di una coalizione $S$ rispetto all'esito $x$ è
+\[
+  e(S, x) = v(S) - \sum_{i \in S} x_i .
+\]
+Misura l'\kw{insoddisfazione} della coalizione: quanto potrebbe guadagnare da sola rispetto
+a quello che riceve. Un esito è nel core se e solo se tutti gli eccessi sono $\le 0$.
+\end{definizione}
+
+\begin{esempio}[eccessi]
+Con $v(\{i\}) = 0$, $v(\{i,j\}) = 1$ per ogni coppia e $v(\{1,2,3\}) = 3$:
+\begin{itemize}
+  \item $x = (0,0,3)$: $e(\{1,2\},x) = 1 - 0 = 1$, la coppia $\{1,2\}$ è insoddisfatta;
+  \item $x = (1,2,0)$: $e(\{1,2\},x) = 1 - 3 = -2$, la coppia è più che soddisfatta.
+\end{itemize}
+\end{esempio}
+
+\begin{definizione}[Nucleolo]
+Sia $\theta(x)$ il \kw{vettore degli eccessi} di tutte le coalizioni (diverse da $\emptyset$
+e da $N$), ordinato dal più grande al più piccolo. Il \kw{nucleolo} è l'imputazione
+\[
+  \eta \in X(G) \ :\ \nexists\, y \in X(G) \text{ con } \theta(y) \prec_{lex} \theta(\eta),
+\]
+dove $X(G)$ è l'insieme delle imputazioni e $\prec_{lex}$ l'ordine lessicografico.
+\end{definizione}
+In parole: è l'esito che rende \kw{lessicograficamente minimo} il vettore delle
+insoddisfazioni. Prima si rende la coalizione più insoddisfatta il meno insoddisfatta
+possibile; a parità, la seconda; e così via.
+
+\begin{esempio}[nucleolo del gioco simmetrico]
+Nel gioco precedente:
+\begin{itemize}
+  \item $x = (1,2,0)$: $\theta(x) = (0, 0, -1, -1, -2, -2)$;
+  \item $\eta = (1,1,1)$: $\theta(\eta) = (-1,-1,-1,-1,-1,-1)$.
+\end{itemize}
+Il primo elemento di $\theta(\eta)$ è $-1 < 0$: $\eta$ è lessicograficamente migliore, ed è
+il nucleolo (lo conferma il calcolo con l'algoritmo seguente).
+\end{esempio}
+
+\begin{extra}[il nucleolo esiste sempre ed è unico]
+Il nucleolo esiste ed è unico per ogni gioco con almeno un'imputazione. E se il core non è
+vuoto il nucleolo sta nel core: un esito del core ha tutti gli eccessi $\le 0$, quindi il
+nucleolo, che minimizza il più grande, ne ha anch'esso il più grande $\le 0$. È per questo
+che lo si considera la versione ``più centrale'' del core.
+\end{extra}
+
+\subsection{L'algoritmo di Kopelowitz}
+
+Il vettore degli eccessi si minimizza lessicograficamente con una \emph{sequenza} di
+programmi lineari. Il primo minimizza l'eccesso massimo $\epsilon_1$:
+\[
+LP_1:\quad
+\begin{aligned}
+  \min\ & \epsilon_1\\
+  \text{s.t. }\ & v(S) - \textstyle\sum_{i \in S} x_i \le \epsilon_1
+    && \forall S \subset N,\ S \notin W_0 = \{\emptyset\}\\
+  & x_i \ge v(\{i\}),\quad \textstyle\sum_{i \in N} x_i = v(N).
+\end{aligned}
+\]
+Le coalizioni che all'ottimo hanno eccesso esattamente $\epsilon_1^*$ formano l'insieme
+$W_1$ e il loro eccesso viene \emph{fissato}. Il programma $k$-esimo minimizza il massimo
+eccesso delle coalizioni rimaste:
+\[
+LP_k:\quad
+\begin{aligned}
+  \min\ & \epsilon_k\\
+  \text{s.t. }\ & v(S) - \textstyle\sum_{i \in S} x_i = \epsilon_r^*
+    && \forall S \in W_r,\ r = 1,\dots,k-1\\
+  & v(S) - \textstyle\sum_{i \in S} x_i \le \epsilon_k
+    && \forall S \notin W_0 \cup W_1 \cup \dots \cup W_{k-1}\\
+  & x_i \ge v(\{i\}),\quad \textstyle\sum_{i \in N} x_i = v(N),
+\end{aligned}
+\]
+con $W_r = \{S \mid e(S,x) = \epsilon_r^*\}$. Ci si ferma quando tutte le coalizioni hanno
+l'eccesso fissato.
+
+\begin{itemize}
+  \item Ogni programma ha $O(2^n)$ vincoli, uno per coalizione.
+  \item Nel caso peggiore si fissa una coalizione per volta: fino a $2^n$ iterazioni.
+  \item In generale è \kw{molto poco pratico}.
+\end{itemize}
+
+\begin{attenzione}[quali coalizioni fissare]
+``Le coalizioni con eccesso pari a $\epsilon_k^*$'' va inteso come ``le coalizioni il cui
+eccesso vale $\epsilon_k^*$ in \emph{tutte} le soluzioni ottime del programma $k$''. Una
+soluzione ottima qualsiasi può avere per caso altre coalizioni con eccesso
+$\epsilon_k^*$ che in un'altra soluzione ottima potrebbero scendere: fissarle porterebbe a un
+risultato sbagliato. Nell'implementazione del laboratorio lo si controlla con un programma
+lineare in più per ciascuna coalizione candidata (si prova ad abbassarne l'eccesso restando
+all'ottimo).
+\end{attenzione}
+
+\subsection{Il nucleolo può essere iniquo}
+
+\begin{esempio}[un gioco in cui conta solo A]
+\begin{gather*}
+  v(\emptyset) = v(\{A\}) = v(\{B\}) = v(\{C\}) = 0,\\
+  v(\{A,B\}) = v(\{A,C\}) = 750,\quad v(\{B,C\}) = 0,\quad v(\{A,B,C\}) = 750.
+\end{gather*}
+Il nucleolo è $\eta = (750, 0, 0)$: assegna tutto ad $A$, anche se almeno uno tra $B$ e $C$
+è necessario per ottenere qualcosa. Anche qui stabilità non implica equità.
+\end{esempio}
+
+\begin{attenzione}[il vettore degli eccessi nelle slide]
+Le slide riportano $\theta(\eta) = (0,0,0,0,0,0)$. Gli eccessi di $\eta = (750,0,0)$ sono:
+$e(\{B\}) = e(\{C\}) = 0$, $e(\{A,B\}) = e(\{A,C\}) = 750 - 750 = 0$, $e(\{B,C\}) = 0$, ma
+$e(\{A\}) = 0 - 750 = -750$. Quindi $\theta(\eta) = (0,0,0,0,0,-750)$. Il nucleolo resta
+quello: il core di questo gioco contiene \emph{solo} $(750,0,0)$ (da $x_A + x_B \ge 750$ e
+$x_A + x_B + x_C = 750$ segue $x_C = 0$, e lo stesso per $x_B$), e il nucleolo sta nel core.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{Equità: il valore di Shapley}
+
+\textbf{Idea}: un esito equo dovrebbe ricompensare ogni giocatore in proporzione al
+\kw{contributo} che porta agli altri. Se il giocatore $i$ entra nella coalizione $C$, il suo
+\kw{contributo marginale} è il surplus che crea:
+\[
+  v(C \cup \{i\}) - v(C).
+\]
+Nel gioco precedente, per esempio, $v(\{A,B\}) - v(\{A\}) = 750$ e
+$v(\{A,B\}) - v(\{B\}) = 750$: il contributo di un giocatore dipende da chi c'è già. Un
+esito equo si ottiene premiando ciascuno con il suo contributo \emph{medio}.
+
+\begin{definizione}[Valore di Shapley]
+Il valore di Shapley considera tutti gli ordini in cui la grande coalizione si può formare e
+dà a ciascuno la stessa importanza:
+\[
+  \phi(i, v) = \frac{1}{|N|!} \sum_{\pi \in \Pi_N}
+     \Bigl( v\bigl(B(\pi, i) \cup \{i\}\bigr) - v\bigl(B(\pi, i)\bigr) \Bigr),
+\]
+dove $\Pi_N$ è l'insieme delle permutazioni di $N$ e $B(\pi,i)$ l'insieme dei giocatori che
+precedono $i$ nella permutazione $\pi$.
+\end{definizione}
+
+\begin{esempio}[Shapley nel gioco del gelato]
+Contributi marginali di $A$ nei sei ordini:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+\toprule
+Ordine & Contributo di $A$ & \\
+\midrule
+$A,B,C$ & $v(\{A\}) - v(\emptyset)$ & $= 0$ \\
+$A,C,B$ & $v(\{A\}) - v(\emptyset)$ & $= 0$ \\
+$B,A,C$ & $v(\{A,B\}) - v(\{B\})$ & $= 750$ \\
+$B,C,A$ & $v(\{A,B,C\}) - v(\{B,C\})$ & $= 1000$ \\
+$C,A,B$ & $v(\{A,C\}) - v(\{C\})$ & $= 750$ \\
+$C,B,A$ & $v(\{A,B,C\}) - v(\{B,C\})$ & $= 1000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\[
+  \phi(A) = \tfrac16(0 + 0 + 750 + 1000 + 750 + 1000) = 583{,}\overline{3}.
+\]
+Per $B$ i contributi sono $750, 250, 0, 0, 250, 0$, quindi
+$\phi(B) = \tfrac{1250}{6} = 208{,}\overline{3}$, e per simmetria
+$\phi(C) = 208{,}\overline{3}$. Somma: $1000$.
+\end{esempio}
+
+\begin{esempio}[Shapley nel gioco in cui conta solo A]
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccc}
+\toprule
+Ordine & contributo di $A$ & contributo di $B$ & contributo di $C$ \\
+\midrule
+$A,B,C$ & 0   & 750 & 0   \\
+$A,C,B$ & 0   & 0   & 750 \\
+$B,A,C$ & 750 & 0   & 0   \\
+$B,C,A$ & 750 & 0   & 0   \\
+$C,A,B$ & 750 & 0   & 0   \\
+$C,B,A$ & 750 & 0   & 0   \\
+\midrule
+Valore di Shapley & $500$ & $125$ & $125$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+A differenza del nucleolo, $B$ e $C$ ricevono qualcosa: chi arriva subito dopo $A$ è quello
+che ``sblocca'' il valore.
+\end{esempio}
+
+\begin{extra}[equo, ma non stabile]
+$(500, 125, 125)$ non è nel core di questo gioco: il core contiene solo $(750,0,0)$, e infatti
+$x_A + x_B = 625 < 750 = v(\{A,B\})$. $A$ e $B$ da soli prenderebbero di più. Equità e
+stabilità sono richieste diverse e possono essere incompatibili. Nel gioco del gelato,
+invece, il valore di Shapley $(583{,}3;\ 208{,}3;\ 208{,}3)$ \emph{è} nel core (rispetta
+$x_B, x_C \le 250$). Il risultato è coerente con l'esempio delle tre imprese della lezione 1,
+dove con valore 100 si otteneva $(66{,}67;\ 16{,}67;\ 16{,}67)$: è lo stesso gioco in scala.
+\end{extra}
+
+\subsection{Caratterizzazione assiomatica}
+
+\begin{teorema}[Shapley]
+Il valore di Shapley è l'\kw{unico} schema di ripartizione che soddisfa:
+\begin{enumerate}
+  \item \kw{efficienza}: $\phi_1 + \phi_2 + \dots + \phi_n = v(N)$;
+  \item \kw{giocatore nullo}: se $v(C \cup \{i\}) = v(C)$ per ogni $C$, allora $\phi_i = 0$;
+  \item \kw{simmetria}: se $i$ e $j$ sono intercambiabili
+        ($v(C \cup \{i\}) = v(C \cup \{j\})$ per ogni $C$ che non li contiene), allora
+        $\phi_i = \phi_j$;
+  \item \kw{additività}: $\phi_i(G_1 + G_2) = \phi_i(G_1) + \phi_i(G_2)$.
+\end{enumerate}
+Inoltre si può calcolare con la formula sui sottoinsiemi:
+\[
+  \phi(i, v) = \sum_{\substack{C \subseteq N\\ i \in C}}
+     \frac{(|N| - |C|)!\,(|C| - 1)!}{|N|!}\,\bigl( v(C) - v(C \setminus \{i\}) \bigr).
+\]
+\end{teorema}
+
+\begin{osservazione}[da dove viene il coefficiente]
+Negli ordini in cui $i$ entra trovando già esattamente la coalizione $C \setminus \{i\}$,
+i $|C|-1$ predecessori possono stare in $(|C|-1)!$ ordini e i $|N|-|C|$ successori in
+$(|N|-|C|)!$. Il coefficiente è la frazione di permutazioni in cui $i$ dà proprio il
+contributo $v(C) - v(C\setminus\{i\})$. Si passa da $n!$ permutazioni a $2^{n-1}$
+coalizioni contenenti $i$: è la formula da usare nel codice.
+\end{osservazione}
+
+\begin{attenzione}[``giocatore fittizio'' e ``giocatore nullo'']
+Le slide chiamano l'assioma 2 \emph{dummy player} e chiedono $\phi_i = 0$. In molti testi
+il \emph{dummy} è un giocatore che aggiunge sempre esattamente $v(\{i\})$, e riceve
+$\phi_i = v(\{i\})$; quello che riceve zero è il \emph{null player}, che non aggiunge mai
+nulla. Con $v(\{i\}) = 0$ le due nozioni coincidono. Le slide scrivono anche ``Shapely''
+invece di Shapley.
+\end{attenzione}
+
+% =====================================================================
+\partelab{Core e valore di Shapley}
+% =====================================================================
+\fonte{CoalitionalGames\_Frozensets\_blank.ipynb, Lab\_5-Coalitional\_Game\_Theory\_Core\_Shapley.pdf}
+
+\textbf{Obiettivo}: rappresentare un gioco coalizionale in Python, verificare la
+superadditività, controllare se un esito sta nel core e calcolare il valore di Shapley.
+Il notebook contiene gli output attesi; tutti sono riprodotti. In più sono stati implementati
+e verificati la programmazione dinamica per la struttura di coalizione e il nucleolo.
+
+\subsection{Rappresentare la funzione caratteristica}
+
+Si usa un dizionario indicizzato da \texttt{frozenset}: i \texttt{frozenset} sono insiemi
+immutabili, quindi si possono usare come chiavi, e hanno tutte le operazioni degli insiemi
+(appartenenza, inclusione, unione, intersezione).
+
+\begin{lstlisting}
+from itertools import combinations
+from math import factorial
+
+v = {
+    frozenset(['A']): 0, frozenset(['B']): 0, frozenset(['C']): 0,
+    frozenset(['A', 'B']): 750, frozenset(['A', 'C']): 750,
+    frozenset(['B', 'C']): 0,
+    frozenset(['A', 'B', 'C']): 1000,
+}
+
+def powerset(players):   # tutte le coalizioni NON vuote: 2^n - 1
+    return [frozenset(c) for k in range(1, len(players) + 1)
+            for c in combinations(players, k)]
+\end{lstlisting}
+
+\begin{attenzione}[la coalizione vuota non c'è]
+Il dizionario del notebook non contiene $\emptyset$, e la \texttt{powerset} fornita lo
+esclude (il commento dice ``$2^{n-1}$ frozen sets'', ma sono $2^n - 1$). Ogni formula che
+usa $v(\emptyset)$, come la formula di Shapley con $C = \{i\}$, deve trattarlo a parte:
+\texttt{v.get(S, 0)} invece di \texttt{v[S]}, altrimenti un \texttt{KeyError}.
+\end{attenzione}
+
+\subsection{Superadditività}
+
+\begin{lstlisting}
+def is_superadditive(v):
+    for C1 in v:
+        for C2 in v:
+            if not (C1 & C2):                       # disgiunte
+                if v.get(C1 | C2, 0) < v[C1] + v[C2]:
+                    return False
+    return True
+\end{lstlisting}
+Il gioco del gelato dà \texttt{True}; il gioco del notebook con $v(A) = 6$, $v(B) = 12$,
+$v(A,B) = 12$ dà \texttt{False} (perché $12 < 6 + 12$). Entrambi come atteso.
+
+\subsection{Core}
+
+\begin{lstlisting}
+def is_stable(x, v, tol=1e-9):
+    return all(sum(x[i] for i in C) >= v[C] - tol for C in v)
+
+def is_in_the_core(x, v, tol=1e-9):
+    N = max(v)                                       # la grande coalizione
+    return (all(xi >= -tol for xi in x.values())
+            and abs(sum(x.values()) - v[N]) <= tol
+            and is_stable(x, v, tol))
+\end{lstlisting}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcl}
+\toprule
+Esito & Nel core? & Perché \\
+\midrule
+$(333{,}3334;\ 333{,}3333;\ 333{,}3333)$ & no & $x_A + x_B \approx 666{,}7 < 750$ \\
+$(500;\ 250;\ 250)$ & sì & tutti i vincoli rispettati \\
+$(1000;\ 0;\ 0)$ & sì & stabile, anche se iniquo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{attenzione}[\texttt{max(v)} trova la grande coalizione, ma per un motivo sottile]
+Il notebook ricava la grande coalizione con \texttt{max(characteristic\_function)}. Funziona,
+ma non perché confronti le dimensioni: per i \texttt{frozenset} l'operatore \texttt{>}
+significa ``sovrainsieme proprio''. \texttt{max} tiene il primo elemento e lo sostituisce
+con ogni elemento che lo contiene strettamente; la grande coalizione contiene tutte le altre,
+quindi appena la incontra non la lascia più. Se la grande coalizione mancasse dal dizionario,
+\texttt{max} restituirebbe una coalizione qualsiasi senza segnalare nulla.
+\end{attenzione}
+
+\begin{osservazione}[perché non si calcola il core]
+Il notebook si limita a \emph{verificare} se un esito sta nel core. Calcolarlo tutto
+richiederebbe di trovare i vertici del poliedro definito dai vincoli, con una sequenza di
+programmi lineari. Per sapere solo se il core è \emph{vuoto} basta però un programma
+lineare: si cerca un $x$ qualsiasi che soddisfi i vincoli. Applicato al gioco con
+$v(\{1,2\}) = 7$, $v(\{1,3\}) = 6$, $v(\{2,3\}) = 5$, $v(N) = 8$ il risolutore conferma che
+non esiste.
+\end{osservazione}
+
+\subsection{Valore di Shapley}
+
+\begin{lstlisting}
+def shapley_value(player, v):
+    N = max(v)
+    n = len(N)
+    phi = 0.0
+    for C in v:
+        if player in C:
+            s = len(C)
+            weight = factorial(n - s) * factorial(s - 1) / factorial(n)
+            phi += weight * (v[C] - v.get(C - {player}, 0))
+    return phi
+
+def shapley(v):
+    return {p: shapley_value(p, v) for p in max(v)}
+\end{lstlisting}
+
+Risultato sul gelato: $\{A: 583{,}33;\ B: 208{,}33;\ C: 208{,}33\}$, come atteso. Una seconda
+implementazione con le permutazioni dà gli stessi valori.
+
+\paragraph{Sottoinsiemi o permutazioni.}
+Il notebook raccomanda la formula sui sottoinsiemi: $O(2^n)$ invece di $O(n!)$. Su giochi
+casuali con $n$ giocatori, tempi misurati per calcolare il valore di \emph{tutti} i giocatori:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{rrr}
+\toprule
+$n$ & Sottoinsiemi & Permutazioni \\
+\midrule
+6  & 0,1 ms & 3,8 ms \\
+8  & 0,8 ms & 304 ms \\
+9  & 1,9 ms & 3\,409 ms \\
+10 & 5,5 ms & $3\,628\,800$ ordini, non eseguito \\
+\bottomrule
+\end{tabular}
+\end{center}
+I valori calcolati con i due metodi coincidono ogni volta. Il codice sopra scorre tutte le
+coalizioni per ogni giocatore, quindi il costo totale è $n\cdot 2^n$: comunque esponenziale.
+Per giochi con molti giocatori si usano approssimazioni (per esempio campionando permutazioni
+a caso) o rappresentazioni compatte, come anticipa la fine del notebook.
+
+\begin{attenzione}[``il valore di Shapley è individualmente razionale'']
+Il notebook elenca tra le proprietà $\phi(i,v) \ge v(\{i\})$. Vale per i giochi
+\emph{superadditivi}: lì ogni contributo marginale è
+$v(C \cup \{i\}) - v(C) \ge v(\{i\})$, e quindi lo è anche la media. Senza superadditività
+può fallire. Il notebook stesso ricorda subito dopo l'altro limite: il valore di Shapley
+non è necessariamente nel core.
+\end{attenzione}
+
+\subsection{In più: struttura di coalizione e nucleolo}
+
+\paragraph{Programmazione dinamica.}
+Implementazione diretta dell'equazione della teoria, coalizione per coalizione in ordine di
+dimensione:
+\begin{lstlisting}
+def coalition_structure_dp(v):
+    N = max(v)
+    best, struct = {}, {}
+    for C in sorted(powerset(sorted(N)), key=len):
+        best[C], struct[C] = v[C], [C]
+        members = sorted(C)
+        for k in range(1, len(C)):
+            for part in combinations(members, k):
+                C1 = frozenset(part); C2 = C - C1
+                if min(C1) != min(C):          # ogni divisione una volta sola
+                    continue
+                if best[C1] + best[C2] > best[C]:
+                    best[C] = best[C1] + best[C2]
+                    struct[C] = struct[C1] + struct[C2]
+    return best, struct
+\end{lstlisting}
+Sul gioco dell'esempio restituisce esattamente la tabella corretta: $v^*(\{B,C\}) = 400$ e
+$v^*(N) = 1050$ con $CS^* = \{\{A,C\},\{B\}\}$.
+
+\paragraph{Nucleolo.}
+Implementato con l'algoritmo di Kopelowitz e \texttt{linprog}, fissando a ogni passo solo le
+coalizioni il cui eccesso non si può abbassare. Risultati:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+\toprule
+Gioco & Nucleolo & Vettore degli eccessi \\
+\midrule
+Simmetrico ($v(ij) = 1$, $v(N) = 3$) & $(1, 1, 1)$ & $(-1,-1,-1,-1,-1,-1)$ \\
+Conta solo $A$ ($v(N) = 750$) & $(750, 0, 0)$ & $(0,0,0,0,0,-750)$ \\
+Gelato ($v(N) = 1000$) & $(750, 125, 125)$ & $(-125,-125,-125,-125,-250,-750)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Nel gelato nucleolo e Shapley sono diversi: $(750; 125; 125)$ contro
+$(583{,}3; 208{,}3; 208{,}3)$. Entrambi stanno nel core, ma il nucleolo ``bilancia'' le
+insoddisfazioni (le coppie $\{A,B\}$ e $\{A,C\}$ e i singoli $B$ e $C$ hanno tutti eccesso
+$-125$), mentre Shapley premia i contributi marginali.
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item Gioco in funzione caratteristica $(N,v)$: $v(C)$ è quanto guadagna la coalizione
+        $C$; utilità trasferibile.
+  \item Struttura di coalizione: partizione di $N$ che massimizza
+        $\sum v(C)$. Le partizioni sono il numero di Bell; la programmazione dinamica la
+        trova in $O(3^n)$.
+  \item Superadditività: fondersi non fa mai perdere, quindi si forma la grande coalizione e
+        un esito è un vettore $x$ con $\sum x_i = v(N)$.
+  \item \textbf{Core}: esiti in cui ogni coalizione riceve almeno $v(C)$. Può essere vuoto e
+        può contenere esiti iniqui.
+  \item \textbf{Nucleolo}: minimizza lessicograficamente gli eccessi
+        $e(S,x) = v(S) - x(S)$; esiste, è unico, sta nel core se questo non è vuoto; si
+        calcola con una sequenza di programmi lineari (Kopelowitz). Può essere iniquo.
+  \item \textbf{Shapley}: contributo marginale medio su tutti gli ordini di ingresso; unico
+        a soddisfare efficienza, giocatore nullo, simmetria, additività. Equo ma non
+        necessariamente stabile.
+  \item \textbf{Lab}: \texttt{frozenset} come chiavi, superadditività, verifica del core,
+        Shapley sui sottoinsiemi ($n\cdot2^n$ contro $n!$); in più programmazione dinamica e
+        nucleolo.
+\end{itemize}
+\end{riepilogo}

@@ -4,9 +4,18 @@ Appunti in italiano del corso di Algorithmic Game Theory (Università della Cala
 
 Tutti i PDF generati stanno in [`documentazione/pdf/`](documentazione/pdf/):
 
+- [`guida-studio.pdf`](documentazione/pdf/guida-studio.pdf): **da leggere per primo**. Come studiare dagli appunti e mappa del corso, in due pagine
 - un PDF per ogni lezione, `lezione-NN-nome.pdf`
 - [`main.pdf`](documentazione/pdf/main.pdf): tutte le lezioni in un unico documento
 - [`project.pdf`](documentazione/pdf/project.pdf): documento di lavoro per il progetto d'esame (metodo, idee, domande aperte, decisioni)
+
+| Lezione | Argomento | Laboratorio |
+|---|---|---|
+| 1 | Introduzione all'AGT, giochi combinatori | Minimax e alpha-beta per il tris |
+| 2 | Teoria dell'utilità (VNM, rischio) | Battaglia navale e ricerca bayesiana |
+| 3 | Giochi non cooperativi (Nash, minimax) | Best response, minimax con PL, label propagation |
+| 4 | Esistenza e complessità degli equilibri, equilibri correlati, apprendimento | Equilibri correlati con PL, fictitious play, regret matching |
+| 5 | Giochi coalizionali (core, nucleolo, Shapley) | Core e valore di Shapley |
 
 ## Struttura
 
@@ -15,9 +24,11 @@ documentazione/              il LaTeX che scriviamo noi
   lezioni/
     01-introduzione/lezione.tex
     02-utilita/lezione.tex        una cartella per lezione
+    ...
   pdf/                            tutti i PDF generati
   main.tex                        unisce tutte le lezioni
   project.tex                     documento del progetto
+  guida-studio.tex                guida grafica allo studio
   preambolo.tex                   stile comune (font, colori, box, codice)
   lezione-standalone.tex          wrapper per i PDF di singola lezione
   compila.ps1                     script di compilazione
@@ -25,8 +36,11 @@ documentazione/              il LaTeX che scriviamo noi
 lessons/                     slide del docente
 labs/
   01-minimax/                     notebook del laboratorio 1
-  02-battleship/                  notebook del laboratorio 2
+  02-battleship/                  notebook e slide del laboratorio 2
     papers/                       paper di supporto
+  03-non-cooperativi/             notebook e slide del laboratorio 3
+  04-learning-in-games/           notebook del laboratorio 4
+  05-coalizionali/                notebook e slide del laboratorio 5
 ```
 
 Lezioni e laboratori usano la stessa convenzione per i nomi delle cartelle:
@@ -45,8 +59,9 @@ Dipendenze e istruzioni di installazione sono in [`requirements.txt`](requiremen
 
 ```powershell
 cd documentazione
-powershell -File compila.ps1            # lezioni + main.pdf + project.pdf
-powershell -File compila.ps1 lezioni    # solo i PDF delle singole lezioni
-powershell -File compila.ps1 02         # solo la lezione 02
-powershell -File compila.ps1 project    # solo project.pdf
+powershell -File compila.ps1                 # tutto: lezioni, main, project, guida
+powershell -File compila.ps1 lezioni         # solo i PDF delle singole lezioni
+powershell -File compila.ps1 02              # solo la lezione 02
+powershell -File compila.ps1 project         # solo project.pdf
+powershell -File compila.ps1 guida-studio    # solo la guida allo studio
 ```

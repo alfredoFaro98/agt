@@ -1,0 +1,1021 @@
+% =====================================================================
+%  Lezione 3 — Teoria dei giochi non cooperativi
+%  Materiale: Lesson_3_Non_Cooperative_Game_Theory.pdf,
+%             Lab03-Non_Cooperative_Game_Theory.pdf,
+%             NonCooperativeGameTheory_part1_blank.ipynb,
+%             Potential_Games_Label_Propagation_blank.ipynb
+% =====================================================================
+\chapter{Giochi non cooperativi}
+
+\parteteoria
+
+Nella lezione 1 i giochi erano combinatori: due giocatori, a turni, a somma zero, con
+informazione perfetta. Qui si toglie quasi tutto. I giocatori possono essere $n$, muovono
+\emph{simultaneamente}, ognuno ha la propria utilità (non necessariamente opposta a quella
+degli altri) e le utilità sono quelle di VNM della lezione 2.
+
+Il percorso della lezione:
+\begin{enumerate}[label=\arabic*.]
+  \item giochi in forma normale;
+  \item strategie dominanti;
+  \item strategie pure e \en{best response};
+  \item equilibrio di Nash in strategie pure;
+  \item strategie miste e \en{best response};
+  \item equilibrio di Nash in strategie miste;
+  \item equilibri misti nei giochi $2\times2$;
+  \item giochi a somma zero e minimax.
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\section{Giochi strategici e forma normale}
+
+Nei \kw{giochi strategici}:
+\begin{itemize}
+  \item i giocatori sono in \kw{competizione} tra loro;
+  \item ognuno è \kw{egoista} (\en{self-interested}): vuole massimizzare il proprio payoff;
+  \item ognuno deve decidere quale azione intraprendere.
+\end{itemize}
+
+Ci sono due modi di rappresentarli:
+\begin{itemize}
+  \item \kw{forma normale} (o \emph{forma matriciale}): elenca il payoff di ciascun giocatore
+        in funzione delle azioni di tutti, \emph{come se} si muovesse simultaneamente;
+  \item \kw{forma estesa}: include l'ordine delle mosse e ciò che ogni giocatore sa quando
+        muove. Si rappresenta come un albero (lo si è visto nella lezione 1). Negli scacchi
+        il bianco muove e il nero risponde; nel poker conta anche che cosa un giocatore
+        \emph{vede} quando punta.
+\end{itemize}
+
+\begin{definizione}[Gioco in forma normale]
+Un gioco in forma normale è una tupla $\langle N, A, u\rangle$ dove:
+\begin{itemize}
+  \item $N = \{1,2,\dots,n\}$ è l'insieme dei \kw{giocatori};
+  \item $A = \{A_1, A_2, \dots, A_n\}$ raccoglie le \kw{azioni} di tutti: $A_i$ è
+        l'insieme delle azioni del giocatore $i$, e
+        $a = (a_1,\dots,a_n) \in A_1 \times \dots \times A_n$ è un \kw{profilo di azioni};
+  \item $u_i : A_1\times\dots\times A_n \to \R$ è la \kw{funzione di utilità} (payoff) del
+        giocatore $i$, e $u = (u_1,\dots,u_n)$ è il profilo delle utilità.
+\end{itemize}
+\end{definizione}
+
+\subsection{Giochi a due giocatori come matrici}
+
+Con due giocatori si usa una tabella: il giocatore 1 sceglie la \kw{riga}, il giocatore 2
+la \kw{colonna}; in ogni cella il primo numero è il payoff della riga, il secondo quello
+della colonna.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{A} & \multicolumn{1}{c}{B}\\ \cline{2-3}
+C & \pay{2}{1} & \pay{3}{4} \\ \cline{2-3}
+D & \pay{1}{3} & \pay{4}{4} \\ \cline{2-3}
+\end{tabular}
+\qquad\qquad
+$A = \begin{pmatrix} 2 & 3 \\ 1 & 4 \end{pmatrix},\qquad
+ B = \begin{pmatrix} 1 & 4 \\ 3 & 4 \end{pmatrix}$
+\end{center}
+
+I giocatori sono 1 (riga) e 2 (colonna), gli insiemi di azioni sono $\{C,D\}$ e
+$\{A,B\}$, e per esempio $u_1(C,A) = 2$, $u_2(C,A) = 1$. Equivalentemente si usano due
+matrici: $A$ con i payoff della riga e $B$ con quelli della colonna. È la rappresentazione
+che si usa nel codice.
+
+% ---------------------------------------------------------------------
+\section{Strategie dominanti}
+
+Una \kw{strategia pura} per il giocatore $i$ è la scelta di un'azione $a \in A_i$.
+Un giocatore razionale non gioca una strategia che non gli dà il risultato migliore
+\emph{qualunque cosa facciano gli altri}.
+
+\begin{definizione}[Strategia strettamente e debolmente dominata]
+Siano $s_i'$ e $s_i''$ due strategie del giocatore $i$. La strategia $s_i'$ è
+\kw{strettamente dominata} da $s_i''$ se, per \emph{ogni} combinazione delle strategie degli
+altri giocatori, il payoff di $i$ con $s_i'$ è strettamente minore che con $s_i''$:
+\[
+  u_i(s_1,\dots,s_{i-1}, s_i', s_{i+1},\dots,s_n) <
+  u_i(s_1,\dots,s_{i-1}, s_i'', s_{i+1},\dots,s_n).
+\]
+La strategia $s_i'$ è \kw{debolmente dominata} da $s_i''$ se vale la stessa cosa con
+$\le$ al posto di $<$, \emph{e almeno una disuguaglianza è stretta}.
+\end{definizione}
+
+\begin{attenzione}[la dominanza debole nelle slide]
+Le slide definiscono la dominanza debole con il solo $\le$ ovunque. Così ogni strategia
+dominerebbe debolmente sé stessa, e due strategie con payoff identici si dominerebbero a
+vicenda. La definizione standard richiede $\le$ per ogni profilo degli avversari e $<$ per
+almeno uno.
+\end{attenzione}
+
+\subsection{Eliminazione iterata delle strategie strettamente dominate}
+
+Una strategia strettamente dominata non verrà mai giocata da un giocatore razionale, quindi
+la si può \emph{eliminare} dal gioco. Nel gioco ridotto possono comparire nuove strategie
+dominate: si ripete. Il procedimento si chiama \kw{IESDS} (\en{Iterated Elimination of
+Strictly Dominated Strategies}).
+
+\begin{esempio}[il dilemma del prigioniero]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{C} & \multicolumn{1}{c}{D}\\ \cline{2-3}
+C & \pay{-1}{-1} & \pay{-4}{0} \\ \cline{2-3}
+D & \pay{0}{-4}  & \pay{-3}{-3} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+Per il giocatore 1, \emph{Cooperate} è strettamente dominata da \emph{Defect}
+($-1 < 0$ e $-4 < -3$): la si elimina. Lo stesso per il giocatore 2. Sopravvive solo
+$(D,D)$: \emph{Defect} è una \kw{strategia strettamente dominante}. L'esito è razionale ma
+non socialmente ottimo: $(C,C)$ farebbe stare meglio entrambi.
+
+Un gioco che si risolve completamente con IESDS si dice \kw{risolvibile per dominanza}
+(\en{dominance solvable}).
+\end{esempio}
+
+\begin{osservazione}[numeri diversi dalla lezione 1]
+Nella lezione 1 il payoff di chi coopera da solo era $-5$, qui è $-4$. Non cambia nulla:
+quello che conta nel dilemma del prigioniero è l'\emph{ordine} dei payoff,
+$a > b > c > d$ con $a$ = tradire da soli, $b$ = cooperare entrambi, $c$ = tradire
+entrambi, $d$ = cooperare da soli (qui $0 > -1 > -3 > -4$).
+\end{osservazione}
+
+\begin{esempio}[un gioco senza strategie dominate]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{T} & \multicolumn{1}{c}{V} & \multicolumn{1}{c}{C}\\ \cline{2-4}
+L & \pay{0}{4} & \pay{4}{0} & \pay{5}{3} \\ \cline{2-4}
+M & \pay{4}{0} & \pay{0}{4} & \pay{5}{3} \\ \cline{2-4}
+R & \pay{3}{5} & \pay{3}{5} & \pay{8}{8} \\ \cline{2-4}
+\end{tabular}
+\end{center}
+Nessuna strategia si può eliminare. Per il giocatore 1, L è la migliore se l'altro gioca
+V, M se gioca T, R se gioca C; per il giocatore 2, T è la migliore contro L, V contro M,
+C contro R. Ogni strategia è la migliore in almeno un caso, quindi nessuna è dominata:
+\kw{non tutti i giochi si risolvono con IESDS}.
+\end{esempio}
+
+% ---------------------------------------------------------------------
+\section{Best response ed equilibrio di Nash in strategie pure}
+
+Si immagini che il giocatore $i$ sappia che cosa giocheranno tutti gli altri:
+\[
+  a_{-i} = \langle a_1, \dots, a_{i-1}, a_{i+1}, \dots, a_n\rangle .
+\]
+
+\begin{definizione}[Best response pura]
+La \kw{best response pura} ad $a_{-i}$ è l'azione che massimizza il payoff di $i$:
+\[
+  a_i^* \in \BR(a_{-i}) \iff \forall a_i \in A_i,\ u_i(a_i^*, a_{-i}) \ge u_i(a_i, a_{-i}).
+\]
+\end{definizione}
+$\BR(a_{-i})$ è un \emph{insieme}: le best response possono essere più di una, in caso di
+pareggio.
+
+\begin{definizione}[Equilibrio di Nash puro]
+Un profilo di azioni è un \kw{equilibrio di Nash puro} (PNE) se ogni giocatore sta giocando
+una best response:
+\[
+  a = \langle a_1,\dots,a_n\rangle \text{ è un NE} \iff \forall i,\ a_i \in \BR(a_{-i}).
+\]
+\end{definizione}
+
+\begin{esempio}[trovare l'equilibrio puro]
+Nel gioco $3\times 3$ precedente si segnano, per ogni colonna, il miglior payoff del
+giocatore 1 e, per ogni riga, il miglior payoff del giocatore 2:
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{T} & \multicolumn{1}{c}{V} & \multicolumn{1}{c}{C}\\ \cline{2-4}
+L & $0,\,\textcolor{blu}{\mathbf{4}}$ & $\textcolor{unical}{\mathbf{4}},\,0$ & $5,\,3$ \\ \cline{2-4}
+M & $\textcolor{unical}{\mathbf{4}},\,0$ & $0,\,\textcolor{blu}{\mathbf{4}}$ & $5,\,3$ \\ \cline{2-4}
+R & $3,\,5$ & $3,\,5$ & $\textcolor{unical}{\mathbf{8}},\,\textcolor{blu}{\mathbf{8}}$ \\ \cline{2-4}
+\end{tabular}
+\end{center}
+L'unica cella in cui \emph{entrambi} i giocatori stanno rispondendo al meglio all'altro è
+$(R, C)$: è l'unico equilibrio di Nash puro.
+\end{esempio}
+
+\begin{osservazione}[il metodo è generale]
+``Segnare le best response e cercare le celle con entrambi i segni'' funziona per qualunque
+gioco a due giocatori in forma matriciale, ed è esattamente quello che fa il codice del
+laboratorio: per ogni cella controlla che la riga sia ottima nella sua colonna e la colonna
+ottima nella sua riga.
+\end{osservazione}
+
+\subsection{IESDS ed equilibrio di Nash}
+\begin{itemize}
+  \item Se IESDS elimina tutti i profili tranne uno, quel profilo è anche l'\kw{unico}
+        equilibrio di Nash puro.
+  \item Il viceversa non vale: alcune strategie sopravvivono a IESDS senza far parte di un
+        equilibrio di Nash (nel gioco $3\times3$ sopravvivono tutte, ma l'equilibrio è uno).
+\end{itemize}
+
+\begin{extra}[perché le strategie eliminate non stanno in un equilibrio]
+Se $s_i'$ è strettamente dominata da $s_i''$, allora contro \emph{qualunque} $a_{-i}$ vale
+$u_i(s_i'', a_{-i}) > u_i(s_i', a_{-i})$, quindi $s_i'$ non è mai una best response e non
+può comparire in un equilibrio di Nash. Applicando l'argomento a ogni passo
+dell'eliminazione, nessun equilibrio di Nash viene mai eliminato. Se alla fine resta un
+solo profilo, e un equilibrio esiste, deve essere quello.
+\end{extra}
+
+\subsection{Come leggere l'equilibrio di Nash}
+
+Il concetto di equilibrio di Nash non dice \emph{come} i giocatori lo raggiungano, ma la
+logica è questa:
+\begin{itemize}
+  \item se i giocatori non sono in equilibrio, almeno uno ha l'opportunità di deviare, e lo
+        farà;
+  \item se sono in equilibrio, nessuno ha interesse a cambiare strategia;
+  \item questa logica ragiona \kw{un giocatore alla volta}: non considera deviazioni
+        congiunte di più giocatori.
+\end{itemize}
+Per questo gli equilibri di Nash si dicono \kw{stabili} e \kw{auto-rinforzanti}.
+
+\begin{esempio}[la battaglia dei sessi: due equilibri]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{A} & \multicolumn{1}{c}{R}\\ \cline{2-3}
+A & \pay{2}{1} & \pay{0}{0} \\ \cline{2-3}
+R & \pay{0}{0} & \pay{1}{2} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+Ci sono due equilibri puri, $(A,A)$ e $(R,R)$, e ciascuno è sbilanciato a favore di uno dei
+due giocatori. Un'opzione migliore per entrambi sarebbe \emph{accordarsi} e giocare
+$(A,A)$ e $(R,R)$ con probabilità $0{,}5$ ciascuno: payoff atteso $1{,}5$ a testa.
+\end{esempio}
+
+\begin{attenzione}[l'accordo non è una strategia mista]
+Giocare ``$(A,A)$ metà delle volte e $(R,R)$ l'altra metà'' richiede che i due giocatori
+\emph{si coordinino}, per esempio lanciando insieme una moneta. Se ciascuno randomizzasse
+per conto suo al 50\%, metà delle volte si ritroverebbero in $(A,R)$ o $(R,A)$ con payoff
+nullo. Un accordo di questo tipo non è un equilibrio di Nash ma un \kw{equilibrio
+correlato}: è l'argomento della lezione 4.
+\end{attenzione}
+
+\begin{esempio}[i calci di rigore: nessun equilibrio puro]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{L} & \multicolumn{1}{c}{R}\\ \cline{2-3}
+L & \pay{1}{-1} & \pay{-1}{1} \\ \cline{2-3}
+R & \pay{-1}{1} & \pay{1}{-1} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+Il portiere (riga) vince se indovina il lato, il tiratore (colonna) se lo sbaglia. Da
+qualunque cella uno dei due ha interesse a cambiare: non esiste un equilibrio puro. Si
+``risolve'' solo randomizzando tra L e R con probabilità $0{,}5$.
+\end{esempio}
+
+\begin{attenzione}[``il miglior esito per entrambi'']
+Le slide dicono che randomizzare al 50\% dà ``il miglior esito per entrambi''. In un gioco a
+somma zero questa frase non ha senso: ciò che uno guadagna l'altro lo perde, quindi non
+esiste un esito migliore per entrambi. Il senso corretto è che 50/50 è l'unico profilo
+\emph{stabile}: ciascuno si garantisce payoff atteso 0 e nessuno dei due può fare meglio
+cambiando da solo. È la strategia minimax, che si ritrova alla fine della lezione.
+\end{attenzione}
+
+\subsection{Equilibri con utilità analitiche: la tragedia dei beni comuni}
+
+Le azioni non devono per forza essere un insieme finito. Due agricoltori pompano acqua
+dalla stessa falda:
+\begin{itemize}
+  \item $x_1, x_2 \ge 0$ sono i livelli di estrazione e $X = x_1 + x_2$ il totale;
+  \item il ricavo per unità d'acqua è $A - BX$ con $A, B > 0$: vale $A$ quando non si è
+        estratto nulla e cala di $B$ per ogni unità estratta in totale;
+  \item l'utilità dell'agricoltore $i$ è $u(x_i, x_j) = x_i\bigl(A - B(x_i + x_j)\bigr)$.
+\end{itemize}
+
+\paragraph{Best response.}
+L'agricoltore $i$ sceglie $x_i$ prendendo $x_j$ come dato. Condizione del primo ordine:
+\[
+  \frac{\partial u}{\partial x_i}
+  = \frac{\partial}{\partial x_i}\bigl(Ax_i - Bx_i^2 - Bx_ix_j\bigr)
+  = A - 2Bx_i - Bx_j = 0
+  \quad\Longrightarrow\quad
+  \BR_i(x_j) = x_i = \frac{A - Bx_j}{2B}.
+\]
+
+\paragraph{Equilibrio di Nash.}
+Il gioco è simmetrico, quindi si cerca $x_i^* = x_j^* = x^*$:
+\[
+  x^* = \frac{A - Bx^*}{2B} \ \Rightarrow\ 2Bx^* = A - Bx^* \ \Rightarrow\
+  x^* = \frac{A}{3B},
+  \qquad X^{\text{Nash}} = 2x^* = \frac{2A}{3B}.
+\]
+
+\paragraph{Ottimo sociale.}
+Un pianificatore massimizza il benessere totale $W(X) = X(A - BX)$:
+\[
+  \frac{dW}{dX} = A - 2BX = 0 \ \Rightarrow\ X^{\text{Opt}} = \frac{A}{2B},
+  \qquad x^{\text{plan}} = \frac{A}{4B} \text{ a testa}.
+\]
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lccc}
+\toprule
+ & Estrazione totale & Benessere totale & Utilità a testa \\
+\midrule
+Equilibrio di Nash & $\dfrac{2A}{3B}$ & $\dfrac{2A^2}{9B} \approx 0{,}222\,\dfrac{A^2}{B}$ & $\dfrac{A^2}{9B}$ \\[6pt]
+Ottimo sociale     & $\dfrac{A}{2B}$  & $\dfrac{A^2}{4B} = 0{,}25\,\dfrac{A^2}{B}$ & $\dfrac{A^2}{8B}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+In competizione gli agricoltori estraggono \emph{più} acqua del necessario e ottengono
+\emph{meno} utilità ciascuno. È la \kw{tragedia dei beni comuni}: i giocatori sono
+incentivati a sfruttare una risorsa comune a danno di tutti. Il meccanismo è lo stesso del
+dilemma del prigioniero, con un continuo di azioni al posto di due.
+
+\begin{extra}[i passaggi che le slide saltano]
+\begin{itemize}
+  \item La condizione del primo ordine individua un \emph{massimo} perché
+        $\partial^2 u/\partial x_i^2 = -2B < 0$: l'utilità è concava in $x_i$.
+  \item La best response vale solo finché $A - Bx_j \ge 0$; se l'altro estrae più di
+        $A/B$ la risposta ottima è $x_i = 0$. All'equilibrio il vincolo non è attivo.
+  \item L'utilità a testa all'equilibrio è $x^*(A - BX^{\text{Nash}}) =
+        \tfrac{A}{3B}\cdot\tfrac{A}{3} = \tfrac{A^2}{9B}$; con il piano è
+        $\tfrac{A}{4B}\cdot\tfrac{A}{2} = \tfrac{A^2}{8B}$, più alta.
+  \item Il piano non è un equilibrio: se l'altro estrae $A/4B$, la best response è
+        $\BR(A/4B) = \tfrac{A - A/4}{2B} = \tfrac{3A}{8B} > \tfrac{A}{4B}$.
+        Ognuno ha interesse a estrarre di più.
+\end{itemize}
+\end{extra}
+
+\begin{attenzione}[``ottimo di Pareto'' nel titolo delle slide]
+Le slide confrontano l'equilibrio con l'``ottimo di Pareto'', ma quello che calcolano è
+l'ottimo \emph{utilitaristico}, cioè il massimo della somma delle utilità. L'ottimo
+utilitaristico è Pareto-ottimo, ma non è l'unico esito Pareto-ottimo: per esempio
+un agricoltore che estrae $A/2B$ da solo, con l'altro a zero, è anch'esso Pareto-ottimo.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{Strategie miste}
+
+\begin{definizione}[Strategia mista]
+Una \kw{strategia} $\sigma_i$ del giocatore $i$ è una distribuzione di probabilità su $A_i$.
+\begin{itemize}
+  \item È \kw{pura} se una sola azione ha probabilità 1.
+  \item È \kw{mista} se più azioni hanno probabilità positiva. Le azioni con probabilità
+        positiva formano il \kw{supporto} della strategia, $\supp(\sigma_i)$.
+\end{itemize}
+$S_i$ è l'insieme delle strategie di $i$, $S = S_1 \times \dots \times S_n$ quello dei
+profili, e $\sigma = (\sigma_1,\dots,\sigma_n) \in S$ è un profilo di strategie miste.
+\end{definizione}
+
+Con le strategie miste le utilità non si leggono più nella tabella: si usa l'\kw{utilità
+attesa} della lezione 2. La probabilità di un profilo di azioni è il prodotto delle
+probabilità con cui ogni giocatore sceglie la propria azione (i giocatori randomizzano in
+modo indipendente):
+\[
+  u_i(\sigma) = \sum_{a \in A} u_i(a)\,\Pr(a \mid \sigma),
+  \qquad
+  \Pr(a \mid \sigma) = \prod_{j \in N} \sigma_j(a_j).
+\]
+In forma matriciale, con $\sigma_r$ e $\sigma_c$ vettori riga:
+$u_r = \sigma_r A \sigma_c^T$ e $u_c = \sigma_r B \sigma_c^T$.
+
+\begin{esempio}[matching pennies]
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{H} & \multicolumn{1}{c}{T}\\ \cline{2-3}
+H & \pay{1}{-1} & \pay{-1}{1} \\ \cline{2-3}
+T & \pay{-1}{1} & \pay{1}{-1} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+Con $\sigma_r = \sigma_c = (\tfrac12, \tfrac12)$ ogni cella ha probabilità $0{,}25$:
+\[
+  u_r = 1\cdot 0{,}25 - 1\cdot 0{,}25 - 1\cdot 0{,}25 + 1\cdot 0{,}25 = 0 .
+\]
+Con $\sigma_r = \sigma_c = (\tfrac45, \tfrac15)$:
+\[
+  u_r = 1\cdot(0{,}8\cdot0{,}8) - 1\cdot(0{,}8\cdot0{,}2) - 1\cdot(0{,}2\cdot0{,}8)
+        + 1\cdot(0{,}2\cdot0{,}2) = 0{,}64 - 0{,}16 - 0{,}16 + 0{,}04 = 0{,}36 .
+\]
+\end{esempio}
+
+\begin{attenzione}[perché servono le utilità di VNM]
+Calcolare il valore atteso dei payoff ha senso solo se i payoff sono utilità
+\emph{cardinali}, cioè di VNM (lezione 2). Con utilità solo ordinali un equilibrio misto
+non è nemmeno definito: trasformando i numeri con una funzione crescente non lineare,
+l'equilibrio misto cambierebbe, mentre gli equilibri puri resterebbero gli stessi.
+\end{attenzione}
+
+\section{Best response ed equilibrio di Nash misti}
+
+\begin{definizione}[Best response mista ed equilibrio di Nash misto]
+La \kw{best response mista} a $\sigma_{-i}$ è la strategia che massimizza il payoff
+atteso di $i$:
+\[
+  \sigma_i^* \in \BR(\sigma_{-i}) \iff
+  \forall \sigma_i \in S_i,\ u_i(\sigma_i^*, \sigma_{-i}) \ge u_i(\sigma_i, \sigma_{-i}).
+\]
+Un profilo $\sigma = \langle\sigma_1,\dots,\sigma_n\rangle$ è un \kw{equilibrio di Nash
+misto} (MNE) se $\forall i,\ \sigma_i \in \BR(\sigma_{-i})$.
+\end{definizione}
+
+\begin{attenzione}[un refuso nella definizione]
+Le slide scrivono ``$\forall \sigma_i \in A_i$''. Le strategie miste stanno in $S_i$
+(l'insieme delle distribuzioni su $A_i$), non in $A_i$.
+\end{attenzione}
+
+\begin{teorema}[Nash, 1950]
+Ogni gioco finito (numero finito di giocatori e di azioni) ha almeno un equilibrio di Nash
+misto.
+\end{teorema}
+La dimostrazione, tramite il teorema del punto fisso di Brouwer, è nella lezione 4.
+
+\subsection{Condizione generale per una best response}
+
+\begin{teorema}[Condizione del supporto]
+In un gioco a due giocatori $(A,B) \in \R^{m\times n}$, la strategia $\sigma_r$ della riga è
+una best response a $\sigma_c$ se e solo se
+\[
+  \sigma_r(i) > 0 \ \Longrightarrow\ (A\sigma_c^T)_i = u = \max_k (A\sigma_c^T)_k
+  \qquad \forall i \in A_1 .
+\]
+\end{teorema}
+In parole: \kw{una strategia mista è una best response se e solo se mette probabilità
+solo su azioni pure che sono a loro volta best response}.
+
+\paragraph{Dimostrazione.}
+$(A\sigma_c^T)_i$ è l'utilità che la riga ottiene giocando la sua $i$-esima azione. Sia
+$u = \max_k (A\sigma_c^T)_k$. L'utilità di $\sigma_r$ è
+\begin{align*}
+  \sigma_r A \sigma_c^T
+  &= \sum_{i=1}^m \sigma_r(i)\,(A\sigma_c^T)_i
+   = \sum_{i=1}^m \sigma_r(i)\bigl[u - u + (A\sigma_c^T)_i\bigr]\\
+  &= \sum_{i=1}^m \sigma_r(i)\,u - \sum_{i=1}^m \sigma_r(i)\bigl(u - (A\sigma_c^T)_i\bigr)
+   = u - \sum_{i=1}^m \sigma_r(i)\bigl(u - (A\sigma_c^T)_i\bigr).
+\end{align*}
+Ogni termine $u - (A\sigma_c^T)_i$ è $\ge 0$, quindi l'utilità massima possibile è $u$, e
+si raggiunge se e solo se la somma è nulla, cioè se ogni azione con $\sigma_r(i) > 0$ ha
+$(A\sigma_c^T)_i = u$. $\square$
+
+\begin{osservazione}[due conseguenze pratiche]
+\begin{itemize}
+  \item Per verificare se una strategia è una best response non serve confrontarla con
+        tutte le infinite strategie miste: basta calcolare il vettore $A\sigma_c^T$
+        (le utilità delle azioni pure) e guardare il supporto. È l'algoritmo del laboratorio.
+  \item All'equilibrio misto ogni giocatore è \emph{indifferente} tra le azioni del
+        proprio supporto. È questa indifferenza che permette di calcolare gli equilibri nei
+        giochi $2\times2$.
+\end{itemize}
+\end{osservazione}
+
+\begin{esempio}[best response in sasso-carta-forbici]
+La colonna non gioca mai forbici e gioca sasso o carta con probabilità $0{,}5$:
+\[
+  A = \begin{pmatrix} 0 & -1 & 1 \\ 1 & 0 & -1 \\ -1 & 1 & 0 \end{pmatrix},
+  \qquad \sigma_c = \bigl(\tfrac12, \tfrac12, 0\bigr),
+  \qquad A\sigma_c^T = \begin{pmatrix} -0{,}5 \\ 0{,}5 \\ 0 \end{pmatrix}
+  \ \Longrightarrow\ \sigma_r^* = (0, 1, 0).
+\]
+La seconda riga (carta) ha l'utilità massima: l'unica best response è giocare sempre carta.
+\end{esempio}
+
+\begin{esempio}[best response nella battaglia dei sessi]
+Con $A = \begin{pmatrix}2&0\\0&1\end{pmatrix}$, $B = \begin{pmatrix}1&0\\0&2\end{pmatrix}$
+e $\sigma_c = (\tfrac13, \tfrac23)$:
+\[
+  A\sigma_c^T = \bigl(\tfrac23, \tfrac23\bigr)^T .
+\]
+Le due azioni della riga danno la stessa utilità, quindi \emph{qualunque} strategia della
+riga è una best response: $(\tfrac23,\tfrac13)$, $(\tfrac12,\tfrac12)$, $(1,0)$, \ldots
+\begin{itemize}
+  \item Con $\sigma_r = (\tfrac23, \tfrac13)$: $\sigma_r B = (\tfrac23, \tfrac23)$, quindi anche
+        $\sigma_c$ è una best response a $\sigma_r$. Le due strategie sono una best response
+        l'una all'altra: $(\sigma_r, \sigma_c)$ è un equilibrio di Nash.
+  \item Con $\sigma_r = (\tfrac12, \tfrac12)$: $\sigma_r B = (\tfrac12, 1)$. La colonna
+        dovrebbe giocare solo la seconda azione, ma $\sigma_c$ mette probabilità $\tfrac13$
+        sulla prima: $\sigma_c \notin \BR(\sigma_r)$ e il profilo non è un equilibrio,
+        anche se $\sigma_r \in \BR(\sigma_c)$.
+\end{itemize}
+\end{esempio}
+
+% ---------------------------------------------------------------------
+\section{Equilibri misti nei giochi \texorpdfstring{$2\times2$}{2x2}}
+
+Nella battaglia dei sessi
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{r|c|c|}
+\multicolumn{1}{r}{} & \multicolumn{1}{c}{A} & \multicolumn{1}{c}{C}\\ \cline{2-3}
+A & \pay{2}{1} & \pay{0}{0} \\ \cline{2-3}
+C & \pay{0}{0} & \pay{1}{2} \\ \cline{2-3}
+\end{tabular}
+\end{center}
+si cerca un equilibrio in cui entrambi randomizzano. Per la condizione del supporto, ognuno
+dev'essere indifferente tra le proprie due azioni.
+
+\paragraph{La colonna rende indifferente la riga.}
+La colonna gioca A con probabilità $p$. La riga è indifferente se
+\[
+  u_r(A) = u_r(C) \ \Longleftrightarrow\ 2p + 0(1-p) = 0\cdot p + 1(1-p)
+  \ \Longrightarrow\ p = \tfrac13 .
+\]
+
+\paragraph{La riga rende indifferente la colonna.}
+La riga gioca A con probabilità $q$. La colonna è indifferente se
+\[
+  u_c(A) = u_c(C) \ \Longleftrightarrow\ q\cdot 1 + 0(1-q) = 0\cdot q + 2(1-q)
+  \ \Longrightarrow\ q = \tfrac23 .
+\]
+
+L'equilibrio misto è quindi $\sigma_r = (\tfrac23, \tfrac13)$, $\sigma_c = (\tfrac13, \tfrac23)$.
+
+\begin{osservazione}[il trucco controintuitivo]
+La probabilità con cui gioca un giocatore è determinata dai payoff dell'\emph{altro}. La
+riga sceglie $q$ non per massimizzare il proprio payoff (all'equilibrio le sue due azioni le
+rendono uguale) ma per rendere l'avversario indifferente: se non lo fosse, l'avversario
+smetterebbe di randomizzare e l'equilibrio crollerebbe.
+\end{osservazione}
+
+\begin{extra}[quanto vale l'equilibrio misto]
+All'equilibrio misto della battaglia dei sessi ciascuno ottiene payoff atteso $\tfrac23$:
+meno di $1$, il peggior payoff dei due equilibri puri. I giocatori si mancano con
+probabilità $\tfrac23\cdot\tfrac23 + \tfrac13\cdot\tfrac13 = \tfrac59$. L'equilibrio misto è
+``equo'' (simmetrico nei payoff) ma inefficiente: è il motivo per cui si cercano
+alternative come gli equilibri correlati (lezione 4).
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Giochi a somma zero e minimax}
+
+\begin{definizione}[Gioco a somma zero]
+Un gioco a due giocatori $(A,B)$ è \kw{a somma zero} se e solo se $A = -B$. Basta quindi una
+sola matrice $A$: la riga massimizza $\sigma_r A\sigma_c^T$, la colonna lo minimizza.
+\end{definizione}
+
+\paragraph{Il punto di vista della colonna.}
+Data $A \in \R^{m\times n}$ e la strategia $\sigma_c$ della colonna, la best response della
+riga ottiene
+\[
+  \max_{\sigma_r \in S_r} \sigma_r A\sigma_c^T = \max_i (A\sigma_c^T)_i
+  = \min\{ v \in \R \mid A\sigma_c^T \le \uno v \}.
+\]
+La prima uguaglianza è la condizione del supporto (il massimo si raggiunge su un'azione
+pura); la seconda dice che il massimo di un vettore è il più piccolo $v$ che lo maggiora
+componente per componente. Con la sua scelta di $\sigma_c$ la colonna \emph{fissa} questo
+tetto $v$ al guadagno della riga; essendo il gioco a somma zero, vuole renderlo il più basso
+possibile.
+
+\begin{definizione}[I due programmi lineari del minimax]
+\[
+\begin{array}{lll}
+\text{Colonna:} & \displaystyle\min_{v,\,\sigma_c} v
+  & \text{s.t. } A\sigma_c^T \le \uno v,\ \ \sigma_c \in S_c\\[10pt]
+\text{Riga:} & \displaystyle\max_{u,\,\sigma_r} u
+  & \text{s.t. } \sigma_r A \ge u\uno^T,\ \ \sigma_r \in S_r
+\end{array}
+\]
+\end{definizione}
+La riga cerca la strategia che massimizza il payoff \emph{garantito} $u$ contro qualunque
+colonna (\kw{maximin}); la colonna quella che minimizza il payoff massimo concesso $v$
+(\kw{minimax}).
+
+\begin{teorema}[Minimax, von Neumann 1928]
+In un gioco a somma zero $A \in \R^{m\times n}$ con insiemi di strategie miste $S_r, S_c$
+esistono $\sigma_r \in S_r$, $\sigma_c \in S_c$ e $v \in \R$ tali che
+\[
+  A\sigma_c^T \le \uno v, \qquad \sigma_r A \ge v\uno^T .
+\]
+Allora $v$ è l'unico \kw{valore del gioco} e $\sigma_r, \sigma_c$ sono strategie ottime dei
+giocatori.
+\end{teorema}
+
+In altre parole $\max\min = \min\max$: il payoff che la riga si può garantire coincide con
+quello che la colonna può impedirle di superare.
+
+\paragraph{Dimostrazione (traccia delle slide).}
+\begin{enumerate}
+  \item \emph{Debolezza} ($u \le v$). Per soluzioni ammissibili qualsiasi dei due programmi,
+        \[
+          u = u\,\uno^T\sigma_c^T \le \sigma_r A\sigma_c^T \le \sigma_r\uno v = v .
+        \]
+        Quindi gli obiettivi sono limitati e si possono restringere agli insiemi compatti
+        $S_c\times[u,v]$ e $S_r\times[u,v]$; per continuità di $\sigma_r A\sigma_c^T$ gli
+        ottimi $u$ e $v$ esistono.
+  \item \emph{Uguaglianza} ($u = v$), per induzione su $m+n$. Con $m+n = 2$ (matrice
+        $1\times1$) è ovvio. Siano $\sigma_c, v$ e $\sigma_r, u$ ottimi. Se
+        $A\sigma_c^T = \uno v$ e $\sigma_r A = u\uno^T$, allora
+        $u = \sigma_r A\sigma_c^T = v$. Altrimenti una disuguaglianza è stretta, per esempio
+        la riga $k$: $(A\sigma_c^T)_k < v$.
+  \item Si cancella la riga $k$ ottenendo $\bar A$ ($(m-1)\times n$), con ottimi
+        $\bar u, \bar v$. Per induzione $\bar u = \bar v$. Togliere una riga può solo
+        peggiorare la riga e aiutare la colonna: $\bar u \le u$ e $\bar v \le v$.
+  \item Se fosse $\bar v < v$, la strategia $\sigma_c' = (1-\epsilon)\sigma_c +
+        \epsilon\bar\sigma_c$ darebbe $(A\sigma_c'^T)_i < v$ su tutte le righe diverse da
+        $k$ (per ogni $\epsilon \in (0,1]$) e anche sulla riga $k$ (per $\epsilon$ piccolo,
+        perché lì la disuguaglianza era già stretta): contraddice la minimalità di $v$.
+        Quindi $\bar v = v$ e
+        \[
+          \bar u \le u \le v = \bar v = \bar u \ \Longrightarrow\ u = v . \qquad\square
+        \]
+\end{enumerate}
+
+\begin{attenzione}[due dettagli della dimostrazione]
+\begin{itemize}
+  \item Al passo 4 le slide scelgono $\epsilon$ solo in modo che
+        $v(1-\epsilon) + \bar v\epsilon < v$; per la riga cancellata $k$ serve anche
+        $\epsilon$ \emph{abbastanza piccolo}, perché $(A\bar\sigma_c^T)_k$ può essere
+        grande. Esiste sempre, dato che $(A\sigma_c^T)_k < v$ strettamente.
+  \item Le slide trattano solo il caso in cui la disuguaglianza stretta è in
+        $A\sigma_c^T \le \uno v$. Se tutte quelle sono uguaglianze ma una di
+        $\sigma_r A \ge u\uno^T$ è stretta, si ragiona allo stesso modo cancellando una
+        \emph{colonna}.
+\end{itemize}
+\end{attenzione}
+
+\begin{extra}[il legame con la lezione 1]
+Minimax per i giochi combinatori (lezione 1) è il caso particolare in cui l'informazione
+è perfetta e i giocatori muovono a turno: lì il max e il min si scambiano senza bisogno di
+strategie miste, e il valore si calcola risalendo l'albero. Nei giochi simultanei come
+sasso-carta-forbici, invece, senza randomizzare il max-min e il min-max \emph{non}
+coincidono (in pure: $-1$ contro $+1$); le strategie miste sono proprio ciò che serve a
+farli coincidere.
+\end{extra}
+
+\subsection{Esempio: sasso-carta-forbici come programma lineare}
+
+Con $A = \begin{pmatrix} 0&-1&1\\ 1&0&-1\\ -1&1&0 \end{pmatrix}$ e $x = \sigma_r$, il
+programma della riga $\max u$ s.t.\ $xA \ge \uno u$, $x \in S_r$ diventa:
+\[
+\begin{aligned}
+  \max_{u,x}\ & u\\
+  \text{s.t. }\ & 0x_1 + 1x_2 - 1x_3 \ge u\\
+  & -1x_1 + 0x_2 + 1x_3 \ge u\\
+  & 1x_1 - 1x_2 + 0x_3 \ge u\\
+  & x_1 + x_2 + x_3 = 1
+\end{aligned}
+\]
+Ogni vincolo dice ``contro la colonna $j$ la riga ottiene almeno $u$''.
+
+\paragraph{Forma standard.}
+I risolutori (come \texttt{linprog} di SciPy) vogliono
+$\min c\,x$ s.t.\ $M_{ub}\,x \le b_{ub}$, $M_{eq}\,x = b_{eq}$. Si rinomina $u = x_4$, si
+porta tutto a sinistra e si cambia segno:
+\[
+\begin{aligned}
+  \min_x\ & -x_4\\
+  \text{s.t. }\ & 0x_1 - 1x_2 + 1x_3 + 1x_4 \le 0\\
+  & 1x_1 + 0x_2 - 1x_3 + 1x_4 \le 0\\
+  & -1x_1 + 1x_2 + 0x_3 + 1x_4 \le 0\\
+  & 1x_1 + 1x_2 + 1x_3 + 0x_4 = 1
+\end{aligned}
+\qquad
+\begin{aligned}
+  M_{ub} &= \begin{pmatrix} 0&-1&1&1\\ 1&0&-1&1\\ -1&1&0&1 \end{pmatrix},\
+  b_{ub} = \begin{pmatrix}0\\0\\0\end{pmatrix},\\
+  M_{eq} &= (1,1,1,0),\ b_{eq} = 1,\ c = (0,0,0,-1).
+\end{aligned}
+\]
+Per una matrice qualsiasi $A \in \R^{m\times n}$:
+\[
+  M_{ub} = \bigl[\,-A^T \mid \uno\,\bigr] \in \R^{n\times(m+1)},\quad
+  b_{ub} = \mathbf{0}_n,\quad
+  c = (\underbrace{0,\dots,0}_{m}, -1),\quad
+  M_{eq} = (\underbrace{1,\dots,1}_{m}, 0),\quad b_{eq} = 1 .
+\]
+
+\begin{attenzione}[il valore del gioco può essere negativo]
+Le slide scrivono la forma standard con il vincolo $x \ge 0$ su \emph{tutte} le variabili.
+Ma $x_4 = u$ è il valore del gioco, che può essere negativo. Il notebook lo dice
+correttamente ($x_i \ge 0$ solo per $i \le m$), ed è un dettaglio che conta: \texttt{linprog}
+impone di default $x_i \ge 0$ a \emph{tutte} le variabili. Se non si dichiara $u$ libera
+(\texttt{bounds=[(0, None)]*m + [(None, None)]}), su un gioco di valore negativo il
+programma diventa \kw{impossibile} e il risolutore non restituisce nessuna soluzione. Nel
+laboratorio lo si verifica su un esempio; tutti i test del notebook hanno valore
+$\ge 0$ e non se ne accorgono.
+\end{attenzione}
+
+% =====================================================================
+\partelab{Best response, equilibri e giochi potenziali}
+% =====================================================================
+\fonte{NonCooperativeGameTheory\_part1\_blank.ipynb, Potential\_Games\_Label\_Propagation\_blank.ipynb}
+
+\textbf{Obiettivo}: implementare gli strumenti della lezione per giochi a due giocatori
+(verifica di best response ed equilibri, minimax per i giochi a somma zero, equilibri misti
+$2\times2$) e poi un'applicazione dei \kw{giochi potenziali}: trovare le comunità di un
+grafo facendo giocare i nodi. Tutto il codice sotto è stato eseguito: i risultati attesi
+scritti nel notebook sono riprodotti esattamente.
+
+\begin{osservazione}[il notebook della lezione 4]
+Il notebook del laboratorio 4 riprende integralmente questa prima parte e la estende. Le
+celle di quel notebook contengono già gli output della soluzione del docente, ed è con
+quelli che sono stati confrontati i risultati di questa sezione.
+\end{osservazione}
+
+\subsection{Best response ed equilibrio di Nash}
+
+Le strategie sono vettori di probabilità (\texttt{[0, 1]} = seconda azione pura). La stessa
+funzione serve per strategie pure e miste, grazie alla condizione del supporto: si calcolano
+le utilità delle azioni pure contro l'avversario e si controlla che il supporto contenga solo
+azioni di utilità massima.
+
+\begin{lstlisting}
+import numpy as np
+
+def is_best_response(P1, P2, s1, s2):
+    s1, s2 = np.asarray(s1, float), np.asarray(s2, float)
+    for s in (s1, s2):
+        assert np.all(s >= 0) and np.isclose(s.sum(), 1), "strategia non valida"
+    u_row = P1 @ s2               # utilita' di ogni riga contro s2
+    u_col = s1 @ P2               # utilita' di ogni colonna contro s1
+    br_row = np.all(u_row[s1 > 0] >= u_row.max() - 1e-9)
+    br_col = np.all(u_col[s2 > 0] >= u_col.max() - 1e-9)
+    return bool(br_row), bool(br_col)
+
+def is_nash_equilibrium(P1, P2, s1, s2):
+    return all(is_best_response(P1, P2, s1, s2))
+\end{lstlisting}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\small
+\begin{tabular}{llll}
+\toprule
+Gioco & Profilo & Atteso & Ottenuto \\
+\midrule
+Dilemma del prigioniero & (D, C) & (True, False) & (True, False) \\
+Dilemma del prigioniero & (D, D) & NE & True \\
+Gioco $C/D \times A/B$  & (C, A) & (True, False) & (True, False) \\
+Gioco $C/D \times A/B$  & (D, B) & NE & True \\
+Battaglia dei sessi     & $(\frac23,\frac13), (\frac13,\frac23)$ & (True, True) & (True, True) \\
+Battaglia dei sessi     & $(\frac23,\frac13), (\frac12,\frac12)$ & (False, True) & (False, True) \\
+Battaglia dei sessi     & (A, A) & NE & True \\
+Battaglia dei sessi     & $(0{,}8;\ 0{,}8)$ & errore & AssertionError \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{attenzione}[confronti esatti con le probabilità]
+Le strategie del tipo $(\tfrac23, \tfrac13)$ non sono rappresentabili esattamente in
+floating point, e le utilità che devono essere ``uguali'' possono differire di
+$10^{-16}$. Un test come \texttt{u\_row[i] == u\_row.max()} può allora dare risultati
+casuali. Per questo il codice confronta con una tolleranza (\texttt{- 1e-9}) e verifica la
+somma con \texttt{np.isclose}. Lo stesso vale per qualunque verifica di equilibrio nel
+progetto.
+\end{attenzione}
+
+\subsection{Minimax nei giochi a somma zero}
+
+\begin{lstlisting}
+import scipy.optimize
+
+def minimax_LP(A):
+    A = np.asarray(A, float)
+    m, n = A.shape
+    c = np.zeros(m + 1); c[-1] = -1                  # max u = min -u
+    M_ub = np.hstack([-A.T, np.ones((n, 1))])        # u - (xA)_j <= 0
+    b_ub = np.zeros(n)
+    M_eq = np.hstack([np.ones((1, m)), np.zeros((1, 1))])
+    b_eq = [1]
+    bounds = [(0, None)] * m + [(None, None)]        # u libera!
+    res = scipy.optimize.linprog(c, A_ub=M_ub, b_ub=b_ub,
+                                 A_eq=M_eq, b_eq=b_eq, bounds=bounds)
+    return res.x[:m]
+\end{lstlisting}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\small
+\begin{tabular}{llc}
+\toprule
+Gioco & Strategia minimax della riga & Valore \\
+\midrule
+Sasso-carta-forbici & $(\frac13, \frac13, \frac13)$ & $0$ \\
+RPS modificato ($4\times3$) & $(0;\ 0{,}125;\ 0{,}5;\ 0{,}375)$ & $0{,}125$ \\
+RPS modificato, $A^T$ ($3\times4$) & $(0{,}25;\ 0{,}4167;\ 0{,}3333)$ & $0{,}0833$ \\
+Matching pennies & $(\frac12, \frac12)$ & $0$ \\
+Casuale $5\times5$, seme 42 & $(0;\ 0{,}5629;\ 0{,}4371;\ 0;\ 0)$ & $50{,}28$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{attenzione}[il commento del notebook sull'RPS modificato]
+Nel notebook, sopra l'RPS modificato, c'è il commento ``It should print [1/3, 1/3, 1/3]''.
+È un residuo copiato dalla cella precedente: la matrice è $4\times3$ e la soluzione corretta
+(confermata dall'output del docente nel notebook della lezione 4) è quella in tabella.
+\end{attenzione}
+
+\paragraph{Il bug dei limiti, verificato.}
+Il gioco $A = \begin{pmatrix} -2 & -1 \\ -1 & -3 \end{pmatrix}$ ha valore
+$-\tfrac53$ e strategia ottima $(\tfrac23, \tfrac13)$. Con \texttt{u} libera,
+\texttt{linprog} restituisce esattamente questo. Con i limiti di default ($u \ge 0$)
+restituisce \texttt{status = 2} (programma impossibile) e \texttt{res.x = None}: il codice
+successivo si rompe con un \texttt{TypeError} che non dice nulla sulla causa.
+
+\subsection{Equilibri misti nei giochi \texorpdfstring{$2\times2$}{2x2}}
+
+Dalla condizione di indifferenza della riga
+$qA_{11} + (1-q)A_{12} = qA_{21} + (1-q)A_{22}$ si ricava la probabilità $q$ con cui la
+\emph{colonna} gioca la prima azione, e simmetricamente $p$ per la riga:
+\[
+  q = \frac{A_{22} - A_{12}}{A_{11} - A_{12} - A_{21} + A_{22}},
+  \qquad
+  p = \frac{B_{22} - B_{21}}{B_{11} - B_{12} - B_{21} + B_{22}} .
+\]
+
+\begin{lstlisting}
+def mixed_nash_equilibrium_2x2(A, B):
+    A, B = np.asarray(A, float), np.asarray(B, float)
+    den_q = A[0, 0] - A[0, 1] - A[1, 0] + A[1, 1]
+    den_p = B[0, 0] - B[0, 1] - B[1, 0] + B[1, 1]
+    if den_q == 0 or den_p == 0:
+        raise ValueError("nessun equilibrio completamente misto")
+    q = (A[1, 1] - A[0, 1]) / den_q      # rende indifferente la riga
+    p = (B[1, 1] - B[1, 0]) / den_p      # rende indifferente la colonna
+    if not (0 <= p <= 1 and 0 <= q <= 1):
+        raise ValueError("niente equilibrio misto interno")
+    return np.array([p, 1 - p]), np.array([q, 1 - q])
+\end{lstlisting}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\small
+\begin{tabular}{lll}
+\toprule
+Gioco & Riga & Colonna \\
+\midrule
+Battaglia dei sessi & $(\frac23, \frac13)$ & $(\frac13, \frac23)$ \\
+Attraversamento ($A = [[-10,5],[0,-1]]$) & $(0{,}375;\ 0{,}625)$ & $(0{,}375;\ 0{,}625)$ \\
+Matching pennies & $(\frac12, \frac12)$ & $(\frac12, \frac12)$ \\
+$A = [[4,5],[6,3]],\ B = [[2,1],[0,3]]$ & $(0{,}75;\ 0{,}25)$ & $(0{,}5;\ 0{,}5)$ \\
+$A = [[3,1],[0,2]],\ B = [[2,1],[0,3]]$ & $(0{,}75;\ 0{,}25)$ & $(0{,}25;\ 0{,}75)$ \\
+$A = [[2,3],[3,-1]],\ B = [[-5,-6],[-2,0]]$ & $(\frac23, \frac13)$ & $(0{,}8;\ 0{,}2)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Tutti coincidono con il notebook, e \texttt{is\_nash\_equilibrium} li conferma.
+
+\begin{attenzione}[la formula non funziona sempre]
+La formula presuppone che esista un equilibrio \emph{completamente misto}. Non sempre c'è:
+\begin{itemize}
+  \item nel \kw{dilemma del prigioniero} il denominatore di $q$ è
+        $-1 + 4 - 0 - 3 = 0$: divisione per zero. Una strategia dominante non lascia
+        spazio all'indifferenza;
+  \item nel gioco $C/D\times A/B$ di inizio lezione esce $p = -0{,}5$: una
+        ``probabilità'' negativa. L'unico equilibrio è quello puro $(D, B)$.
+\end{itemize}
+Una versione da usare nel progetto deve controllare il denominatore e che $p, q \in [0,1]$,
+come il codice sopra, e in quei casi cercare gli equilibri puri.
+\end{attenzione}
+
+\subsection{Giochi potenziali e rilevamento di comunità}
+\fonte{Lab03-Non\_Cooperative\_Game\_Theory.pdf}
+
+\begin{definizione}[Gioco potenziale esatto]
+Un gioco $\langle N, S, u\rangle$ è un \kw{gioco potenziale esatto} se esiste una
+\kw{funzione potenziale} $\Phi : S \to \R$ tale che, per ogni giocatore $i$, ogni profilo
+$s_{-i}$ degli altri e ogni coppia di strategie $s_i, s_i' \in S_i$:
+\[
+  u_i(s_i', s_{-i}) - u_i(s_i, s_{-i}) = \Phi(s_i', s_{-i}) - \Phi(s_i, s_{-i}).
+\]
+\end{definizione}
+In parole: quando un giocatore cambia strategia da solo, la variazione del \emph{suo} payoff
+è esattamente la variazione del potenziale \emph{comune} $\Phi$.
+\begin{itemize}
+  \item I giochi potenziali (finiti) hanno sempre un \kw{equilibrio di Nash puro}.
+  \item Hanno la \kw{proprietà del miglioramento finito} (FIP): ogni sequenza di
+        deviazioni unilaterali che migliorano il payoff di chi devia è finita.
+\end{itemize}
+
+\begin{extra}[perché le due proprietà valgono]
+Ogni deviazione che migliora il payoff di chi devia aumenta $\Phi$ della stessa quantità.
+Siccome $S$ è finito, $\Phi$ assume un numero finito di valori e non può crescere per
+sempre: ogni sequenza di miglioramenti termina (FIP). Dove termina, nessuno può migliorare
+da solo: è un equilibrio di Nash puro. In particolare il profilo che \emph{massimizza}
+$\Phi$ è sempre un equilibrio.
+\end{extra}
+
+\paragraph{Dinamica di best response (BRD).}
+Dalla FIP segue un algoritmo che converge sempre a un equilibrio puro:
+\begin{lstlisting}[style=pseudo]
+while not converged:
+    for each player $i \in N$:
+        if $s_i \notin BR(s_{-i})$:
+            $s_i$ = BR($s_{-i}$)
+\end{lstlisting}
+
+\paragraph{Il gioco delle comunità.}
+Dato un grafo $G = (V,E)$, si vogliono trovare gruppi di nodi densamente connessi al loro
+interno e poco connessi tra loro (\kw{community detection}). Il problema è NP-difficile e
+ha molte euristiche (Louvain, Infomap, Walktrap, \emph{label propagation}). Il laboratorio
+mostra che la label propagation è una dinamica di best response:
+\begin{itemize}
+  \item ogni nodo è un giocatore: $N = V$;
+  \item ogni nodo sceglie un cluster: $S_i = \{1, 2, \dots, |V|\}$;
+  \item l'utilità di un nodo è il numero di vicini nello stesso cluster:
+        $u_i(s_i, s_{-i}) = \sum_{j \in \Gamma(i)} \mathbb{I}(s_i = s_j)$;
+  \item il potenziale è $\Phi(s) = \tfrac12 \sum_{i \in V} \sum_{j \in \Gamma(i)}
+        \mathbb{I}(s_i = s_j)$, cioè il numero di archi con estremi nello stesso cluster.
+\end{itemize}
+
+\begin{extra}[verifica che $\Phi$ è un potenziale]
+Ogni arco $\{i,j\}$ compare due volte nella doppia somma (da $i$ e da $j$), da cui il
+$\tfrac12$. Quando $i$ cambia cluster cambiano solo gli archi incidenti a $i$, e ciascuno
+contribuisce a $\Phi$ con $1$ se gli estremi sono nello stesso cluster: la variazione di
+$\Phi$ è la variazione del numero di vicini di $i$ nel suo cluster, cioè esattamente
+$\Delta u_i$.
+\end{extra}
+
+Non serve calcolare $\Phi$: è solo la garanzia matematica che il ciclo termina. Basta
+assegnare a ogni nodo un cluster iniziale (il proprio identificativo) e poi, finché qualcosa
+cambia, spostare ogni nodo nel cluster più frequente tra i suoi vicini.
+
+\begin{lstlisting}
+import random
+from collections import Counter
+
+def best_response(node, G, action_profile):
+    counts = Counter(action_profile[nb] for nb in G.neighbors(node))
+    if not counts:
+        return action_profile[node]
+    best = max(counts.values())
+    if counts.get(action_profile[node], 0) == best:
+        return action_profile[node]          # gia' in un cluster ottimo: resta
+    return random.choice([c for c, k in counts.items() if k == best])
+
+def BRD(G):
+    profile = {node: node for node in G.nodes()}   # ognuno nel proprio cluster
+    nodes = list(G.nodes())
+    converged = False
+    while not converged:
+        converged = True
+        random.shuffle(nodes)
+        for node in nodes:
+            new = best_response(node, G, profile)
+            if new != profile[node]:
+                profile[node] = new
+                converged = False
+    return [profile[n] for n in sorted(G.nodes())]
+\end{lstlisting}
+
+\begin{attenzione}[i pareggi possono impedire la convergenza]
+La garanzia di terminazione vale solo se un nodo si sposta quando \emph{migliora
+strettamente}. Un nodo che ha due cluster ugualmente frequenti tra i vicini e cambia anche a
+pari merito non aumenta $\Phi$, e la dimostrazione non vale più. Verificato su un grafo con
+due cricche da 5 nodi e un nodo collegato a entrambe: con la regola ``resta se sei già in un
+cluster ottimo'' la dinamica termina al primo turno; con la regola ``passa all'altro
+cluster ottimo'' non termina mai. Il controllo nella \texttt{best\_response} sopra serve a
+questo.
+\end{attenzione}
+
+\paragraph{Risultati.}
+Il grafo di test è un \kw{modello a blocchi stocastico}: 4 comunità da 100 nodi, probabilità
+di arco $0{,}2$ dentro una comunità e $0{,}01$ tra comunità diverse. Su 20 grafi generati con
+semi diversi:
+\begin{itemize}
+  \item in 19 casi su 20 la dinamica trova \emph{esattamente} le 4 comunità vere, con
+        purezza 1 (nessun nodo assegnato al blocco sbagliato);
+  \item converge in media in $3{,}8$ turni (tra 3 e 5), con 485--595 spostamenti di nodo;
+  \item il potenziale cresce strettamente a ogni spostamento, come previsto (verificato
+        su ogni mossa di ogni esecuzione);
+  \item nel caso rimanente due comunità vengono fuse: 3 cluster, purezza $0{,}75$.
+\end{itemize}
+
+\begin{osservazione}[il massimo di $\Phi$ è la soluzione sbagliata]
+Il profilo con il potenziale \emph{massimo} è ``tutti i nodi nello stesso cluster'':
+$\Phi = |E|$, perché ogni arco ha gli estremi nello stesso gruppo. È un equilibrio di Nash
+(nessuno vuole lasciare un gruppo che contiene tutti i suoi vicini), ma non dice nulla sulle
+comunità. Infatti l'unica esecuzione che ha fuso due comunità è anche quella con il
+potenziale relativo più alto: l'89\% degli archi finisce dentro un cluster, contro l'86--88\%
+delle esecuzioni che trovano le 4 comunità giuste. La label propagation funziona perché si
+ferma in un \emph{massimo locale}
+del potenziale, raggiunto partendo da etichette tutte diverse, e non perché lo massimizza.
+È un buon esempio della differenza tra ``trovare un equilibrio'' e ``trovare l'equilibrio
+giusto''.
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item Un gioco in forma normale è $\langle N, A, u\rangle$; con due giocatori si
+        rappresenta con due matrici $A$ (riga) e $B$ (colonna).
+  \item Una strategia strettamente dominata non è mai giocata. IESDS la elimina; se resta
+        un solo profilo è l'unico equilibrio di Nash. Non tutti i giochi si risolvono così.
+  \item Equilibrio di Nash: ognuno gioca una best response agli altri. Può essere unico,
+        multiplo (battaglia dei sessi) o assente in strategie pure (rigori).
+  \item Tragedia dei beni comuni: all'equilibrio si estrae $\tfrac{2A}{3B}$ invece
+        dell'ottimo $\tfrac{A}{2B}$, e ognuno ottiene $\tfrac{A^2}{9B}$ invece di
+        $\tfrac{A^2}{8B}$.
+  \item Strategie miste: utilità attesa $\sigma_r A\sigma_c^T$. \textbf{Nash (1950)}: ogni
+        gioco finito ha un equilibrio misto.
+  \item Condizione del supporto: una strategia è best response se e solo se mette
+        probabilità solo su azioni pure ottime. All'equilibrio ognuno è indifferente sul
+        proprio supporto; nei $2\times2$ l'indifferenza dà l'equilibrio
+        ($\tfrac23,\tfrac13$; $\tfrac13,\tfrac23$ nella battaglia dei sessi).
+  \item Somma zero: \textbf{teorema minimax}, $\max\min = \min\max$; strategie ottime e
+        valore si calcolano con un programma lineare (attenzione a lasciare libera la
+        variabile del valore).
+  \item \textbf{Lab}: verifica di best response ed equilibri, minimax con \texttt{linprog},
+        equilibri $2\times2$; label propagation come dinamica di best response in un gioco
+        potenziale (4 comunità ritrovate in 19 grafi su 20).
+\end{itemize}
+\textbf{Prossima lezione}: esistenza dell'equilibrio di Nash, complessità del calcolo degli
+equilibri, equilibri correlati e apprendimento nei giochi.
+\end{riepilogo}
