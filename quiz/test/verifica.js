@@ -97,6 +97,15 @@ atteso("core gelato (200,200,600) no", !M.nelCore(gelato, { A: 200, B: 200, C: 6
 atteso("core vuoto 7,6,5,8", !M.coreNonVuoto3({ A: 0, B: 0, C: 0, AB: 7, AC: 6, BC: 5, ABC: 8 }));
 atteso("superadditivo gelato", M.superadditivo3(gelato).ok);
 atteso("DP 1050", M.strutturaOttima3({ A: 0, B: 300, C: 0, AB: 750, AC: 750, BC: 400, ABC: 1000 }).best.w === 1050);
+atteso("aeroporto (8,11,13,18) → (2,3,4,9)", JSON.stringify(M.aeroportoShapley([8, 11, 13, 18])) === "[2,3,4,9]");
+const isgLez = [[1, 3, 6], [1, 2, 4], [2, 3, 3], [3, 4, 4], [2, 4, 3], [4, 5, 4]];
+atteso("ISG v(1,2,3,4) = 20, v(1,2,4) = 7", M.isgValore(isgLez, [1, 2, 3, 4]) === 20 && M.isgValore(isgLez, [1, 2, 4]) === 7);
+atteso("ISG φ = (5, 5, 6.5, 5.5, 2)", [1, 2, 3, 4, 5].map((i) => M.isgShapley(isgLez, i)).join() === "5,5,6.5,5.5,2");
+const mcLez = [{ pos: [1, 2], neg: [], x: 5 }, { pos: [2], neg: [], x: 2 }, { pos: [3], neg: [], x: 4 }, { pos: [2], neg: [3], x: -2 }];
+atteso("MC-Net v: {2} = 0, {1,2} = 5, {2,3} = 6, N = 11",
+  M.mcnetValore(mcLez, [2]) === 0 && M.mcnetValore(mcLez, [1, 2]) === 5 && M.mcnetValore(mcLez, [2, 3]) === 6 && M.mcnetValore(mcLez, [1, 2, 3]) === 11);
+atteso("MC-Net φ = (2.5, 3.5, 5)", [1, 2, 3].map((i) => M.mcnetShapley(mcLez, i)).join() === "2.5,3.5,5");
+atteso("MC-Net {a∧b}→5, {b}→2", M.mcnetShapley([{ pos: ["a", "b"], neg: [], x: 5 }, { pos: ["b"], neg: [], x: 2 }], "b") === 4.5);
 atteso("rimpianto attraversamento → Stop", M.rimpianti([[-10, 5], [0, -1]]).scelta === 1);
 atteso("semaforo è CE", M.vincoliCE([[-10, 5], [0, -1]], [[-10, 0], [5, -1]], [[0, 0.5], [0.5, 0]]).every((v) => v.valore >= 0));
 atteso("leggiNumero", vicino(Q.leggiNumero("2/3"), 2 / 3) && Q.leggiNumero("0,25") === 0.25 && Q.leggiNumero("−1,5") === -1.5 && isNaN(Q.leggiNumero("abc")));

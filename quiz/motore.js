@@ -288,6 +288,41 @@
     return coppie <= 2 * v.ABC + 1e-9 && Math.max(v.AB, v.AC, v.BC) <= v.ABC + 1e-9;
   };
 
+  // Gioco dell'aeroporto: costi in ordine crescente, quote cumulative (Littlechild-Owen).
+  M.aeroportoShapley = function (c) {
+    const n = c.length, phi = [];
+    let acc = 0, prima = 0;
+    c.forEach((cj, j) => {
+      acc += (cj - prima) / (n - j);
+      phi.push(acc);
+      prima = cj;
+    });
+    return phi;
+  };
+
+  // ISG: archi [i, j, w] (i === j per un cappio); coalizione = array di nodi.
+  M.isgValore = (archi, C) => archi.reduce((s, [i, j, w]) => s + (C.includes(i) && C.includes(j) ? w : 0), 0);
+  M.isgShapley = (archi, i) =>
+    archi.reduce((s, [a, b, w]) => s + (a === i && b === i ? w : a === i || b === i ? w / 2 : 0), 0);
+
+  // MC-Net: regole { pos: [...], neg: [...], x }.
+  M.mcnetValore = (regole, S) =>
+    regole.reduce((s, r) => s + (r.pos.every((g) => S.includes(g)) && !r.neg.some((g) => S.includes(g)) ? r.x : 0), 0);
+  const fatt = (k) => (k <= 1 ? 1 : k * fatt(k - 1));
+  M.mcnetQuote = function (r) {
+    const p = r.pos.length, n = r.neg.length;
+    return {
+      pos: p ? (fatt(p - 1) * fatt(n)) / fatt(p + n) * r.x : 0,
+      neg: n ? (fatt(p) * fatt(n - 1)) / fatt(p + n) * -r.x : 0,
+    };
+  };
+  M.mcnetShapley = function (regole, i) {
+    return regole.reduce((s, r) => {
+      const q = M.mcnetQuote(r);
+      return s + (r.pos.includes(i) ? q.pos : 0) + (r.neg.includes(i) ? q.neg : 0);
+    }, 0);
+  };
+
   const QUIZ = {
     lezioni, aggiungi, rng, fmt, fmtBreve, decimale, frazione, leggiNumero, numeroGiusto,
     T: { bimatrice, tabella, vettore }, M, hash,

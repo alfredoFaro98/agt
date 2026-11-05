@@ -39,7 +39,7 @@
   \vspace{1.5cm}
   {\large Documento di lavoro: requisiti, metodo, idee, decisioni\par}
   \vfill
-  {\small\color{grigio} Aggiornato fino alla Lezione 5 \quad·\quad Ultima compilazione: \today\par}
+  {\small\color{grigio} Aggiornato fino alla Lezione 6 \quad·\quad Ultima compilazione: \today\par}
 \end{titlepage}
 \hypersetup{pageanchor=true}
 
@@ -56,6 +56,9 @@ L'esame consiste in un \kw{progetto} in cui si deve \kw{formalizzare} e \kw{impl
 la soluzione di un problema usando gli strumenti dell'Algorithmic Game Theory.
 \end{definizione}
 
+Il progetto è \kw{individuale} (indicazione del docente, novembre 2026). Il materiale del corso
+non indica quale problema affrontare: la slide parla genericamente di ``un problema''.
+
 Due verbi, due metà del lavoro:
 \begin{itemize}
   \item \kw{formalizzare}: trasformare un problema a parole in un modello preciso
@@ -64,7 +67,7 @@ Due verbi, due metà del lavoro:
 \end{itemize}
 
 \begin{attenzione}[cosa non sappiamo ancora]
-Formato della consegna, lavoro singolo o di gruppo, chi sceglie il problema, scadenze e
+Formato della consegna, chi sceglie il problema, scadenze e
 criteri di valutazione non sono ancora stati comunicati. Le domande da fare al docente sono
 raccolte nel Capitolo~\ref{cap:domande}. Finché non ci sono risposte, tutto ciò che segue è
 una \emph{proposta} di metodo, non un requisito.
@@ -333,6 +336,68 @@ nucleolo.
   \item \kw{Rischio}: medio. Aiuta avere già il codice esatto per avere un riferimento.
 \end{itemize}
 
+\section{Giochi coalizionali: aspetti computazionali (Lezione 6)}
+
+Strumenti disponibili: gioco dell'aeroporto (Shapley in $O(n)$), giochi su sottografo
+indotto, MC-Nets (anche con letterali negativi), approssimazione Monte Carlo del valore di
+Shapley. Codice scritto e verificato contro la formula esatta nel laboratorio 6.
+
+\begin{osservazione}[le idee 9--11 diventano più solide]
+La lezione toglie il limite principale delle idee 9 e 10: con Monte Carlo il valore di
+Shapley si stima per qualunque gioco con decine o centinaia di giocatori, e gli errori
+misurati nel laboratorio (circa 3\% con $m = 10\,000$ e 20 giocatori) danno già un'idea di
+quanti campioni servono. Per l'idea 10 (SHAP) è esattamente il metodo usato nella pratica.
+\end{osservazione}
+
+\subsection*{Idea 12: ripartire il costo di un'infrastruttura condivisa \hfill\sbloccata{6}}
+\begin{itemize}
+  \item \kw{Modello}: utenti con esigenze annidate che condividono una struttura (spazio in
+        cloud con quote diverse, banda, una condotta d'acqua, livelli di abbonamento a un
+        software). Il caso base è il gioco dell'aeroporto; le estensioni rompono la sua
+        formula chiusa: più utenti per livello, costi non lineari, una rete ad albero
+        invece di una sola pista (ogni utente usa un percorso dalla radice).
+  \item \kw{Perché è interessante}: è un problema reale di ripartizione equa con una
+        soluzione esatta nota per il caso base, che fa da verifica. Nelle estensioni la
+        formula non vale più e servono Monte Carlo o una MC-Net con regole disgiuntive.
+  \item \kw{Esperimenti}: Shapley contro ripartizione proporzionale all'uso e contro parti
+        uguali; verifica che la ripartizione stia nel core (nessun gruppo pagherebbe meno
+        da solo); nucleolo per confronto; tempi e precisione al crescere degli utenti.
+  \item \kw{Rischio}: basso. Il codice del lab copre il caso base; il notebook cita due
+        paper sulle estensioni (Vázquez-Brage et al.\ 1997, Hou et al.\ 2018).
+\end{itemize}
+
+\subsection*{Idea 13: stimare Shapley in fretta: confronto fra campionatori \hfill\sbloccata{6}}
+\begin{itemize}
+  \item \kw{Modello}: nessun problema reale; si confrontano metodi di stima del valore di
+        Shapley (Monte Carlo semplice, \en{antithetic sampling}, campionamento
+        stratificato per posizione) su giochi di cui si conosce il valore esatto
+        (aeroporto, ISG, MC-Nets).
+  \item \kw{Perché è interessante}: la lezione cita le tecniche di riduzione della varianza
+        senza mostrarle (riferimento: Mitchell et al., 2022). Il lab ha mostrato che
+        l'errore relativo pesa sui giocatori con quota piccola, un punto da cui partire.
+  \item \kw{Esperimenti}: errore contro numero di campioni e contro tempo, per giocatore e
+        in media; quando conviene ciascun metodo.
+  \item \kw{Rischio}: basso, ma è molto ``sperimentale'' (come l'idea 8): da chiarire se è
+        nello spirito di ``formalizzare un problema''. Meglio come componente dell'idea 10
+        o 12.
+\end{itemize}
+
+\subsection*{Idea 14: centralità di una rete come valore di Shapley \hfill\sbloccata{6}}
+\begin{itemize}
+  \item \kw{Modello}: i nodi di una rete (sociale, di trasporto, di comunicazione) sono
+        giocatori; il valore di un gruppo è quanto ``copre'' la rete (per esempio quanti
+        nodi sono raggiunti dal gruppo o dai suoi vicini). Il valore di Shapley diventa una
+        misura di importanza che tiene conto delle sovrapposizioni fra nodi.
+  \item \kw{Perché è interessante}: in un ISG Shapley è solo metà del grado pesato (più il
+        cappio), cioè niente di nuovo. Funzioni di copertura come quella sopra non sono ISG, e lì il
+        valore di Shapley dà classifiche diverse dalle centralità classiche. Si collega
+        all'idea 7 (comunità come gioco potenziale).
+  \item \kw{Esperimenti}: Shapley (con Monte Carlo) contro grado, betweenness e PageRank su
+        reti reali di \texttt{networkx}; uso della classifica per scegliere chi vaccinare o
+        dove mettere sensori, misurando la copertura ottenuta.
+  \item \kw{Rischio}: medio. Va scelta con cura una funzione di valore sensata.
+\end{itemize}
+
 \section{Argomenti ancora da affrontare}
 
 \begin{center}
@@ -341,8 +406,6 @@ nucleolo.
 \toprule
 \textbf{Argomento} & \textbf{Anticipazioni (possibili spunti)} \\
 \midrule
-Giochi coalizionali (seconda parte) & il notebook del lab 5 annuncia rappresentazioni compatte
- e approssimazioni; potere di voto, centralità nelle reti \\
 Scelta sociale computazionale  & regole di voto, paradosso di Condorcet; \en{ensemble} di modelli \\
 Matching markets               & matching stabile; studenti--alloggi, donatori di rene, lavoratori--compiti \\
 Mechanism design               & aste, incentivi a dire il vero \\
@@ -358,9 +421,12 @@ Fair division                  & divisione equa di risorse \\
 Da chiarire il prima possibile, perché cambiano il modo di lavorare.
 
 \begin{enumerate}
-  \item Il progetto è \kw{individuale} o \kw{di gruppo}? \hfill\aperta
+  \item Il progetto è \kw{individuale} o \kw{di gruppo}? \hfill\risolta\\
+        \emph{Individuale.}
   \item Il \kw{problema} lo sceglie lo studente o viene assegnato? Serve un'approvazione
-        preventiva della proposta? \hfill\aperta
+        preventiva della proposta? \hfill\aperta\\
+        \emph{Nelle slide e nei lab non c'è un problema assegnato né un elenco di temi:
+        sembra libero, ma va confermato.}
   \item Cosa si \kw{consegna}: codice, relazione scritta, presentazione? Ci sono limiti di
         lunghezza? \hfill\aperta
   \item C'è un \kw{linguaggio} richiesto (Python, come nei lab)? \hfill\aperta
@@ -396,8 +462,10 @@ Gennaio    & rifinitura e preparazione della discussione, fino all'appello \\
 
 \section{Strumenti di studio in programma}
 
-\subsection*{Generatore di quiz per lezione \hfill\stato{arancio}{DA FARE}}
+\subsection*{Generatore di quiz per lezione \hfill\stato{verde}{FATTO}}
 
+Pronto dal 2 novembre in \texttt{quiz/} (doppio clic su \texttt{Avvia quiz.bat}); si
+aggiunge una banca di domande a ogni lezione nuova. Il progetto iniziale era questo.
 Un applicativo snello per esercitarsi su ogni lezione. Non fa parte del progetto d'esame:
 serve a preparare la parte di teoria e a verificare di aver capito i laboratori.
 
@@ -442,6 +510,12 @@ serve a preparare la parte di teoria e a verificare di aver capito i laboratori.
 02/11/2026 & Deciso di concentrare la preparazione dell'esame nelle vacanze di Natale. Prima
              di allora: domande al docente e tema scelto, per arrivare a Natale pronti a
              implementare. \\
+05/11/2026 & Il progetto è individuale. Ricontrollato tutto il materiale delle lezioni
+             1--5: nessun problema assegnato né elenco di temi. \\
+05/11/2026 & Aggiunta la Lezione 6 (aspetti computazionali dei giochi coalizionali:
+             aeroporto, ISG, MC-Nets, Monte Carlo) con il laboratorio 6 risolto e
+             verificato; tre nuove idee (12--14). Neanche la lezione 6 parla del
+             progetto. Nessun tema scelto. \\
 \bottomrule
 \end{tabularx}
 \end{center}

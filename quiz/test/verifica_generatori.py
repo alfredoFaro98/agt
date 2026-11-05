@@ -307,6 +307,71 @@ def g5_core_vuoto(d, ok):
     return ok == vuoto
 
 
+# ---------------------------------------------------------------- lezione 6
+# Ogni gioco compatto viene espanso nella funzione caratteristica completa e il valore di
+# Shapley si ricalcola sulle permutazioni, in frazioni esatte: niente formule dedicate.
+def shapley_generale(giocatori, v):
+    phi = {g: Fraction(0) for g in giocatori}
+    perms = list(itertools.permutations(giocatori))
+    for o in perms:
+        prima = frozenset()
+        for g in o:
+            phi[g] += Fraction(v(prima | {g})) - Fraction(v(prima))
+            prima = prima | {g}
+    return {g: phi[g] / len(perms) for g in giocatori}
+
+
+def g6_aeroporto(d, ok):
+    c, k = d["c"], d["k"]
+    gioc = list(range(len(c)))
+    phi = shapley_generale(gioc, lambda S: max((c[i] for i in S), default=0))
+    return vicino(ok, float(phi[k - 1]))
+
+
+def isg_v(archi, S):
+    return sum(w for i, j, w in archi if i in S and j in S)
+
+
+def g6_isg_valore(d, ok):
+    return ok == isg_v(d["archi"], set(d["C"]))
+
+
+def g6_isg_shapley(d, ok):
+    archi = d["archi"]
+    phi = shapley_generale([1, 2, 3, 4, 5], lambda S: isg_v(archi, S))
+    return vicino(ok, float(phi[d["i"]]))
+
+
+def mc_v(regole, S):
+    return sum(r["x"] for r in regole if set(r["pos"]) <= S and not (set(r["neg"]) & S))
+
+
+def g6_mcnet_valore(d, ok):
+    return vicino(ok, mc_v(d["regole"], set(d["S"])))
+
+
+def g6_mcnet_shapley(d, ok):
+    regole = d["regole"]
+    phi = shapley_generale([1, 2, 3], lambda S: mc_v(regole, S))
+    return vicino(ok, float(phi[d["i"]]))
+
+
+def g6_montecarlo_stima(d, ok):
+    c, g = d["c"], d["g"]
+    v = lambda S: max((c[i] for i in S), default=0)
+    tot = Fraction(0)
+    for p in d["perm"]:
+        prima = frozenset(p[:p.index(g)])
+        tot += v(prima | {g}) - v(prima)
+    return vicino(ok, float(tot / len(d["perm"])))
+
+
+def g6_montecarlo_campioni(d, ok):
+    # errore ∝ 1/sqrt(m): errore/k  ⇔  m·k²
+    m, k = d["m"], d["k"]
+    return ok == m * k * k and vicino(1 / math.sqrt(ok), 1 / (k * math.sqrt(m)))
+
+
 CONTROLLI = {
     "G1-minimax": g1_minimax, "G1-alphabeta": g1_alphabeta, "G1-mossa": g1_mossa,
     "G2-valore-atteso": g2_valore_atteso, "G2-composta": g2_composta, "G2-equivalente-certo": g2_equivalente_certo,
@@ -319,6 +384,9 @@ CONTROLLI = {
     "G4-regret-matching": g4_regret,
     "G5-shapley": g5_shapley, "G5-core": g5_core, "G5-eccesso": g5_eccesso, "G5-superadditivo": g5_superadditivo,
     "G5-struttura": g5_struttura, "G5-core-vuoto": g5_core_vuoto,
+    "G6-aeroporto": g6_aeroporto, "G6-isg-valore": g6_isg_valore, "G6-isg-shapley": g6_isg_shapley,
+    "G6-mcnet-valore": g6_mcnet_valore, "G6-mcnet-shapley": g6_mcnet_shapley,
+    "G6-montecarlo-stima": g6_montecarlo_stima, "G6-montecarlo-campioni": g6_montecarlo_campioni,
 }
 
 errori = 0

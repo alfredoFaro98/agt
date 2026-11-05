@@ -1,0 +1,816 @@
+% =====================================================================
+%  Lezione 6 — Giochi coalizionali: aspetti computazionali
+%  Materiale: Lesson_6_Coalitional_Game_Theory_II.pdf,
+%             Lab06-Coalitional_Game_Theory_Computational_Issues.pdf,
+%             CoalitionalGamesComputationalIssues_Blank.ipynb
+% =====================================================================
+\chapter[Giochi coalizionali: aspetti computazionali]{Giochi coalizionali:\\aspetti computazionali}
+
+\parteteoria
+
+La lezione 5 si chiudeva con un problema: la funzione caratteristica ha $2^n$ valori e il
+valore di Shapley li usa tutti. Questa lezione mostra tre modi per scalare a molti giocatori.
+Il percorso:
+\begin{enumerate}[label=\arabic*.]
+  \item il problema computazionale;
+  \item una classe speciale di giochi: il \kw{gioco dell'aeroporto};
+  \item i \kw{giochi su sottografo indotto} (ISG);
+  \item una rappresentazione compatta universale: le \kw{MC-Nets};
+  \item l'\kw{approssimazione Monte Carlo} del valore di Shapley.
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\section{Il problema computazionale}
+
+Un gioco coalizionale è rappresentato da una funzione caratteristica $v: 2^N \to \R$, che ha
+un valore per ogni sottoinsieme di giocatori: la sua dimensione è \kw{esponenziale} nel
+numero di giocatori. Già con tre giocatori (il gioco del gelato della lezione 5) servono
+otto numeri:
+\[
+\begin{gathered}
+  v(\emptyset) = v(\{A\}) = v(\{B\}) = v(\{C\}) = 0,\\
+  v(\{A,B\}) = v(\{A,C\}) = 750,\quad v(\{B,C\}) = 0,\quad v(\{A,B,C\}) = 1000.
+\end{gathered}
+\]
+Di conseguenza anche i concetti di soluzione richiedono un numero esponenziale di calcoli.
+La formula di Shapley somma su tutte le permutazioni:
+\[
+  \phi(i, v) = \frac{1}{|N|!} \sum_{\pi \in \Pi_N}
+     \Bigl( v\bigl(B(\pi, i) \cup \{i\}\bigr) - v\bigl(B(\pi, i)\bigr) \Bigr).
+\]
+La versione sui sottoinsiemi scende a $2^{n-1}$ termini per giocatore, ma resta esponenziale.
+
+\paragraph{Tre strade.}
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Strada} & \textbf{Che cosa si ottiene} \\
+\midrule
+Classi speciali di giochi & formule chiuse per il valore di Shapley, calcolabili in tempo
+  polinomiale (gioco dell'aeroporto) \\
+Rappresentazione compatta & funzione caratteristica in spazio polinomiale e valore di
+  Shapley in tempo polinomiale (ISG, MC-Nets) \\
+Approssimazione Monte Carlo & tempo polinomiale per \emph{qualunque} gioco, con garanzie
+  sull'errore \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------------------
+\section{Il gioco dell'aeroporto}
+\label{sec:aeroporto}
+
+Ci sono $n$ compagnie aeree. Ognuna ha bisogno di una pista di una certa lunghezza per i
+propri aerei. Una pista può essere condivisa, quindi conviene costruirne \emph{una sola},
+abbastanza lunga per tutti, e dividerne il costo. Come lo si divide in modo equo?
+
+\paragraph{Intuizione.}
+La compagnia $A$ ha bisogno di 10~km, $B$ di 15~km, $C$ di 18~km. Si costruisce una pista
+di 18~km, ma i suoi tratti servono a gruppi diversi:
+\begin{center}
+\begin{tikzpicture}[x=0.55cm, y=0.6cm, font=\small]
+  \foreach \nome/\km/\y in {A/10/2, B/15/1, C/18/0}{
+    \node[anchor=east] at (-0.3,\y) {\nome};
+    \draw[-latex, blu, thick] (0,\y) -- (\km,\y) node[right, black] {\km~km};
+  }
+  \foreach \x in {10,15,18} \draw[dashed, grigio] (\x,-0.6) -- (\x,2.5);
+  \node at (5,-1.2)    {$A,B,C$};
+  \node at (12.5,-1.2) {$B,C$};
+  \node at (16.5,-1.2) {$C$};
+  \node at (5,-2.1)    {costo(10 km)$/3$};
+  \node at (12.5,-2.1) {costo(5 km)$/2$};
+  \node at (16.5,-2.1) {costo(3 km)};
+\end{tikzpicture}
+\end{center}
+I primi 10~km servono a tutti e tre, quindi il loro costo si divide per 3. I 5~km
+successivi servono solo a $B$ e $C$, che se li dividono in due. Gli ultimi 3~km servono
+solo a $C$, che li paga da solo.
+
+\begin{definizione}[Gioco dell'aeroporto]
+I giocatori $N = \{1, \dots, n\}$ hanno costi ordinati $c_1 < c_2 < \dots < c_n$, dove
+$c_i$ è il costo della pista che serve al giocatore $i$. La funzione caratteristica è
+\[
+  v(S) = \max_{i \in S} c_i \qquad \forall S \subseteq N:
+\]
+una coalizione paga la pista del suo membro più esigente. È un gioco di \kw{costo}: $v(S)$
+è una spesa da ripartire, non un guadagno.
+\end{definizione}
+
+\begin{teorema}[Littlechild e Owen, 1973]
+Il valore di Shapley del gioco dell'aeroporto è
+\[
+  \phi_i = \sum_{j=1}^{i} \frac{c_j - c_{j-1}}{n - j + 1}
+  \qquad \forall i \in N, \qquad c_0 = 0.
+\]
+\end{teorema}
+
+\paragraph{Lettura della formula.}
+Il tratto di pista tra $c_{j-1}$ e $c_j$ costa $c_j - c_{j-1}$ e serve ai giocatori
+$j, j+1, \dots, n$, che sono $n - j + 1$: se lo dividono in parti uguali. Il giocatore $i$
+paga la sua quota di ogni tratto fino al proprio, cioè per $j = 1, \dots, i$.
+
+\paragraph{Dimostrazione.}
+Si definisce $P_j = \{j, \dots, n\}$, l'insieme dei giocatori che hanno bisogno del tratto
+$j$, e per ogni $j$ il gioco
+\[
+  v_j(S) = \begin{cases}
+    0 & \text{se } S \cap P_j = \emptyset,\\
+    c_j - c_{j-1} & \text{se } S \cap P_j \ne \emptyset.
+  \end{cases}
+\]
+Una coalizione $S$ con membro più esigente $k$ interseca esattamente $P_1, \dots, P_k$,
+quindi $\sum_j v_j(S) = \sum_{j=1}^{k} (c_j - c_{j-1}) = c_k = v(S)$: il gioco
+dell'aeroporto è la somma dei giochi $v_j$. In $v_j$ i giocatori fuori da $P_j$ sono
+\kw{nulli} (non cambiano mai il valore), quelli dentro $P_j$ sono \kw{simmetrici}; per
+efficienza si dividono in parti uguali $c_j - c_{j-1}$:
+\[
+  \phi_i(v_j) = \begin{cases}
+    \dfrac{c_j - c_{j-1}}{n - j + 1} & \text{se } i \in P_j \ (\text{cioè } j \le i),\\[2mm]
+    0 & \text{altrimenti.}
+  \end{cases}
+\]
+Per \kw{additività}, $\phi_i(v) = \sum_j \phi_i(v_j) = \sum_{j=1}^{i}
+\frac{c_j - c_{j-1}}{n-j+1}$. \hfill$\square$
+
+\begin{osservazione}[gli assiomi come strumento di calcolo]
+La dimostrazione non tocca mai le $n!$ permutazioni: scompone il gioco in pezzi semplici e
+usa i quattro assiomi della lezione 5 (nullo, simmetria, efficienza, additività). È lo
+stesso trucco che rende veloci ISG e MC-Nets: \emph{additività} vuol dire che basta
+calcolare Shapley su ogni pezzo e sommare.
+\end{osservazione}
+
+\begin{esempio}[quattro compagnie, costi $(8, 11, 13, 18)$]
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccccc}
+\toprule
+ & Tratto 1 & Tratto 2 & Tratto 3 & Tratto 4 & \textbf{Shapley} \\
+\midrule
+Costo marginale & 8 & 3 & 2 & 5 & \\
+\midrule
+Quota di P1 & 2 &   &   &   & \textbf{2} \\
+Quota di P2 & 2 & 1 &   &   & \textbf{3} \\
+Quota di P3 & 2 & 1 & 1 &   & \textbf{4} \\
+Quota di P4 & 2 & 1 & 1 & 5 & \textbf{9} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Il primo tratto ($8$) si divide fra quattro, il secondo ($11 - 8 = 3$) fra tre, il terzo
+($13 - 11 = 2$) fra due, l'ultimo ($18 - 13 = 5$) lo paga solo P4. Totale
+$2 + 3 + 4 + 9 = 18 = v(N)$.
+\end{esempio}
+
+\paragraph{Complessità.}
+La formula come scritta richiede $O(n^2)$ operazioni (una somma di $i$ termini per ogni
+giocatore). Ma ogni riga della tabella è la riga precedente più un termine: con una somma
+cumulativa si scende a $O(n)$, più $O(n \log n)$ se i costi vanno ordinati. Contro
+$O(n \cdot 2^n)$ della formula generale.
+
+\paragraph{Applicazioni.}
+Car sharing e ride sharing, capacità di banda in una rete, una condotta d'acqua o un
+oleodotto, spazio di archiviazione in cloud con utenti che chiedono quote diverse, livelli
+di abbonamento a un software.
+
+\begin{osservazione}[ricetta per riconoscere un gioco dell'aeroporto]
+Servono quattro ingredienti:
+\begin{itemize}
+  \item una sola struttura o risorsa \kw{condivisa};
+  \item una struttura \kw{annidata}: chi chiede di più ha bisogno anche di tutto ciò che
+        serve a chi chiede di meno;
+  \item il costo \kw{cresce} con la richiesta;
+  \item l'obiettivo è dividere i costi in modo \kw{equo}.
+\end{itemize}
+\end{osservazione}
+
+\begin{extra}[il valore di Shapley dell'aeroporto è nel core]
+Nel gioco dell'aeroporto una coalizione $S$ con membro più esigente $k$ paga, con Shapley,
+$\sum_{i \in S} \phi_i \le$ la somma delle quote di tutti i giocatori fino a $k$, cioè al
+più $c_k = v(S)$. Nessun gruppo pagherebbe meno costruendo la pista da solo: la ripartizione
+è anche \emph{stabile}. In un gioco di costo la condizione del core ha il verso opposto
+rispetto alla lezione 5: $\sum_{i\in S} x_i \le v(S)$. Il gioco è infatti \emph{concavo}
+(per i costi), e per questi giochi Shapley sta sempre nel core.
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Giochi su sottografo indotto}
+\label{sec:isg}
+
+\begin{definizione}[Induced subgraph game, ISG]
+I giocatori sono i nodi di un grafo pesato. Un arco $\{i,j\}$ con peso $w_{ij}$ rappresenta
+il valore della coppia; un cappio con peso $w_{ii}$ il valore del giocatore da solo. Il
+valore di una coalizione è la somma dei pesi degli archi che hanno \emph{entrambi} gli
+estremi nella coalizione, cioè il peso del sottografo indotto da $C$:
+\[
+  v(C) = \sum_{\{i,j\} \subseteq C} w_{ij}.
+\]
+\end{definizione}
+
+\begin{teorema}[Shapley negli ISG]
+\[
+  \phi_i = w_{ii} + \frac12 \sum_{j \in \Gamma(i)} w_{ij},
+\]
+dove $\Gamma(i)$ è l'insieme dei vicini di $i$.
+\end{teorema}
+
+\paragraph{Perché.}
+Di nuovo additività: ogni arco $\{i,j\}$ è un gioco a sé, in cui una coalizione vale
+$w_{ij}$ se contiene sia $i$ sia $j$, altrimenti 0. Lì $i$ e $j$ sono simmetrici e tutti
+gli altri sono nulli, quindi si dividono $w_{ij}$ a metà. Il cappio è un gioco in cui conta
+solo $i$, che si prende tutto $w_{ii}$.
+
+\begin{esempio}[ISG con cinque giocatori]
+\par\smallskip\noindent
+\begin{minipage}{0.4\linewidth}
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm,
+    nodo/.style={circle, draw=blu, fill=blu!15, thick, minimum size=6mm, inner sep=0pt},
+    font=\small]
+  \node[nodo] (1) at (0,2) {1};
+  \node[nodo] (3) at (1.6,1.9) {3};
+  \node[nodo] (2) at (0.5,0.8) {2};
+  \node[nodo] (4) at (2.2,0.8) {4};
+  \node[nodo] (5) at (2.6,-0.5) {5};
+  \draw (1) -- node[above]{6} (3);
+  \draw (1) -- node[left]{4} (2);
+  \draw (2) -- node[above left, pos=0.4]{3} (3);
+  \draw (3) -- node[right]{4} (4);
+  \draw (2) -- node[below]{3} (4);
+  \draw (4) -- node[right]{4} (5);
+\end{tikzpicture}
+\end{minipage}%
+\begin{minipage}{0.6\linewidth}
+Valori di alcune coalizioni:
+\[
+\begin{aligned}
+  v(\{1,2,4\}) &= 4 + 3 = 7,\\
+  v(\{1,2,5\}) &= 4,\\
+  v(\{1,2,3,4\}) &= 4 + 6 + 3 + 4 + 3 = 20.
+\end{aligned}
+\]
+Valori di Shapley (nessun cappio):
+\[
+\begin{aligned}
+  \phi_1 &= \tfrac12(6 + 4) = 5, &
+  \phi_2 &= \tfrac12(4 + 3 + 3) = 5,\\
+  \phi_3 &= \tfrac12(6 + 3 + 4) = 6{,}5, &
+  \phi_4 &= \tfrac12(4 + 3 + 4) = 5{,}5,\\
+  \phi_5 &= \tfrac12 \cdot 4 = 2.
+\end{aligned}
+\]
+\end{minipage}
+\par\smallskip
+Controllo di efficienza: $5 + 5 + 6{,}5 + 5{,}5 + 2 = 24$, la somma di tutti i pesi.
+\end{esempio}
+
+\paragraph{Applicazioni.}
+Gli ISG modellano reti sociali e relazioni fra giocatori: pesi \kw{positivi} per le
+sinergie, pesi \kw{negativi} per i conflitti. Sono anche un modello naturale per la
+formazione di coalizioni, che si possono cercare con tecniche di clustering di grafi
+(modularità, partizionamento spettrale con il vettore di Fiedler, conduttanza, Infomap,
+Walktrap, modelli a blocchi stocastici).
+
+\begin{attenzione}[gli ISG non rappresentano tutti i giochi]
+Il valore di una coalizione è determinato dalle sole coppie: non c'è modo di esprimere un
+effetto che compare solo quando ci sono \emph{tre} giocatori insieme. Esempio dal notebook:
+il gioco dell'aeroporto con costi $(5, 7, 10)$. Singoli e coppie fissano i pesi
+($w_{AA} = 5$, $w_{BB} = 7$, $w_{CC} = 10$, $w_{AB} = -5$, $w_{AC} = -5$, $w_{BC} = -7$),
+ma allora l'ISG darebbe $v(\{A,B,C\}) = 5$, mentre il valore vero è $10$.
+\end{attenzione}
+
+% ---------------------------------------------------------------------
+\section{Rappresentazioni compatte}
+
+Una rappresentazione compatta riduce la memoria occupata dalla funzione caratteristica,
+di solito usando una struttura di rete. Il prezzo:
+\begin{itemize}
+  \item il valore di una coalizione non si legge più in $O(1)$ da una tabella, ma si
+        \emph{calcola} in tempo polinomiale (sommando pesi);
+  \item in cambio, sfruttando l'additività del valore di Shapley, anche Shapley si calcola
+        in tempo polinomiale.
+\end{itemize}
+Gli ISG sono già una rappresentazione compatta: $n$ nodi e al più $n(n+1)/2$ archi (cappi
+compresi) invece di $2^n$ valori. Le MC-Nets la generalizzano fino a rappresentare
+qualunque gioco.
+
+\subsection{Marginal Contribution Nets}
+
+\begin{definizione}[MC-Net]
+Una MC-Net rappresenta la funzione caratteristica come un insieme di \kw{regole}
+\[
+  \text{pattern} \longrightarrow \text{valore},
+\]
+dove il pattern è una formula booleana sui giocatori e il valore è il \kw{contributo
+marginale} del pattern. Nella forma base il pattern è una congiunzione
+$\{a \land b \land \dots \land c\}$, e la regola \kw{si applica} a $S$ se $S$ contiene
+tutti i giocatori del pattern. Il valore di una coalizione è la somma dei valori delle
+regole che si applicano:
+\[
+  v(S) = \sum_{\varphi \to x \,:\, \varphi \subseteq S} x.
+\]
+\end{definizione}
+
+Se i valori possono essere sia positivi sia negativi, già le congiunzioni bastano a
+rappresentare \emph{qualunque} gioco.
+
+\begin{esempio}[due regole]
+\[
+  \{a \land b\} \to 5, \qquad \{b\} \to 2.
+\]
+\begin{itemize}
+  \item $v(\{a\}) = 0$: nessuna regola si applica ($\{a\}$ non contiene $b$);
+  \item $v(\{b\}) = 2$: si applica solo la seconda;
+  \item $v(\{a, b\}) = 5 + 2 = 7$: si applicano entrambe.
+\end{itemize}
+\end{esempio}
+
+\paragraph{ISG come MC-Net.}
+Ogni arco $\{i,j\}$ di peso $w$ diventa la regola $\{i \land j\} \to w$ e ogni cappio
+diventa $\{i\} \to w_{ii}$. Il grafo dell'esempio precedente diventa
+\[
+  \{1 \land 3\} \to 6,\quad \{1 \land 2\} \to 4,\quad \{2 \land 3\} \to 3,\quad
+  \{2 \land 4\} \to 3,\quad \{3 \land 4\} \to 4,\quad \{4 \land 5\} \to 4.
+\]
+Una MC-Net è in sostanza un \kw{ipergrafo}: ogni regola è un iperarco che collega tutti i
+giocatori del pattern, pesato con il suo valore.
+
+\begin{attenzione}[errore nella slide ``Induced subgraph games as MC-Nets'']
+La slide scrive $\{4 \land 5\} \to 5$, ma nel grafo l'arco $\{4,5\}$ pesa $4$. Con la regola
+della slide verrebbero $\phi_4 = 6$, $\phi_5 = 2{,}5$ e $v(N) = 25$, invece di $5{,}5$, $2$ e
+$24$ (verificato al calcolatore).
+\end{attenzione}
+
+\begin{teorema}[Shapley nelle MC-Nets con congiunzioni]
+\[
+  \phi_i = \sum_{\varphi \to x \,:\, i \in \varphi} \frac{x}{|\varphi|}.
+\]
+\end{teorema}
+Ogni regola è un gioco a sé in cui i giocatori del pattern sono simmetrici e gli altri
+nulli: il valore $x$ si divide in parti uguali fra i $|\varphi|$ giocatori del pattern. Poi
+additività. Nell'esempio a due regole:
+\[
+  \phi_a = \frac52 = 2{,}5, \qquad \phi_b = \frac52 + \frac21 = 4{,}5,
+\]
+e $2{,}5 + 4{,}5 = 7 = v(\{a,b\})$.
+
+\begin{extra}[i valori delle regole sono i dividendi di Harsanyi]
+Per un gioco qualsiasi i valori delle regole con congiunzioni si ricavano con
+l'inclusione-esclusione (trasformata di Möbius):
+\[
+  d(S) = \sum_{T \subseteq S} (-1)^{|S| - |T|}\, v(T),
+\]
+e la MC-Net $\{S \to d(S)\}$ rappresenta esattamente $v$. È per questo che le congiunzioni
+con valori di segno qualunque sono complete. La formula di Shapley qui sopra dice allora che
+ogni giocatore riceve una quota uguale di ogni dividendo delle coalizioni a cui appartiene.
+
+Ma ``completa'' non vuol dire ``compatta''. Per il gioco dell'aeroporto il calcolo dà
+$d(S) = (-1)^{|S|+1} \min_{i\in S} c_i$, mai zero: servono tutte le $2^n - 1$ regole
+(verificato fino a $n = 10$: 1023 regole). Con costi $(5,7,10)$ si ottiene proprio la MC-Net
+del notebook, con valori $5, 7, 10, -5, -5, -7, +5$.
+\end{extra}
+
+\subsection{MC-Nets con formule generali}
+
+Le regole possono contenere formule logiche arbitrarie, con letterali \kw{positivi} e
+\kw{negativi}. Una regola $\varphi \to x$ si applica a $S$ se $S$ \kw{soddisfa}
+$\varphi$, scritto $S \models \varphi$: assegnando ``vero'' ai giocatori in $S$ e ``falso''
+a tutti gli altri, la formula risulta vera. Il valore di una coalizione è
+\[
+  v(S) = \sum_{\varphi \to x \,:\, S \models \varphi} x.
+\]
+
+\needspace{14\baselineskip}
+\begin{esempio}[MC-Net con un letterale negativo]
+\par\smallskip\noindent
+\begin{minipage}[t]{0.4\linewidth}
+\vspace{0pt}
+\[
+\begin{aligned}
+  x_1 \land x_2 &\to 5\\
+  x_2 &\to 2\\
+  x_3 &\to 4\\
+  x_2 \land \lnot x_3 &\to -2
+\end{aligned}
+\]
+\end{minipage}%
+\begin{minipage}[t]{0.6\linewidth}
+\vspace{0pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lll}
+\toprule
+$S$ & regole applicate & $v(S)$ \\
+\midrule
+$\{x_1\}$ & nessuna & $0$ \\
+$\{x_2\}$ & 2 e 4 & $2 - 2 = 0$ \\
+$\{x_3\}$ & 3 & $4$ \\
+$\{x_1,x_2\}$ & 1, 2, 4 & $5 + 2 - 2 = 5$ \\
+$\{x_1,x_3\}$ & 3 & $4$ \\
+$\{x_2,x_3\}$ & 2, 3 & $2 + 4 = 6$ \\
+$\{x_1,x_2,x_3\}$ & 1, 2, 3 & $5 + 2 + 4 = 11$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\par\smallskip
+La regola 4 si applica solo quando c'è $x_2$ \emph{e manca} $x_3$.
+\end{esempio}
+
+\begin{teorema}[Shapley nelle MC-Nets generali]
+Per una regola $\varphi \to x$ con $p$ letterali positivi e $n$ letterali negativi, ogni
+giocatore $i$ che compare in forma positiva e ogni giocatore $j$ che compare in forma
+negativa ricevono
+\[
+  \phi_i = \frac{(p-1)!\,n!}{(p+n)!}\,x = \frac{x}{p\binom{p+n}{n}}, \qquad
+  \phi_j = \frac{p!\,(n-1)!}{(p+n)!}\,(-x) = -\frac{x}{n\binom{p+n}{p}}.
+\]
+Gli altri giocatori sono nulli per quella regola. Per additività il valore di Shapley è la
+somma su tutte le regole.
+\end{teorema}
+
+\paragraph{Da dove vengono i coefficienti.}
+Si guardano solo i $p + n$ giocatori della regola, perché gli altri non contano. Un
+giocatore positivo $i$ ``accende'' la regola se arriva \emph{dopo} tutti gli altri positivi
+e \emph{prima} di tutti i negativi; la frazione di ordini in cui succede è
+$\frac{(p-1)!\,n!}{(p+n)!}$. Un negativo $j$ ``spegne'' la regola (contributo $-x$) se
+arriva dopo tutti i positivi e prima degli altri negativi: frazione
+$\frac{p!\,(n-1)!}{(p+n)!}$. Senza negativi ($n = 0$) si ritrova $x/p$.
+
+\begin{esempio}[Shapley nella MC-Net con letterale negativo]
+\[
+\begin{aligned}
+  \phi_{x_1} &= \tfrac{1!\,0!}{2!}\cdot 5 = 2{,}5
+    &&\text{(solo regola 1)}\\
+  \phi_{x_2} &= \tfrac{1!\,0!}{2!}\cdot 5 + 2 + \tfrac{1!\,0!}{2!}\cdot(-2)
+    = 2{,}5 + 2 - 1 = 3{,}5 &&\text{(regole 1, 2, 4)}\\
+  \phi_{x_3} &= 4 + \tfrac{1!\,0!}{2!}\cdot\bigl(-(-2)\bigr) = 4 + 1 = 5
+    &&\text{(regola 3; negativo nella 4)}
+\end{aligned}
+\]
+Somma $2{,}5 + 3{,}5 + 5 = 11 = v(N)$. Il calcolo esponenziale sulla funzione
+caratteristica della tabella dà gli stessi valori.
+\end{esempio}
+
+\begin{extra}[l'aeroporto con $n$ regole]
+Con le formule generali il gioco dell'aeroporto torna compatto. La dimostrazione del
+teorema di Littlechild e Owen è già una MC-Net: per ogni tratto $j$ la regola
+\[
+  (x_j \lor x_{j+1} \lor \dots \lor x_n) \to c_j - c_{j-1}
+\]
+(``almeno uno di quelli che hanno bisogno del tratto $j$''). Sono $n$ regole invece di
+$2^n - 1$; verificato al calcolatore che riproducono $v$. La scelta del linguaggio delle
+formule decide quanto è compatta la rappresentazione.
+\end{extra}
+
+\paragraph{Riassunto MC-Nets.}
+Rappresentazione compatta e \kw{universale}; il valore di una coalizione si calcola in modo
+efficiente; il valore di Shapley si calcola in tempo \kw{lineare} nella dimensione
+dell'insieme delle regole.
+
+% ---------------------------------------------------------------------
+\section{Approssimazione Monte Carlo del valore di Shapley}
+
+\paragraph{L'idea Monte Carlo.}
+Se si vuole conoscere una probabilità $P(x)$ ma la si sa solo campionare, la si approssima
+con le frequenze: si genera un campione $D$ di dimensione $M$ da $P(X)$ e si stima
+\[
+  P_D(X = x) = \frac{M_{X=x}}{M},
+\]
+dove $M_{X=x}$ è il numero di volte in cui è uscito $x$.
+
+\paragraph{Applicata a Shapley.}
+Il valore di Shapley è una \emph{media} del contributo marginale su tutte le $n!$
+permutazioni, cioè il valore atteso del contributo marginale di $i$ quando la permutazione
+è scelta uniformemente a caso. Invece di sommare su tutte, se ne campionano $m$:
+\[
+  \tilde\phi(i, v) = \frac1m \sum_{\pi \in \mathcal{P}}
+     \Bigl( v\bigl(B(\pi, i) \cup \{i\}\bigr) - v\bigl(B(\pi, i)\bigr) \Bigr),
+\]
+dove $\mathcal{P} \subset \Pi_N$ è un insieme di $m$ permutazioni estratte a caso.
+
+\begin{lstlisting}[style=pseudo]
+# Input: v funzione caratteristica; m numero di campioni
+def MC_Shapley(v, m):
+    $\tilde\phi_i$ = 0 for each i in N
+    for k = 1 ... m:
+        $\pi_k$ = random permutation of N
+        for i = 1 ... n:
+            sv = v(B($\pi_k$, i) $\cup$ {i}) - v(B($\pi_k$, i))
+            $\tilde\phi_i$ += sv
+    for i = 1 ... n:
+        $\tilde\phi_i$ = $\tilde\phi_i$ / m
+    return $\tilde\phi_1$, ..., $\tilde\phi_n$
+\end{lstlisting}
+
+\begin{attenzione}[indice nello pseudocodice delle slide]
+Nell'ultimo ciclo le slide scrivono ``\textbf{for} $k = 1 \dots n$'' ma poi dividono
+$\tilde\phi_i$: l'indice giusto è $i$, come sopra.
+\end{attenzione}
+
+\paragraph{Proprietà.}
+\begin{itemize}
+  \item \kw{Calcolo efficiente}: $m$ permutazioni, $n$ valutazioni di $v$ ciascuna; se $v$
+        si calcola in tempo polinomiale, tutto è polinomiale.
+  \item L'\kw{errore} diminuisce come $1/\sqrt{m}$: per dimezzarlo servono quattro volte
+        tanti campioni.
+  \item Molto efficace in pratica; si applica a \emph{qualunque} gioco e a qualunque
+        rappresentazione.
+  \item Esistono tecniche di campionamento che riducono la varianza più in fretta:
+        \en{antithetic sampling}, estensione multilineare, metodi kernel (riferimento:
+        Mitchell et al., 2022, \emph{Sampling Permutations for Shapley Value Estimation},
+        JMLR).
+\end{itemize}
+
+\begin{extra}[perché $1/\sqrt{m}$, e una garanzia esplicita]
+Ogni permutazione dà un contributo marginale $X_k$ indipendente, con media esatta $\phi_i$:
+la stima è \emph{non distorta}. La sua varianza è $\sigma_i^2/m$, quindi l'errore tipico
+(deviazione standard) è $\sigma_i/\sqrt{m}$. Se i contributi marginali stanno in un
+intervallo di ampiezza $r$, la disuguaglianza di Hoeffding dà
+\[
+  P\bigl(|\tilde\phi_i - \phi_i| \ge \varepsilon\bigr) \le 2\exp\!\left(-\frac{2m\varepsilon^2}{r^2}\right),
+\]
+cioè con $m \ge \frac{r^2}{2\varepsilon^2}\ln\frac{2}{\delta}$ campioni l'errore è sotto
+$\varepsilon$ con probabilità almeno $1 - \delta$. È la ``garanzia sulla soluzione''
+promessa all'inizio della lezione; le slide dicono invece che non c'è modo di fissare $m$
+esattamente e che in pratica $m \in [1000, 10000]$ funziona bene.
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Riepilogo delle tecniche}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.9cm} X X@{}}
+\toprule
+\textbf{Tecnica} & \textbf{Pro} & \textbf{Contro} \\
+\midrule
+Classi speciali (aeroporto) & rappresentazione compatta; Shapley veloce &
+  espressività limitata \\
+Monte Carlo & Shapley veloce; proprietà di convergenza; si applica a qualunque gioco e
+  rappresentazione & non esatto; non c'è un modo esatto di scegliere $m$ (in pratica
+  $1000$--$10000$) \\
+ISG & rappresenta molti giochi; Shapley veloce; poca memoria &
+  non completo: non rappresenta qualunque gioco \\
+MC-Nets & completo; Shapley veloce; di solito poca memoria &
+  memoria $O(2^n)$ nel caso peggiore; sposta il lavoro sul calcolo dei contributi
+  marginali, che vanno precalcolati \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\partelab{Aeroporto, Monte Carlo, ISG e MC-Nets}
+% =====================================================================
+\fonte{CoalitionalGamesComputationalIssues\_Blank.ipynb, Lab06-Coalitional\_Game\_Theory\_Computational\_Issues.pdf}
+
+\textbf{Obiettivo}: implementare le tre strade della teoria e verificare ogni volta che il
+risultato coincide con la formula esponenziale della lezione 5. Il notebook è vuoto (non
+ci sono output attesi): tutte le soluzioni qui sotto sono state scritte ed eseguite, e i
+numeri riportati sono misurati. Le slide del lab sono un sottoinsieme di quelle della
+lezione.
+
+Il notebook riparte dal codice della lezione 5, con una differenza: ora \texttt{powerset}
+aggiunge anche \texttt{frozenset()} con valore 0, quindi la formula di Shapley può leggere
+\texttt{v[C - \{i\}]} senza \texttt{KeyError} (il problema segnalato nella lezione 5).
+
+\subsection{Il gioco dell'aeroporto}
+
+Il notebook racconta l'origine del problema (Littlechild e Owen, 1973) con un costo di
+€1000 al km e piste da 8, 11, 13, 18~km. La funzione caratteristica è già fornita:
+\begin{lstlisting}
+def airport_game_characteristic_function(cost_list):
+    player_list = [str(i) for i in range(len(cost_list))]
+    return {subset: (max([cost_list[int(i)] for i in subset])
+                     if subset != frozenset() else 0)
+            for subset in powerset(player_list)}
+\end{lstlisting}
+Da scrivere: Shapley con la formula dedicata. La versione lineare accumula la quota del
+tratto corrente:
+\begin{lstlisting}
+def airport_game_shapley_value(cost_list):
+    c = sorted(cost_list)
+    n = len(c)
+    phi, acc, prev = [], 0.0, 0
+    for j, cj in enumerate(c):          # restano n - j giocatori
+        acc += (cj - prev) / (n - j)
+        phi.append(acc)
+        prev = cj
+    return phi
+\end{lstlisting}
+Sui costi $(8000, 11000, 13000, 18000)$ restituisce $(2000, 3000, 4000, 9000)$, identico
+alla formula esponenziale \texttt{shapley(v)}.
+
+\begin{attenzione}[un ``/2'' di troppo nel notebook]
+Nel calcolo passo per passo il notebook scrive per il giocatore 4
+``(€18000 $-$ €13000)$/2$ = €5000''. L'ultimo tratto lo paga solo lui: si divide per 1, e
+infatti il risultato €5000 è giusto.
+\end{attenzione}
+
+\paragraph{Formula dedicata contro formula generale.}
+Giochi casuali con costi distinti fra 1 e 99:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{rrrrr}
+\toprule
+$n$ & Coalizioni & Costruire $v$ & Shapley generale & Shapley aeroporto \\
+\midrule
+12 & 4\,096      & 0,01 s & 0,03 s  & 10 µs \\
+16 & 65\,536     & 0,16 s & 0,79 s  & 19 µs \\
+20 & 1\,048\,576 & 3,7 s  & 19,3 s  & 16 µs \\
+\bottomrule
+\end{tabular}
+\end{center}
+I valori coincidono sempre. Con $n = 20$ il vettore dei costi occupa 216 byte, il
+dizionario 42~MB secondo \texttt{sys.getsizeof}.
+
+\begin{attenzione}[\texttt{sys.getsizeof} misura solo il contenitore]
+\texttt{getsizeof} non conta gli oggetti contenuti: per il dizionario misura la tabella hash
+ma non il milione di \texttt{frozenset} che fanno da chiavi, quindi la memoria vera è molto
+più grande di 42~MB. Lo stesso vale più avanti per il grafo: \texttt{getsizeof(G)}
+restituisce 48 byte qualunque sia il grafo. Il confronto del notebook va preso come
+indicativo.
+\end{attenzione}
+
+\subsection{Approssimazione Monte Carlo}
+
+Prima versione, ingenua: si parte dalla funzione caratteristica completa.
+\begin{lstlisting}
+def permutation_sampling(player_list, m):
+    return [random.sample(player_list, len(player_list)) for _ in range(m)]
+
+def predecessors(player, player_list, permutation):
+    return frozenset(permutation[:permutation.index(player)])
+
+def shapley_montecarlo(v, m):
+    players = list(max(v))
+    phi = {p: 0.0 for p in players}
+    for perm in permutation_sampling(players, m):
+        for p in players:
+            B = predecessors(p, players, perm)
+            phi[p] += v[B | {p}] - v[B]
+    return {p: phi[p] / m for p in players}
+\end{lstlisting}
+Sull'aeroporto con 20 giocatori e $m = 1000$ impiega 0,09~s (contro 19~s dell'esatto), con
+un errore medio percentuale (MAPE) del 9{,}3\%.
+
+\begin{attenzione}[il test del notebook ordina le stime]
+La cella di test confronta le stime \emph{ordinate per valore} con i valori esatti. Funziona
+solo perché nell'aeroporto, con costi distinti, $\phi_i$ cresce con $i$; ma ordinando si
+riassegnano le stime ai giocatori sbagliati quando due sono vicine, e l'errore risulta
+\emph{più basso} del vero: sullo stesso campione 6{,}8\% ordinando, 9{,}3\% confrontando
+giocatore per giocatore. Il confronto corretto è per nome del giocatore.
+\end{attenzione}
+
+\paragraph{Versione migliore.}
+Il notebook chiede di non passare la funzione caratteristica completa ($2^n$ valori: già
+costruirla costa più che calcolare Shapley esatto con la formula dedicata). Nell'aeroporto i
+contributi marginali di una permutazione si calcolano in un'unica passata: chi entra paga
+la differenza fra il proprio costo e il massimo raggiunto finora.
+\begin{lstlisting}
+def airport_mc_fast(cost_list, m):
+    n = len(cost_list)
+    phi = [0.0] * n
+    idx = list(range(n))
+    for _ in range(m):
+        random.shuffle(idx)
+        cur = 0                          # pista costruita finora
+        for i in idx:
+            if cost_list[i] > cur:
+                phi[i] += cost_list[i] - cur
+                cur = cost_list[i]
+    return [x / m for x in phi]
+\end{lstlisting}
+Costo $O(m \cdot n)$, senza mai costruire $v$.
+
+\paragraph{Esperimento facoltativo: errore contro $m$.}
+MAPE medio su 20 ripetizioni, costi distinti fra 1 e 999:
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{rrrrr}
+\toprule
+$m$ & MAPE ($n=20$) & MAPE$\cdot\sqrt{m}$ & MAPE ($n=100$) & Tempo ($n=100$) \\
+\midrule
+10     & 91{,}1\% & 2{,}88 & 152{,}9\% & 0,3 ms \\
+100    & 27{,}0\% & 2{,}70 & 58{,}9\%  & 2,8 ms \\
+1\,000  & 8{,}0\%  & 2{,}52 & 19{,}1\%  & 33 ms \\
+10\,000 & 2{,}8\%  & 2{,}84 & 6{,}2\%   & 323 ms \\
+\bottomrule
+\end{tabular}
+\end{center}
+La pendenza in scala log-log è $-0{,}505$ per $n = 20$ e $-0{,}467$ per $n = 100$:
+l'errore scende come $1/\sqrt{m}$, come dice la teoria (MAPE$\cdot\sqrt{m}$ resta
+circa costante). Il grafico della slide ``Error reduces as sample increases'' mostra la
+stessa retta.
+
+\begin{osservazione}[l'errore relativo pesa sui giocatori piccoli]
+Con $n = 20$ e $m = 1000$ il giocatore con la pista più corta ha un errore relativo del 24\%,
+quello con la pista più lunga dell'1{,}1\%. Il giocatore più piccolo paga poco (contribuisce
+solo quando arriva per primo, cioè in $1/n$ delle permutazioni), quindi il suo contributo è
+quasi sempre zero e raramente grande: varianza alta rispetto alla media. Per questo con
+$n = 100$ il MAPE è più alto a parità di $m$: ci sono più giocatori con quote piccole.
+\end{osservazione}
+
+\subsection{Giochi su sottografo indotto}
+
+Il notebook usa \texttt{networkx}: un grafo casuale di Erdős–Rényi con 10 nodi e 25 archi,
+più un cappio per nodo, con pesi interi casuali fra 1 e 100.
+\begin{lstlisting}
+def ISG_coalition_value(graph, coalition):
+    return graph.subgraph(coalition).size(weight='weight')
+
+def ISG_shapley_value(graph):
+    phi = {}
+    for i in graph.nodes():
+        w_ii = graph.edges[i, i]['weight'] if graph.has_edge(i, i) else 0
+        phi[i] = w_ii + 0.5 * sum(graph.edges[i, j]['weight']
+                                  for j in graph.neighbors(i) if j != i)
+    return phi
+\end{lstlisting}
+Il valore del sottografo indotto è già in \texttt{networkx}: \texttt{subgraph} tiene solo gli
+archi interni alla coalizione (cappi compresi) e \texttt{size(weight=...)} ne somma i pesi.
+Il confronto con la funzione caratteristica completa (1024 coalizioni) dà valori identici;
+la formula ISG impiega 25~µs, quella esponenziale 9~ms. Sull'esempio della teoria si
+ritrovano $v(\{1,2,4\}) = 7$, $v(\{1,2,3,4\}) = 20$ e $\phi = (5, 5, 6{,}5, 5{,}5, 2)$.
+
+\begin{attenzione}[con i cappi, \texttt{neighbors(i)} contiene $i$ stesso]
+In \texttt{networkx} un nodo con un cappio è vicino di se stesso. Scrivendo la formula
+alla lettera, $w_{ii} + \frac12\sum_{j \in \texttt{neighbors}(i)} w_{ij}$, il cappio viene
+contato una volta e mezza. Sul grafo del lab la somma dei valori ingenui è 1920,5 invece di
+$v(N) = 1633$: l'efficienza fallisce, e la cella di confronto del notebook non stampa il
+messaggio ``The Shapley values are the same!''.
+Serve il filtro \texttt{if j != i}.
+\end{attenzione}
+
+\begin{attenzione}[quanti archi può avere il grafo]
+Un commento del notebook dice che un grafo non orientato con $N$ nodi ha al più
+$N(N+1)/2$ archi senza cappi, e che con 10 nodi e i cappi si arriva a 65. I conti giusti
+sono $N(N-1)/2 = 45$ senza cappi e $N(N+1)/2 = 55$ con i cappi. Il conteggio successivo
+``35 archi'' (25 più 10 cappi) è invece corretto.
+\end{attenzione}
+
+\subsection{MC-Nets}
+
+Il notebook implementa le MC-Nets nella forma base: una lista di coppie (pattern, valore),
+con il pattern come insieme di giocatori in congiunzione. L'esempio è il gioco
+dell'aeroporto con costi $(5, 7, 10)$, che come ISG non si può rappresentare:
+\begin{lstlisting}
+MC_net = [({"A"}, 5), ({"B"}, 7), ({"C"}, 10),
+          ({"A", "B"}, -5), ({"A", "C"}, -5), ({"B", "C"}, -7),
+          ({"A", "B", "C"}, 5)]
+
+def MC_net_coalition_value(MC_net, coalition):
+    return sum(x for P, x in MC_net if set(coalition).issuperset(P))
+
+def MC_net_shapley_value(MC_net):
+    phi = {}
+    for P, x in MC_net:
+        for i in P:
+            phi[i] = phi.get(i, 0) + x / len(P)
+    return phi
+\end{lstlisting}
+Risultati: $v(\{A, C\}) = 5 + 10 - 5 = 10$; la funzione caratteristica ricostruita è
+quella dell'aeroporto ($v = 10$ per ogni coalizione che contiene $C$, $v(\{A,B\}) = 7$);
+il valore di Shapley è $(1{,}67;\ 2{,}67;\ 5{,}67)$ con tutti e tre i metodi (MC-Net,
+formula esponenziale, formula dell'aeroporto). L'esempio a due regole della teoria dà
+$\phi_a = 2{,}5$, $\phi_b = 4{,}5$.
+
+\begin{attenzione}[\texttt{max(MC\_net)} trova i giocatori solo per caso]
+\texttt{from\_MC\_net\_to\_CFG} ricava l'insieme dei giocatori con
+\texttt{max(MC\_net)[0]}. Le regole sono tuple (pattern, valore) e le tuple si confrontano
+sul primo elemento: per gli insiemi \texttt{>} vuol dire ``sovrainsieme proprio'', come per
+\texttt{max(v)} nella lezione 5. Funziona perché la MC-Net del notebook ha una regola con
+\emph{tutti} i giocatori. Senza quella regola si perdono giocatori senza alcun errore: con
+le regole $\{A,B\} \to 5$, $\{B\} \to 2$, $\{C\} \to 1$ il risultato è $\{A, B\}$ e $C$
+sparisce. Il modo robusto è l'unione dei pattern:
+\texttt{set().union(*(P for P, \_ in MC\_net))}.
+\end{attenzione}
+
+\paragraph{In più: MC-Nets con letterali negativi.}
+Una regola diventa una terna (positivi, negativi, valore), e si applica se
+\texttt{pos <= S and not (neg \& S)}. Con la formula di Shapley generale della teoria,
+sull'esempio $x_1 \land x_2 \to 5$, $x_2 \to 2$, $x_3 \to 4$, $x_2 \land \lnot x_3 \to -2$
+si ottiene $(2{,}5;\ 3{,}5;\ 5)$, identico al calcolo esponenziale sulla funzione
+caratteristica ricostruita, che coincide con la tabella delle slide.
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item La funzione caratteristica ha $2^n$ valori e Shapley li usa tutti: servono
+        scorciatoie.
+  \item \textbf{Aeroporto}: $v(S) = \max_{i\in S} c_i$. Shapley:
+        $\phi_i = \sum_{j \le i} \frac{c_j - c_{j-1}}{n-j+1}$, ogni tratto di pista diviso
+        fra chi lo usa. Si dimostra per additività; si calcola in $O(n)$.
+  \item \textbf{ISG}: $v(C)$ è la somma dei pesi degli archi interni a $C$;
+        $\phi_i = w_{ii} + \frac12 \sum_{j\in\Gamma(i)} w_{ij}$. Non completo (solo
+        interazioni a coppie).
+  \item \textbf{MC-Nets}: regole pattern $\to$ valore; $v(S)$ è la somma delle regole
+        soddisfatte. Con congiunzioni: $\phi_i = \sum x/|\varphi|$. Con letterali negativi:
+        $\frac{(p-1)!\,n!}{(p+n)!}x$ ai positivi, $\frac{p!\,(n-1)!}{(p+n)!}(-x)$ ai
+        negativi. Complete, ma $O(2^n)$ regole nel caso peggiore.
+  \item \textbf{Monte Carlo}: media dei contributi marginali su $m$ permutazioni casuali;
+        stima non distorta, errore $\propto 1/\sqrt{m}$; vale per qualunque gioco.
+  \item Il filo comune: \emph{additività} del valore di Shapley (scomporre il gioco in pezzi
+        semplici) oppure \emph{campionamento}.
+  \item \textbf{Lab}: aeroporto lineare contro esponenziale (16~µs contro 19~s con
+        $n=20$), Monte Carlo con pendenza misurata $-0{,}5$, ISG con \texttt{networkx},
+        MC-Nets; tutto verificato contro la formula esatta.
+\end{itemize}
+\end{riepilogo}

@@ -9,7 +9,7 @@ Tutti i PDF generati stanno in [`documentazione/pdf/`](documentazione/pdf/):
 - [`main.pdf`](documentazione/pdf/main.pdf): tutte le lezioni in un unico documento
 - [`project.pdf`](documentazione/pdf/project.pdf): documento di lavoro per il progetto d'esame (metodo, idee, domande aperte, decisioni)
 
-Per esercitarsi: **[`quiz/index.html`](quiz/)**, da aprire con un doppio clic nel browser (non serve installare nulla). Domande divise per lezione con spiegazione e rimando alla sezione degli appunti, più esercizi di calcolo con numeri sempre nuovi; le domande sbagliate si possono ripetere.
+Per esercitarsi: doppio clic su **`Avvia quiz.bat`** nella cartella principale, che apre [`quiz/index.html`](quiz/) nel browser predefinito (non serve installare nulla). Domande divise per lezione con spiegazione e rimando alla sezione degli appunti, più esercizi di calcolo con numeri sempre nuovi; le domande sbagliate si possono ripetere.
 
 | Lezione | Argomento | Laboratorio |
 |---|---|---|
@@ -18,6 +18,7 @@ Per esercitarsi: **[`quiz/index.html`](quiz/)**, da aprire con un doppio clic ne
 | 3 | Giochi non cooperativi (Nash, minimax) | Best response, minimax con PL, label propagation |
 | 4 | Esistenza e complessità degli equilibri, equilibri correlati, apprendimento | Equilibri correlati con PL, fictitious play, regret matching |
 | 5 | Giochi coalizionali (core, nucleolo, Shapley) | Core e valore di Shapley |
+| 6 | Giochi coalizionali: aspetti computazionali (aeroporto, ISG, MC-Nets, Monte Carlo) | Shapley esatto per classi speciali, rappresentazioni compatte e Monte Carlo |
 
 ## Struttura
 
@@ -49,6 +50,7 @@ labs/
   03-non-cooperativi/             notebook e slide del laboratorio 3
   04-learning-in-games/           notebook del laboratorio 4
   05-coalizionali/                notebook e slide del laboratorio 5
+  06-coalizionali-2/              notebook e slide del laboratorio 6
 ```
 
 Lezioni e laboratori usano la stessa convenzione per i nomi delle cartelle:
