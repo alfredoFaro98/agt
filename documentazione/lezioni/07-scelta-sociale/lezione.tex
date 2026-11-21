@@ -1,0 +1,203 @@
+% Lezione 7: slide e laboratorio Computational Social Choice
+\chapter[Scelta sociale computazionale]{Scelta sociale computazionale e sistemi di voto}
+\parteteoria
+La scelta sociale studia come trasformare le preferenze individuali in una decisione o in una graduatoria collettiva. La versione computazionale studia anche gli algoritmi necessari e la possibilità di manipolarli. Un \kw{profilo} raccoglie gli ordinamenti dei votanti; una regola può restituire un vincitore oppure un ordinamento sociale. Bisogna precisare come si risolvono i pareggi.
+
+\section{Proprietà e regole di voto}
+Una regola soddisfa il criterio di \kw{Pareto} se, quando tutti preferiscono $x$ a $y$, la graduatoria sociale mette $x$ sopra $y$. Un \kw{vincitore di Condorcet} batte ogni altra alternativa nei confronti diretti a maggioranza stretta. Il criterio di Condorcet chiede di eleggerlo \emph{quando esiste}. Una regola è \kw{strategyproof} se nessun elettore può ottenere un esito che preferisce dichiarando preferenze false, a parità dei voti degli altri.
+
+Con due candidati e un numero dispari di votanti, la maggioranza elegge il vincitore di Condorcet e votare sinceramente è una strategia dominante. Con più alternative le proprietà divergono:
+\begin{itemize}
+\item \textbf{Plurality}: si conta solo il primo posto; vince chi ne ha di più, anche senza maggioranza assoluta.
+\item \textbf{Borda}: con $m$ candidati ogni scheda assegna $m-1,m-2,\dots,0$ punti in ordine; si sommano i punti.
+\item \textbf{Copeland}: ogni vittoria in un confronto diretto vale 1 punto, ogni pareggio $1/2$; vince il punteggio maggiore.
+\item \textbf{Instant runoff} (IRV): si conta la prima scelta ancora in gara; se nessuno ha la maggioranza si elimina chi ha meno voti e si ripete. I pareggi di eliminazione richiedono una regola esplicita.
+\end{itemize}
+\begin{esempio}[undici votanti]
+Cinque votano $A\succ B\succ C$, quattro $C\succ B\succ A$, due $B\succ C\succ A$. Plurality elegge $A$ con 5 primi posti contro 4 e 2. Nei confronti diretti $B$ batte $A$ per 6 a 5 e $C$ per 7 a 4: è il vincitore di Condorcet. Borda assegna $(10,13,10)$ ad $(A,B,C)$ e quindi elegge $B$. IRV elimina $B$ e trasferisce i suoi due voti a $C$, che vince 6 a 5. L'approvazione richiede dati ulteriori: un ordinamento da solo non indica quali candidati siano approvati.
+\end{esempio}
+\begin{attenzione}[ciclo di Condorcet]
+Con tre voti $A\succ B\succ C$, $B\succ C\succ A$, $C\succ A\succ B$, le maggioranze danno $A\succ B$, $B\succ C$ e $C\succ A$, ciascuna per 2 a 1. Nessun vincitore di Condorcet esiste. Questo non impedisce a una regola di soddisfare il criterio di Condorcet: essa deve eleggerlo solo nei profili in cui esiste. La formulazione più forte presente nelle slide va letta con questa distinzione.
+\end{attenzione}
+Plurality può incentivare il voto strategico: se i primi posti sono $A:4$, $B:3$, $C:3$, un elettore con preferenza sincera $C\succ B\succ A$ può votare $B$, che passa a 4 e può vincere secondo la regola di spareggio; con $A:4$, $B:3$, $C:2$ lo stesso spostamento dà un pareggio 4--4. L'esito dipende dallo spareggio. IRV può violare la \kw{monotonicità}: promuovere il vincitore su alcune schede può cambiare l'ordine delle eliminazioni e farlo perdere.
+
+\section{Teorema della giuria di Condorcet}
+Supponiamo due alternative, una oggettivamente corretta, e $n$ giudici indipendenti con probabilità comune $p>1/2$ di scegliere correttamente. Per $n$ dispari la probabilità che la maggioranza sia corretta è
+\[ P_n=\sum_{k=(n+1)/2}^{n}\binom nk p^k(1-p)^{n-k}. \]
+Aggiungendo due giudici, $P_n$ cresce strettamente per $1/2<p<1$ e tende a 1. Per tre giudici e $p=0{,}6$, $P_3=0{,}6^3+3(0{,}6)^2(0{,}4)=0{,}648$. Se $n=2m+1$ e $X\sim\mathrm{Bin}(n,p)$, il miglioramento è $P(X=m)p(2p-1)>0$: cambiano l'esito solo i casi di maggioranza originaria per un voto. L'indipendenza è essenziale: errori correlati possono impedire il vantaggio della giuria. Il teorema riguarda una risposta corretta comune, non semplicemente gusti personali.
+
+\section{Arrow e l'aggregazione delle preferenze}
+Una funzione di benessere sociale associa a ogni profilo di ordinamenti stretti una graduatoria sociale completa e transitiva. L'\kw{indipendenza dalle alternative irrilevanti} (IIA) richiede che il confronto sociale tra $x$ e $y$ dipenda soltanto dai confronti individuali tra $x$ e $y$. La non dittatura esclude che un singolo elettore imponga sempre il proprio ordinamento.
+\begin{teorema}[Arrow]
+Con almeno tre alternative, dominio di tutti gli ordinamenti stretti, Pareto e IIA, ogni funzione di benessere sociale con risultato un ordinamento completo e transitivo è dittatoriale.
+\end{teorema}
+\paragraph{Idea della dimostrazione.} Pareto rende decisiva la coalizione di tutti i votanti. Una coalizione debolmente decisiva per una coppia può, usando Pareto, IIA e transitività, essere mostrata decisiva per ogni coppia. Se una coalizione decisiva contiene almeno due persone, un opportuno profilo su tre alternative permette di dividerla in due e mostrare che una delle due parti è decisiva. Ripetendo si arriva a una persona sola: il dittatore. Il risultato riguarda graduatorie sociali sull'intero dominio; non dice che nessuna regola pratica sia utilizzabile. Restringere il dominio, ad esempio a preferenze a un solo picco, cambia le ipotesi.
+
+
+\section{Leggere e confrontare i profili delle slide}
+Una colonna con un numero sopra rappresenta un gruppo di elettori con lo stesso ordinamento. Il numero è la molteplicità della scheda: per un confronto tra due candidati occorre sommare le molteplicità delle colonne che preferiscono il primo al secondo, anche se nessuno dei due è in cima. Le posizioni indicano solo un ordine, non quanto forte sia la preferenza.
+
+\subsection{Plurality, confronti diretti e voto strategico}
+Nell'esempio delle slide abbiamo un elettore $A\succ B\succ C$, tre $A\succ C\succ B$, tre $B\succ C\succ A$ e tre $C\succ A\succ B$. I primi posti sono $A:4$, $B:3$, $C:3$: plurality elegge $A$. Ma $C$ batte $A$ per 6 a 4: i tre elettori del gruppo $B$ e i tre del gruppo $C$ preferiscono $C$. In effetti $C$ batte anche $B$ per 6 a 4, mentre $A$ batte $B$ per 7 a 3. $C$ è dunque il vincitore di Condorcet, ma plurality lo ignora.
+
+\paragraph{Manipolazione delle slide.} Ci sono $k$ voti $A\succ B\succ C$, $k$ voti $B\succ A\succ C$ e un voto $C\succ B\succ A$, con $k>1$. Sinceramente $A$ e $B$ hanno $k$ primi posti e $C$ uno. Se lo spareggio elegge $A$, l'ultimo elettore può dichiarare $B\succ C\succ A$: i primi posti diventano $B:k+1$, $A:k$, $C:0$, quindi vince $B$, che quell'elettore preferisce ad $A$. Se invece lo spareggio iniziale elegge già $B$, questa particolare deviazione non migliora l'esito: la politica dei pareggi fa parte della definizione della regola. Basta un profilo con miglioramento per mostrare che una regola non è strategyproof.
+
+\subsection{IRV: un conteggio completo}
+Le slide usano 20 elettori, divisi nei gruppi seguenti:
+\begin{center}
+\begin{tabular}{rrrrrr}
+\toprule
+3 & 4 & 4 & 6 & 2 & 1 \\
+\midrule
+$B$ & $C$ & $B$ & $D$ & $B$ & $E$ \\
+$C$ & $A$ & $D$ & $C$ & $E$ & $A$ \\
+$A$ & $D$ & $C$ & $A$ & $A$ & $D$ \\
+$D$ & $B$ & $A$ & $E$ & $C$ & $B$ \\
+$E$ & $E$ & $E$ & $B$ & $D$ & $C$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+La maggioranza assoluta è 11. All'inizio i primi posti sono $A:0$, $B:9$, $C:4$, $D:6$, $E:1$: si elimina $A$, senza trasferimenti. Si elimina poi $E$: il suo unico voto passa a $D$, perché $A$ è già fuori. Restano $B:9$, $C:4$, $D:7$. Eliminando $C$, i suoi quattro voti passano a $D$ dopo aver saltato $A$: risultato $D:11$, $B:9$. Vince $D$. Si trasferisce sempre la scheda alla prima alternativa \emph{ancora presente}, non necessariamente alla seconda originale.
+
+\paragraph{La non monotonicità, con i numeri delle slide.} All'inizio ci sono 37 voti $A\succ B\succ C$, 22 $B\succ C\succ A$, 12 $B\succ A\succ C$ e 29 $C\succ A\succ B$. I primi posti sono $37,34,29$: si elimina $C$ e i suoi 29 voti vanno ad $A$, che vince 66 a 34. Ora dieci dei dodici votanti $B\succ A\succ C$ promuovono $A$ in testa. I primi posti diventano $A:47$, $B:24$, $C:29$; si elimina $B$. Dei suoi voti, 22 vanno a $C$ e due ad $A$: $C$ vince 51 a 49. Promuovere $A$ ha cambiato chi viene eliminato e ha fatto perdere $A$.
+
+\subsection{Confronti a coppie e punteggi}
+Per $m$ candidati servono $m(m-1)/2$ confronti non ordinati. Se le preferenze sono complete e strette, $d(x,y)+d(y,x)=n$. La matrice conta le preferenze individuali; la regola che la usa va specificata separatamente. Nelle slide compaiono sia Copeland, che assegna un punto per ogni vittoria e mezzo per il pareggio, sia un conteggio che somma i \emph{voti} ottenuti nei confronti. Sono metodi diversi: ad esempio 12 voti complessivi negli scontri non sono 12 punti Copeland. Entrambi eleggono un vincitore di Condorcet stretta quando esiste, ma possono produrre classifiche diverse in generale.
+
+\paragraph{Eliminare un'alternativa può cambiare il risultato.} Nel profilo delle slide, gruppi di 5, 5, 6 e 4 persone votano rispettivamente $D\succ A\succ C\succ B$, $A\succ C\succ B\succ D$, $C\succ B\succ D\succ A$, $B\succ D\succ A\succ C$. La matrice dei voti diretti è
+\[ d=\begin{pmatrix}0&10&14&5\\10&0&4&15\\6&16&0&11\\15&5&9&0\end{pmatrix}. \]
+Sommando le righe, i punteggi sono $A:29$, $B:29$, $C:33$, $D:29$: vince $C$. Togliendo $D$ e conservando gli ordini relativi, diventano $A:24$, $B:14$, $C:22$: vince $A$. I confronti tra $A$ e $C$ non sono cambiati, ma è cambiata la loro posizione relativa secondo il punteggio totale. Questo esempio riguarda la somma dei voti nelle righe; non bisogna attribuirne automaticamente i valori a Copeland.
+
+\section{Il teorema della giuria: perché funziona}
+Per $n=2m+1$, la maggioranza sbaglia con esattamente $m$ giudici corretti oppure ha ragione con esattamente $m+1$. Passando a $n+2$, l'esito cambia solo in questi casi di margine minimo e solo se i due nuovi giudici concordano. Se $X\sim\mathrm{Bin}(2m+1,p)$, la probabilità di correggere una decisione sbagliata è $P(X=m)p^2$; quella di rovinarne una corretta è $P(X=m+1)(1-p)^2$. Poiché
+\[\frac{P(X=m+1)}{P(X=m)}=\frac{p}{1-p},\]
+la differenza è $P(X=m)p(2p-1)$. È positiva per $1/2<p<1$, zero per $p=1/2$, negativa per $0<p<1/2$. Per il limite verso uno si usa la concentrazione della proporzione di risposte corrette attorno a $p$: se $p>1/2$, la probabilità che tale proporzione superi metà tende a uno. Il confronto stretto riguarda la successione di giurie dispari; con giurie pari occorre definire il trattamento del pareggio.
+
+\section{Arrow: la struttura della dimostrazione}
+Una coalizione $K$ è decisiva per $(x,y)$ se ogni volta che tutti i suoi membri preferiscono $x$ a $y$, la società preferisce $x$ a $y$, comunque votino gli altri. È debolmente decisiva per la coppia se ciò vale nel caso in cui tutti gli esterni preferiscono $y$ a $x$. L'IIA permette di trasferire la conclusione tra profili in cui ogni persona mantiene lo stesso confronto $x$ contro $y$, anche se cambia il resto dell'ordine.
+
+\paragraph{Propagazione della decisività.} L'argomento delle slide mostra, per quattro alternative distinte $x,y,x',y'$, il caso seguente: i membri di $K$ ordinano $x'\succ x\succ y\succ y'$; gli altri preferiscono $y$ a $x$, ma tutti mettono $x'$ sopra $x$ e $y$ sopra $y'$. La debole decisività dà $x\succ y$ socialmente; Pareto dà $x'\succ x$ e $y\succ y'$. Per transitività $x'\succ y'$. IIA estende il risultato agli altri profili con gli stessi confronti rilevanti. La dimostrazione generale tratta anche coppie che condividono alternative, usando una terza alternativa; il singolo schema a quattro nomi non basta da solo per tutti i casi.
+
+\paragraph{Riduzione della coalizione.} Sia $K=K_1\cup K_2$ decisiva, con due parti non vuote. Su tre alternative costruiamo preferenze $K_1:x\succ y\succ z$, $K_2:z\succ x\succ y$, e per gli esterni $y\succ z\succ x$. La decisività di $K$ impone $x\succ y$ socialmente. Per completezza e transitività deve valere $x\succ z$ oppure $z\succ y$. Nel primo caso, grazie a IIA, $K_1$ è debolmente decisiva per $(x,z)$; nel secondo lo è $K_2$ per $(z,y)$. La propagazione rende decisiva una parte propria di $K$. Ripetendo, si arriva a un singolo elettore decisivo per tutte le coppie. Pareto avvia il ragionamento perché l'intero elettorato è decisivo.
+
+\partelab{Sistemi di voto e PageRank}
+\section{Implementare i sistemi di voto}
+Il notebook \texttt{Lesson7-VotingSystems\_Blank\_2.ipynb} lascia da completare plurality, Borda, IRV, matrice dei confronti, Schulze e PageRank. Ogni scheda è una lista ordinata di candidati. Le funzioni dovrebbero validare che tutte le liste contengano gli stessi candidati una sola volta e dichiarare la politica dei pareggi. Per plurality si contano gli elementi in posizione 0; per Borda si somma $m-1-j$ al candidato in posizione $j$. In IRV si ricalcola il primo candidato ancora attivo a ogni turno e si elimina il meno votato.
+
+\subsection{Matrice dei confronti e metodo Schulze}
+Sia $d(x,y)$ il numero di schede che mettono $x$ sopra $y$. Per l'esempio di undici votanti, con righe e colonne $A,B,C$:
+\[ d=\begin{pmatrix}0&5&5\\6&0&7\\6&4&0\end{pmatrix}. \]
+Le slide del laboratorio riportano $d(B,C)=6$, ma sono 7: i cinque votanti $A\succ B\succ C$ e i due $B\succ C\succ A$. Il vincitore resta $B$.
+
+Il metodo Schulze standard parte dagli archi vincenti: $p(x,y)=d(x,y)$ se $d(x,y)>d(y,x)$, altrimenti zero. La forza di un cammino è il minimo dei pesi dei suoi archi; $p(x,y)$ diventa il massimo delle forze dei cammini da $x$ a $y$. Si aggiorna con Floyd--Warshall nella variante max--min:
+\[ p(j,k)\leftarrow\max\{p(j,k),\min(p(j,i),p(i,k))\}. \]
+Un vincitore Schulze $x$ soddisfa $p(x,y)\ge p(y,x)$ per ogni $y$; possono esserci più vincitori. Per l'esempio la matrice iniziale contiene $B\to A=6$, $B\to C=7$, $C\to A=6$; nessun cammino parte da $A$, quindi $B$ vince. Le slide mostrano anche un esempio che applica i cammini a \emph{tutti} i valori di $d$, mentre lo pseudocodice azzera gli archi non vincenti: sono due inizializzazioni diverse e non vanno mescolate. La chiusura costa $O(m^3)$ dopo la costruzione dei confronti.
+
+\subsection{PageRank: le squadre come pagine}
+Il laboratorio costruisce un grafo diretto degli incontri a eliminazione dei Mondiali 2022: un arco va dalla squadra sconfitta alla vincitrice. Il punteggio di una squadra dipende anche dall'importanza di chi la indica, non solo dal numero di archi entranti. Con $M$ nodi, $0<\alpha<1$ e $D$ insieme dei nodi senza archi uscenti, l'iterazione uniforme è
+\[ r_v^{(t+1)}=\frac{1-\alpha}{M}+\alpha\left(\sum_{u\to v}\frac{r_u^{(t)}}{\deg^+(u)}+\frac{\sum_{u\in D}r_u^{(t)}}{M}\right). \]
+Si parte da $r_v=1/M$ e si itera fino a una tolleranza. La massa dei nodi senza uscite viene ridistribuita uniformemente: nel grafo del notebook l'Argentina è un nodo di questo tipo. Omettere questo termine fa perdere massa e non coincide con il PageRank standard. Il teletrasporto evita inoltre che il processo rimanga intrappolato in parti del grafo. Il punteggio descrive questo grafo di sole partite a eliminazione, non la classifica ufficiale complessiva.
+\begin{lstlisting}
+def pagerank(G, alpha=0.85, tol=1e-12, max_iter=1000):
+    nodes = list(G)
+    n = len(nodes)
+    if not n:
+        return {}
+    r = {v: 1 / n for v in nodes}
+    for _ in range(max_iter):
+        dangling = sum(r[u] for u in nodes if G.out_degree(u) == 0)
+        new = {v: (1-alpha)/n + alpha*dangling/n for v in nodes}
+        for u in nodes:
+            if G.out_degree(u):
+                for v in G.successors(u):
+                    new[v] += alpha*r[u]/G.out_degree(u)
+        if sum(abs(new[v]-r[v]) for v in nodes) < tol:
+            return new
+        r = new
+    raise RuntimeError('PageRank non converge')
+\end{lstlisting}
+Questa versione assume un grafo diretto semplice non pesato; confrontare i valori con \texttt{networkx.pagerank} usando le stesse ipotesi e tolleranza.
+
+\subsection{Completare il notebook: soluzioni e verifiche}
+Le funzioni seguenti assumono schede complete e ordinate sugli stessi candidati. Restituiscono la lista di tutti i vincitori a pari punteggio, insieme ai conteggi; per scegliere un nome solo occorre specificare uno spareggio. Nell'esempio a 11 elettori plurality deve dare $(5,2,4)$ e Borda $(10,13,10)$ nell'ordine $A,B,C$.
+\begin{lstlisting}
+def winners(counts):
+    best = max(counts.values())
+    return [c for c in counts if counts[c] == best]
+
+def plurality_vote(preferences):
+    counts = dict.fromkeys(preferences[0], 0)
+    for ballot in preferences:
+        counts[ballot[0]] += 1
+    return winners(counts), counts
+
+def borda_vote(preferences):
+    m = len(preferences[0])
+    counts = dict.fromkeys(preferences[0], 0)
+    for ballot in preferences:
+        for i, c in enumerate(ballot):
+            counts[c] += m - 1 - i
+    return winners(counts), counts
+\end{lstlisting}
+Il notebook genera profili casuali con un seme fissato: i commenti sui vincitori riguardano quel campione e possono dipendere dallo spareggio. Conviene verificare i conteggi, non solo il nome del vincitore.
+
+\paragraph{IRV.} Qui si elimina un candidato per volta; in caso di pari minimo si elimina il primo nell'ordine iniziale. Se tutti i candidati rimasti sono pari, si restituiscono tutti. Questa è una convenzione esplicita: una diversa regola di spareggio può cambiare il risultato.
+\begin{lstlisting}
+def IRV(preferences):
+    active = list(preferences[0])
+    while True:
+        counts = dict.fromkeys(active, 0)
+        for ballot in preferences:
+            choice = next(c for c in ballot if c in counts)
+            counts[choice] += 1
+        high, low = max(counts.values()), min(counts.values())
+        if high > len(preferences) / 2 or high == low:
+            return winners(counts), counts
+        eliminated = next(c for c in active if counts[c] == low)
+        active.remove(eliminated)
+\end{lstlisting}
+Il dizionario descrive l'ultimo turno: non si sommano i voti attraverso turni diversi. Con schede incomplete serve definire anche il trattamento delle schede esaurite.
+
+\paragraph{Matrice e Schulze.} Il ciclo sulle schede costruisce $d$; il secondo conserva solo gli archi vincenti e calcola le forze dei cammini. Restituiamo i vincitori e la matrice delle forze, che non è la matrice dei voti.
+\begin{lstlisting}
+def pairwise(preferences):
+    cs = list(preferences[0])
+    d = {a: dict.fromkeys(cs, 0) for a in cs}
+    for ballot in preferences:
+        for i, a in enumerate(ballot):
+            for b in ballot[i+1:]:
+                d[a][b] += 1
+    return d
+
+def schulze_method(preferences):
+    d = pairwise(preferences)
+    cs = list(d)
+    p = {a: {b: d[a][b] if a != b and d[a][b] > d[b][a]
+             else 0 for b in cs} for a in cs}
+    for mid in cs:
+        for a in cs:
+            for b in cs:
+                if len({a, b, mid}) == 3:
+                    p[a][b] = max(p[a][b], min(p[a][mid], p[mid][b]))
+    win = [a for a in cs if all(p[a][b] >= p[b][a] for b in cs)]
+    return win, p
+\end{lstlisting}
+La matrice costa $O(nm^2)$ e la chiusura $O(m^3)$; memoria $O(m^2)$. Nel ciclo a tre votanti $A\succ B\succ C$, $B\succ C\succ A$, $C\succ A\succ B$, gli archi vincenti pesano 2 e anche ogni cammino inverso ha forza 2: tutti e tre risultano vincitori.
+
+\paragraph{Controllo di PageRank.} Nel codice precedente ogni iterazione ridistribuisce anche la massa dei nodi senza uscite: la somma dei punteggi rimane 1, salvo arrotondamenti. Dopo aver costruito il grafo del notebook si può confrontare la soluzione con NetworkX:
+\begin{lstlisting}
+ours = pagerank(G, alpha=0.85)
+ref = nx.pagerank(G, alpha=0.85, tol=1e-12, max_iter=1000)
+assert abs(sum(ours.values()) - 1) < 1e-9
+assert max(abs(ours[v] - ref[v]) for v in G) < 1e-8
+\end{lstlisting}
+Un'eventuale qualificazione ai rigori è rappresentata come un arco verso la squadra qualificata. Il grafo non incorpora punteggi o fase a gironi: la graduatoria dipende da queste scelte di modellazione.
+
+\begin{riepilogo}
+\begin{itemize}
+\item Plurality, Borda, IRV e Copeland possono scegliere candidati diversi sullo stesso profilo; gestire esplicitamente i pareggi.
+\item Un vincitore di Condorcet batte ogni avversario, ma può non esistere per via dei cicli.
+\item Il teorema della giuria richiede giudizi indipendenti e probabilità di successo maggiore di metà; Arrow riguarda le graduatorie sociali e le sue ipotesi.
+\item Schulze confronta i cammini più forti nella matrice delle vittorie; PageRank propaga il peso sui link gestendo anche i nodi senza uscite.
+\end{itemize}
+\end{riepilogo}

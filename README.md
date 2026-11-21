@@ -19,6 +19,7 @@ Per esercitarsi: doppio clic su **`Avvia quiz.bat`** nella cartella principale, 
 | 4 | Esistenza e complessità degli equilibri, equilibri correlati, apprendimento | Equilibri correlati con PL, fictitious play, regret matching |
 | 5 | Giochi coalizionali (core, nucleolo, Shapley) | Core e valore di Shapley |
 | 6 | Giochi coalizionali: aspetti computazionali (aeroporto, ISG, MC-Nets, Monte Carlo) | Shapley esatto per classi speciali, rappresentazioni compatte e Monte Carlo |
+| 7 | Scelta sociale, Condorcet e Arrow | Sistemi di voto, Schulze e PageRank |
 
 ## Struttura
 
@@ -51,6 +52,7 @@ labs/
   04-learning-in-games/           notebook del laboratorio 4
   05-coalizionali/                notebook e slide del laboratorio 5
   06-coalizionali-2/              notebook e slide del laboratorio 6
+  07-scelta-sociale/              notebook e slide del laboratorio 7
 ```
 
 Lezioni e laboratori usano la stessa convenzione per i nomi delle cartelle:
