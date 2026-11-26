@@ -20,6 +20,7 @@ Per esercitarsi: doppio clic su **`Avvia quiz.bat`** nella cartella principale, 
 | 5 | Giochi coalizionali (core, nucleolo, Shapley) | Core e valore di Shapley |
 | 6 | Giochi coalizionali: aspetti computazionali (aeroporto, ISG, MC-Nets, Monte Carlo) | Shapley esatto per classi speciali, rappresentazioni compatte e Monte Carlo |
 | 7 | Scelta sociale, Condorcet e Arrow | Sistemi di voto, Schulze e PageRank |
+| 8 | Teoria del matching (dittatura seriale, TTC, Gale–Shapley, flussi) | Algoritmi implementati e verificati (notebook non ancora disponibile) |
 
 ## Struttura
 

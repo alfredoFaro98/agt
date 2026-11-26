@@ -39,7 +39,7 @@
   \vspace{1.5cm}
   {\large Documento di lavoro: requisiti, metodo, idee, decisioni\par}
   \vfill
-  {\small\color{grigio} Aggiornato fino alla Lezione 6 \quad·\quad Ultima compilazione: \today\par}
+  {\small\color{grigio} Aggiornato fino alla Lezione 8\quad·\quad Ultima compilazione: \today\par}
 \end{titlepage}
 \hypersetup{pageanchor=true}
 
@@ -398,6 +398,85 @@ quanti campioni servono. Per l'idea 10 (SHAP) è esattamente il metodo usato nel
   \item \kw{Rischio}: medio. Va scelta con cura una funzione di valore sensata.
 \end{itemize}
 
+\section{Scelta sociale computazionale (Lezione 7)}
+
+Strumenti disponibili: plurality, Borda, IRV, Copeland, metodo Schulze sulla matrice dei
+confronti, teorema della giuria di Condorcet, teorema di Arrow; PageRank su un grafo di
+risultati sportivi (laboratorio 7).
+
+\subsection*{Idea 15: aggregare le classifiche di più modelli \hfill\sbloccata{7}}
+\begin{itemize}
+  \item \kw{Modello}: più modelli (classificatori, sistemi di raccomandazione, motori di
+        ricerca) producono ciascuno una classifica degli stessi oggetti; ogni modello è un
+        ``votante''. La classifica finale si ottiene con una regola di voto.
+  \item \kw{Perché è interessante}: è l'\en{ensemble} anticipato nella lezione 1, visto
+        come problema di scelta sociale. Il teorema della giuria dice quando l'aggregazione
+        aiuta (modelli migliori del caso e poco correlati); Arrow dice che nessuna regola
+        avrà tutte le proprietà desiderabili.
+  \item \kw{Esperimenti}: Borda, Copeland, Schulze e IRV contro il miglior modello singolo
+        su un dataset pubblico; accuratezza al variare del numero di modelli e della loro
+        correlazione (verifica empirica della giuria di Condorcet); quanto spesso le regole
+        sono in disaccordo.
+  \item \kw{Rischio}: basso. Il codice delle regole c'è già dal laboratorio 7.
+\end{itemize}
+
+\subsection*{Idea 16: classifiche sportive da risultati parziali \hfill\sbloccata{7}}
+\begin{itemize}
+  \item \kw{Modello}: le partite di un campionato o di un torneo sono confronti diretti;
+        ogni partita è un ``voto'' a favore del vincitore. Si costruisce la classifica con
+        Copeland, Schulze o PageRank invece che con i punti.
+  \item \kw{Perché è interessante}: il laboratorio lo fa con PageRank sul solo tabellone
+        dei Mondiali 2022; con un campionato intero ci sono cicli (A batte B, B batte C,
+        C batte A) e la scelta della regola conta davvero.
+  \item \kw{Esperimenti}: confronto con la classifica ufficiale; capacità di prevedere le
+        partite del girone di ritorno da quelle dell'andata.
+  \item \kw{Rischio}: basso, ma da chiarire se è abbastanza ``di teoria dei giochi''.
+        Meglio come estensione dell'idea 15.
+\end{itemize}
+
+\section{Teoria del matching (Lezione 8)}
+
+Strumenti disponibili: dittatura seriale (anche casuale e con capacità), round robin, Top
+Trading Cycle, accettazione differita di Gale--Shapley con capacità, liste incomplete e
+pareggi, flusso massimo e flusso a costo minimo. Il laboratorio 8 non ha ancora un notebook:
+gli appunti contengono le implementazioni, verificate su istanze casuali contro la ricerca
+esaustiva.
+
+\subsection*{Idea 17: assegnare studenti ad alloggi, corsi o tesi \hfill\sbloccata{8}}
+\begin{itemize}
+  \item \kw{Modello}: studenti con preferenze su alloggi (o corsi a numero chiuso, o
+        relatori di tesi) con capacità; dall'altro lato graduatorie (merito, reddito,
+        distanza) oppure nessuna preferenza. È il caso studenti--alloggi anticipato
+        nella lezione 1.
+  \item \kw{Perché è interessante}: mette a confronto tre filosofie della lezione sullo
+        stesso problema: dittatura seriale casuale (preferenze da un lato), accettazione
+        differita (stabilità), flusso a costo minimo (massimo benessere, con costo uguale al
+        rank). Ognuna vince su un criterio e perde su un altro: è esattamente il tipo di
+        compromesso da discutere in una relazione.
+  \item \kw{Esperimenti}: su istanze sintetiche con preferenze correlate (alloggi
+        ``popolari''): rank medio ottenuto, quanti hanno la prima scelta, numero di coppie
+        bloccanti, invidia; quanto si guadagna mentendo (manipolazioni trovate per ricerca
+        esaustiva su istanze piccole, euristiche su quelle grandi).
+  \item \kw{Rischio}: basso. Gli algoritmi sono già scritti e verificati; i flussi sono in
+        \texttt{networkx}.
+\end{itemize}
+
+\subsection*{Idea 18: scambio di reni con cicli corti \hfill\sbloccata{8}}
+\begin{itemize}
+  \item \kw{Modello}: coppie paziente--donatore incompatibili sono agenti che ``possiedono''
+        un rene; la compatibilità è un grafo orientato. Senza limiti è un \en{housing market}
+        e il TTC lo risolve; nella pratica i cicli devono essere lunghi al più 2 o 3.
+  \item \kw{Perché è interessante}: con il limite sulla lunghezza dei cicli il problema
+        diventa NP-difficile e serve la programmazione lineare intera
+        (\texttt{scipy.optimize.milp}). Si collega al filo della programmazione lineare
+        (lezioni 3--5) e al Nobel 2012 di Roth e Shapley.
+  \item \kw{Esperimenti}: trapianti ottenuti con TTC senza limiti, con cicli $\le 2$ e
+        $\le 3$ (PLI), al crescere del numero di coppie; tempi di calcolo; incentivi degli
+        ospedali a dichiarare tutte le coppie.
+  \item \kw{Rischio}: medio. Serve un generatore realistico di istanze (gruppi sanguigni,
+        compatibilità tissutale): esistono modelli standard in letteratura da cercare.
+\end{itemize}
+
 \section{Argomenti ancora da affrontare}
 
 \begin{center}
@@ -406,10 +485,9 @@ quanti campioni servono. Per l'idea 10 (SHAP) è esattamente il metodo usato nel
 \toprule
 \textbf{Argomento} & \textbf{Anticipazioni (possibili spunti)} \\
 \midrule
-Scelta sociale computazionale  & regole di voto, paradosso di Condorcet; \en{ensemble} di modelli \\
-Matching markets               & matching stabile; studenti--alloggi, donatori di rene, lavoratori--compiti \\
 Mechanism design               & aste, incentivi a dire il vero \\
-Fair division                  & divisione equa di risorse \\
+Fair division                  & divisione equa di risorse; la lezione 8 la cita per i beni
+                                 indivisibili (dittatura seriale, round robin) \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -515,6 +593,12 @@ serve a preparare la parte di teoria e a verificare di aver capito i laboratori.
 05/11/2026 & Aggiunta la Lezione 6 (aspetti computazionali dei giochi coalizionali:
              aeroporto, ISG, MC-Nets, Monte Carlo) con il laboratorio 6 risolto e
              verificato; tre nuove idee (12--14). Neanche la lezione 6 parla del
+             progetto. Nessun tema scelto. \\
+21/11/2026 & Aggiunta la Lezione 7 (scelta sociale computazionale) agli appunti. \\
+26/11/2026 & Aggiunta la Lezione 8 (teoria del matching: dittatura seriale, TTC,
+             Gale--Shapley, flussi) con gli algoritmi implementati e verificati, in attesa
+             del notebook del laboratorio; banca di quiz della lezione 8. Aggiunte le idee
+             delle lezioni 7 e 8 (15--18). Neanche le slide della lezione 8 parlano del
              progetto. Nessun tema scelto. \\
 \bottomrule
 \end{tabularx}

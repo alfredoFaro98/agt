@@ -372,6 +372,117 @@ def g6_montecarlo_campioni(d, ok):
     return ok == m * k * k and vicino(1 / math.sqrt(ok), 1 / (k * math.sqrt(m)))
 
 
+# ---------------------------------------------------------------- lezione 8
+# Matching: tutto per forza bruta (core, matching stabili) o con scipy (flussi, assegnamento),
+# senza riusare gli algoritmi dei generatori.
+def g8_dittatura(d, ok):
+    presi, out = set(), {}
+    for a in d["ordine"]:
+        out[a] = next(x for x in d["prefs"][a] if x not in presi)
+        presi.add(out[a])
+    return ["W", "X", "Y", "Z"][ok] == out[d["k"]]
+
+
+def core_forte(prefs, owner):
+    """Allocazioni non bloccate da nessuna coalizione che rialloca solo i propri oggetti."""
+    agenti = sorted(prefs)
+    proprio = {a: o for o, a in owner.items()}
+    rank = {a: {x: i for i, x in enumerate(prefs[a])} for a in agenti}
+    out = []
+    for perm in itertools.permutations(sorted(owner)):
+        x = dict(zip(agenti, perm))
+        bloccata = False
+        for k in range(1, len(agenti) + 1):
+            for S in itertools.combinations(agenti, k):
+                for y in itertools.permutations([proprio[a] for a in S]):
+                    meglio = [rank[a][y[i]] <= rank[a][x[a]] for i, a in enumerate(S)]
+                    stretto = [rank[a][y[i]] < rank[a][x[a]] for i, a in enumerate(S)]
+                    if all(meglio) and any(stretto):
+                        bloccata = True
+                        break
+                if bloccata:
+                    break
+            if bloccata:
+                break
+        if not bloccata:
+            out.append(x)
+    return out
+
+
+def g8_ttc(d, ok):
+    core = core_forte(d["prefs"], d["owner"])
+    return len(core) == 1 and ["i₁", "i₂", "i₃", "i₄"][ok] == core[0][d["k"]]
+
+
+def stabili(uomini, donne):
+    U, D = sorted(uomini), sorted(donne)
+    out = []
+    for perm in itertools.permutations(D):
+        mu = dict(zip(U, perm))
+        marito = {w: m for m, w in mu.items()}
+        if not any(uomini[m].index(w) < uomini[m].index(mu[m]) and donne[w].index(m) < donne[w].index(marito[w])
+                   for m in U for w in D):
+            out.append(mu)
+    return out
+
+
+def m_ottimale(uomini, donne):
+    st = stabili(uomini, donne)
+    return {m: min((mu[m] for mu in st), key=uomini[m].index) for m in uomini}
+
+
+def g8_gale_shapley(d, ok):
+    return sorted(d["donne"])[ok] == m_ottimale(d["uomini"], d["donne"])[d["m"]]
+
+
+def g8_proposte(d, ok):
+    mo = m_ottimale(d["uomini"], d["donne"])
+    return ok == sum(d["uomini"][m].index(mo[m]) + 1 for m in d["uomini"])
+
+
+def g8_bloccanti(d, ok):
+    u, w, mu = d["uomini"], d["donne"], d["mu"]
+    marito = {x: m for m, x in mu.items()}
+    n = sum(1 for m in u for x in w if u[m].index(x) < u[m].index(mu[m]) and w[x].index(m) < w[x].index(marito[x]))
+    return ok == n
+
+
+def g8_chi_propone(d, ok):
+    st = stabili(d["uomini"], d["donne"])
+    w = d["w"]
+    migliore = min((m for mu in st for m in mu if mu[m] == w), key=d["donne"][w].index)
+    return len(st) >= 2 and sorted(d["uomini"])[ok] == migliore
+
+
+def g8_flusso(d, ok):
+    from scipy.sparse import csr_matrix
+    from scipy.sparse.csgraph import maximum_flow
+    nodi = sorted({x for u, v, _ in d["archi"] for x in (u, v)})
+    idx = {x: i for i, x in enumerate(nodi)}
+    A = np.zeros((len(nodi), len(nodi)), dtype=np.int32)
+    for u, v, c in d["archi"]:
+        A[idx[u], idx[v]] += c
+    return ok == maximum_flow(csr_matrix(A), idx["s"], idx["t"]).flow_value
+
+
+def g8_matching(d, ok):
+    from scipy.sparse import csr_matrix
+    from scipy.sparse.csgraph import maximum_bipartite_matching
+    U = ["u₁", "u₂", "u₃", "u₄"]
+    V = ["v₁", "v₂", "v₃", "v₄"]
+    A = np.zeros((len(U), len(V)))
+    for u, v in d["amm"]:
+        A[U.index(u), V.index(v)] = 1
+    return ok == int((maximum_bipartite_matching(csr_matrix(A), perm_type="column") >= 0).sum())
+
+
+def g8_assegnamento(d, ok):
+    from scipy.optimize import linear_sum_assignment
+    C = np.array(d["C"])
+    r, c = linear_sum_assignment(C)
+    return ok == int(C[r, c].sum())
+
+
 CONTROLLI = {
     "G1-minimax": g1_minimax, "G1-alphabeta": g1_alphabeta, "G1-mossa": g1_mossa,
     "G2-valore-atteso": g2_valore_atteso, "G2-composta": g2_composta, "G2-equivalente-certo": g2_equivalente_certo,
@@ -387,6 +498,9 @@ CONTROLLI = {
     "G6-aeroporto": g6_aeroporto, "G6-isg-valore": g6_isg_valore, "G6-isg-shapley": g6_isg_shapley,
     "G6-mcnet-valore": g6_mcnet_valore, "G6-mcnet-shapley": g6_mcnet_shapley,
     "G6-montecarlo-stima": g6_montecarlo_stima, "G6-montecarlo-campioni": g6_montecarlo_campioni,
+    "G8-dittatura-seriale": g8_dittatura, "G8-ttc": g8_ttc, "G8-gale-shapley": g8_gale_shapley,
+    "G8-proposte": g8_proposte, "G8-bloccanti": g8_bloccanti, "G8-chi-propone": g8_chi_propone,
+    "G8-flusso-massimo": g8_flusso, "G8-matching-massimo": g8_matching, "G8-assegnamento": g8_assegnamento,
 }
 
 errori = 0

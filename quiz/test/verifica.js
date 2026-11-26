@@ -106,6 +106,29 @@ atteso("MC-Net v: {2} = 0, {1,2} = 5, {2,3} = 6, N = 11",
   M.mcnetValore(mcLez, [2]) === 0 && M.mcnetValore(mcLez, [1, 2]) === 5 && M.mcnetValore(mcLez, [2, 3]) === 6 && M.mcnetValore(mcLez, [1, 2, 3]) === 11);
 atteso("MC-Net φ = (2.5, 3.5, 5)", [1, 2, 3].map((i) => M.mcnetShapley(mcLez, i)).join() === "2.5,3.5,5");
 atteso("MC-Net {a∧b}→5, {b}→2", M.mcnetShapley([{ pos: ["a", "b"], neg: [], x: 5 }, { pos: ["b"], neg: [], x: 2 }], "b") === 4.5);
+const sd = M.dittaturaSeriale({ A: ["X", "Y", "Z"], B: ["Z", "X", "Y"], C: ["Z", "Y", "X"] }, ["A", "B", "C"]);
+atteso("dittatura seriale slide (X, Z, Y)", sd.A === "X" && sd.B === "Z" && sd.C === "Y");
+const ttcLez = M.ttc({ A: ["3", "2", "4", "1"], B: ["4", "1", "2", "3"], C: ["1", "4", "3", "2"], D: ["3", "2", "1", "4"] },
+  { 1: "A", 2: "B", 3: "C", 4: "D" });
+atteso("TTC slide (A,3) (B,4) (C,1) (D,2), due giri",
+  JSON.stringify(ttcLez.assegnazione) === JSON.stringify({ A: "3", C: "1", B: "4", D: "2" }) && ttcLez.giri.length === 2);
+const gsLez = M.galeShapley({ A: ["X", "Y", "Z"], B: ["Z", "X", "Y"], C: ["Z", "Y", "X"] },
+  { X: ["A", "B", "C"], Y: ["B", "C", "A"], Z: ["A", "C", "B"] });
+atteso("Gale-Shapley slide: (A,X) (B,Y) (C,Z) in 5 proposte",
+  gsLez.partner.A === "X" && gsLez.partner.B === "Y" && gsLez.partner.C === "Z" && gsLez.passi.length === 5);
+const rU = { m1: ["w1", "w2", "w3"], m2: ["w2", "w1", "w3"], m3: ["w1", "w2", "w3"] };
+const rW = { w1: ["m2", "m1", "m3"], w2: ["m1", "m2", "m3"], w3: ["m1", "m2", "m3"] };
+const mu1 = { m1: "w1", m2: "w2", m3: "w3" }, mu2 = { m1: "w2", m2: "w1", m3: "w3" };
+atteso("Roth: mu1 e mu2 stabili, M-ottimale e W-ottimale",
+  M.coppieBloccanti(rU, rW, mu1).length === 0 && M.coppieBloccanti(rU, rW, mu2).length === 0 &&
+  JSON.stringify(M.galeShapley(rU, rW).partner) === JSON.stringify(mu1) && M.galeShapley(rW, rU).partner.w1 === "m2");
+atteso("Roth: con w1 che mente mu1 ha la coppia bloccante (m3, w1)",
+  JSON.stringify(M.coppieBloccanti(rU, Object.assign({}, rW, { w1: ["m2", "m3", "m1"] }), mu1)) === '[["m3","w1"]]');
+const reteLez = [["s", "a", 10], ["s", "b", 5], ["s", "c", 15], ["a", "b", 4], ["b", "c", 4], ["a", "d", 9], ["a", "e", 15],
+  ["b", "e", 8], ["b", "f", 6], ["c", "f", 13], ["d", "e", 15], ["e", "f", 15], ["d", "t", 10], ["e", "t", 10], ["f", "t", 10]];
+const fl = M.flussoMassimo(reteLez, "s", "t");
+atteso("flusso massimo slide 25, taglio {s, c, f}", fl.valore === 25 && fl.S.join() === "c,f,s");
+atteso("permutazioni di 4 = 24", M.permutazioni([1, 2, 3, 4]).length === 24);
 atteso("rimpianto attraversamento → Stop", M.rimpianti([[-10, 5], [0, -1]]).scelta === 1);
 atteso("semaforo è CE", M.vincoliCE([[-10, 5], [0, -1]], [[-10, 0], [5, -1]], [[0, 0.5], [0.5, 0]]).every((v) => v.valore >= 0));
 atteso("leggiNumero", vicino(Q.leggiNumero("2/3"), 2 / 3) && Q.leggiNumero("0,25") === 0.25 && Q.leggiNumero("−1,5") === -1.5 && isNaN(Q.leggiNumero("abc")));

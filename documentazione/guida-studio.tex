@@ -125,9 +125,9 @@
         inner sep=7pt, anchor=south west, align=left, font=\small] at (0,0.1)
     {{\sffamily\bfseries\color{unical}Se hai poco tempo.}\quad
      Leggi i \textbf{Riepiloghi} di tutte le lezioni, poi i box \textbf{Attenzione}, poi
-     rifai i laboratori dal 3 al 6: il loro codice (best response, minimax e equilibri correlati
-     con programmazione lineare, core, Shapley esatto e Monte Carlo) è quello che più
-     probabilmente riuserai nel progetto. L'esame è un progetto: saper \emph{modellare} e \emph{implementare} conta più
+     rifai i laboratori dal 3 all'8: il loro codice (best response, minimax e equilibri correlati
+     con programmazione lineare, core, Shapley esatto e Monte Carlo, regole di voto,
+     Gale--Shapley e flussi) è quello che più probabilmente riuserai nel progetto. L'esame è un progetto: saper \emph{modellare} e \emph{implementare} conta più
      che ricordare le dimostrazioni.};
 \end{tikzpicture}
 
@@ -137,15 +137,15 @@
 % =====================================================================
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm,
-  testa/.style={fill=blu, text=white, text width=4.0cm, inner sep=5pt, align=left,
+  testa/.style={fill=blu, text=white, text width=3.0cm, inner sep=5pt, align=left,
     font=\sffamily\small, minimum height=1.05cm, anchor=north},
-  corpo/.style={fill=blu!5, text width=4.0cm, inner sep=5pt, align=left,
-    font=\small, minimum height=3.55cm, anchor=north},
-  lab/.style={fill=unical!6, draw=unical!45, text width=4.0cm, inner sep=5pt,
-    align=left, font=\small, minimum height=1.25cm, anchor=north},
+  corpo/.style={fill=blu!5, text width=3.0cm, inner sep=5pt, align=left,
+    font=\footnotesize, minimum height=3.6cm, anchor=north},
+  lab/.style={fill=unical!6, draw=unical!45, text width=3.0cm, inner sep=5pt,
+    align=left, font=\footnotesize, minimum height=1.3cm, anchor=north},
   dipendenza/.style={-{Stealth[length=6pt]}, line width=0.9pt, color=blu!60},
   punto/.style={circle, fill=#1, minimum size=0.32cm, inner sep=0pt},
-  nota/.style={font=\scriptsize, text width=4.2cm, align=center, anchor=north},
+  nota/.style={font=\scriptsize, text width=3.2cm, align=center, anchor=north},
 ]
   \useasboundingbox (0,0) rectangle (27.5,18.8);
 
@@ -155,24 +155,30 @@
 
   % ---------------- colonne delle lezioni ----------------
   \foreach \i/\x/\tit/\usa/\punti/\lab in {
-    1/2.3/Introduzione all'AGT/{punto di partenza}/
+    1/1.75/Introduzione all'AGT/{punto di partenza}/
       {Le aree dell'AGT\\Dilemma del prigioniero\\Giochi combinatori\\Minimax e alpha-beta}/
       {Tris: Minimax e alpha-beta},
-    2/6.88/Teoria dell'utilità/{indipendente dalla L1}/
+    2/5.18/Teoria dell'utilità/{indipendente dalla L1}/
       {Preferenze, utilità ordinale\\Lotterie e teorema VNM\\Allais, avversione al rischio\\Ricerca bayesiana}/
       {Battaglia navale: ricerca bayesiana},
-    3/11.46/Giochi non cooperativi/{L1 (minimax), L2 (utilità attesa)}/
+    3/8.61/Giochi non cooperativi/{L1 (minimax), L2 (utilità attesa)}/
       {Dominanza e IESDS\\Nash puro e misto\\Condizione del supporto\\Minimax nei giochi a somma zero}/
       {Nash, minimax con PL, label propagation},
-    4/16.04/Equilibri e learning/{L3 (Nash, strategie miste, PL)}/
+    4/12.04/Equilibri e learning/{L3 (Nash, strategie miste, PL)}/
       {Esistenza: Brouwer\\Complessità: PPAD, NP\\Equilibri correlati\\Fictitious play, regret matching}/
       {Equilibri correlati, apprendimento},
-    5/20.62/Giochi coalizionali/{L1 (Shapley), L4 (cooperazione)}/
+    5/15.47/Giochi coalizionali/{L1 (Shapley), L4 (cooperazione)}/
       {Struttura di coalizione\\Core e superadditività\\Nucleolo\\Valore di Shapley}/
       {Core, Shapley, nucleolo},
-    6/25.2/Coalizionali: il calcolo/{L5 (Shapley e i suoi assiomi)}/
+    6/18.9/Coalizionali: il calcolo/{L5 (Shapley e i suoi assiomi)}/
       {Gioco dell'aeroporto\\Sottografo indotto (ISG)\\MC-Nets\\Shapley Monte Carlo}/
-      {Aeroporto, Monte Carlo, ISG, MC-Nets}
+      {Aeroporto, Monte Carlo, ISG, MC-Nets},
+    7/22.33/Scelta sociale/{L2 (preferenze come ordinamenti)}/
+      {Plurality, Borda, IRV, Copeland\\Vincitore di Condorcet\\Teorema della giuria\\Teorema di Arrow}/
+      {Regole di voto, Schulze, PageRank},
+    8/25.76/Matching/{L5 (core), L7 (strategyproof)}/
+      {Dittatura seriale, TTC\\Matrimonio stabile\\Gale--Shapley, Roth\\Flussi e assegnamento}/
+      {Gale--Shapley, TTC, flussi (senza notebook)}
   }{
     \node[testa] (t\i) at (\x,14.85)
       {{\scriptsize LEZIONE \i}\\[-1pt]\textbf{\tit}};
@@ -183,18 +189,18 @@
   }
 
   % ---------------- dipendenze ----------------
-  \foreach \a/\b in {2/3, 3/4, 4/5, 5/6}
+  \foreach \a/\b in {2/3, 3/4, 4/5, 5/6, 7/8}
     \draw[dipendenza] ($(t\a.north east)+(-0.8,0)$) to[bend left=60]
       ($(t\b.north west)+(0.8,0)$);
-  \draw[dipendenza] (t1.north) |- (11.46,15.95)
+  \draw[dipendenza] (t1.north) |- (8.61,15.95)
     node[pos=0.75, above, font=\sffamily\scriptsize, text=blu]
     {minimax: dalle mosse a turni alle mosse simultanee} -- (t3.north);
-  \draw[dipendenza, dashed] ($(t1.north west)+(0.4,0)$) |- (20.62,16.85)
+  \draw[dipendenza, dashed] ($(t1.north west)+(0.4,0)$) |- (15.47,16.85)
     node[pos=0.75, above, font=\sffamily\scriptsize, text=blu]
     {Shapley: anticipato nella lezione 1, formalizzato nella 5} -- (t5.north);
 
   % ---------------- fili conduttori ----------------
-  \node[sezione] at (0,7.75) {Fili conduttori};
+  \node[sezione] at (0,7.55) {Fili conduttori};
 
   % \filo{y}{colore}{nome}: la linea; \tappa{y}{colore}{x}{nota}: una lezione sul filo
   \newcommand{\filo}[3]{%
@@ -204,29 +210,40 @@
     \node[punto=#2] at (#3,#1) {};
     \node[nota] at (#3,#1-0.2) {#4};}
 
-  \filo{6.65}{verde}{Probabilità e incertezza}
-  \tappa{6.65}{verde}{6.88}{lotterie, Bayes}
-  \tappa{6.65}{verde}{11.46}{strategie miste}
-  \tappa{6.65}{verde}{16.04}{distribuzioni sui profili}
-  \tappa{6.65}{verde}{25.2}{permutazioni campionate}
+  \filo{6.85}{verde}{Probabilità e incertezza}
+  \tappa{6.85}{verde}{5.18}{lotterie, Bayes}
+  \tappa{6.85}{verde}{8.61}{strategie miste}
+  \tappa{6.85}{verde}{12.04}{distribuzioni sui profili}
+  \tappa{6.85}{verde}{18.9}{permutazioni campionate}
+  \tappa{6.85}{verde}{22.33}{giuria di Condorcet}
+  \tappa{6.85}{verde}{25.76}{dittatura seriale casuale}
 
-  \filo{4.95}{arancio}{Programmazione lineare}
-  \tappa{4.95}{arancio}{11.46}{minimax}
-  \tappa{4.95}{arancio}{16.04}{equilibri correlati}
-  \tappa{4.95}{arancio}{20.62}{nucleolo, core vuoto}
+  \filo{5.4}{arancio}{Programmazione lineare}
+  \tappa{5.4}{arancio}{8.61}{minimax}
+  \tappa{5.4}{arancio}{12.04}{equilibri correlati}
+  \tappa{5.4}{arancio}{15.47}{nucleolo, core vuoto}
+  \tappa{5.4}{arancio}{25.76}{flussi e assegnamento}
 
-  \filo{3.25}{unical}{Complessità di calcolo}
-  \tappa{3.25}{unical}{2.3}{alpha-beta: 549\,946 $\to$ 18\,297 nodi}
-  \tappa{3.25}{unical}{16.04}{PPAD, NP}
-  \tappa{3.25}{unical}{20.62}{$B_n$, $O(3^n)$, Shapley $2^n$}
-  \tappa{3.25}{unical}{25.2}{Shapley in $O(n)$; errore $1/\sqrt{m}$}
+  \filo{3.95}{unical}{Complessità di calcolo}
+  \tappa{3.95}{unical}{1.75}{alpha-beta: 549\,946 $\to$ 18\,297 nodi}
+  \tappa{3.95}{unical}{12.04}{PPAD, NP}
+  \tappa{3.95}{unical}{15.47}{$B_n$, $O(3^n)$, Shapley $2^n$}
+  \tappa{3.95}{unical}{18.9}{Shapley in $O(n)$; errore $1/\sqrt{m}$}
+  \tappa{3.95}{unical}{22.33}{Schulze in $O(m^3)$}
+  \tappa{3.95}{unical}{25.76}{$\le n^2$ proposte, in media $\approx n\ln n$}
+
+  \filo{2.35}{blu}{Stabilità e incentivi}
+  \tappa{2.35}{blu}{8.61}{Nash: nessuno devia da solo}
+  \tappa{2.35}{blu}{15.47}{core: nessuna coalizione devia}
+  \tappa{2.35}{blu}{22.33}{voto strategico, Arrow}
+  \tappa{2.35}{blu}{25.76}{coppie bloccanti; stabile $\ne$ strategyproof}
 
   % ---------------- in arrivo ----------------
   \node[rounded corners=3pt, draw=grigio!50, dashed, fill=white, text width=26.8cm,
         inner sep=7pt, anchor=south west, align=left, font=\small] at (0,0.1)
     {{\sffamily\bfseries\color{grigio}In arrivo nel corso.}\quad
-     Scelta sociale computazionale (voto, Condorcet)\ \textbullet\ Matching markets
-     (matching stabile)\ \textbullet\ Mechanism design (aste)\ \textbullet\ Fair division.
+     Mechanism design (aste, incentivi a dire il vero)\ \textbullet\ Fair division
+     (divisione equa di beni indivisibili, anticipata nella lezione 8).
      Gli appunti e la mappa si aggiornano a ogni lezione nuova.};
 \end{tikzpicture}
 

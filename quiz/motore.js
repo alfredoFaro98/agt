@@ -323,6 +323,102 @@
     }, 0);
   };
 
+  // ------------------------------------------------------------ matching (lezione 8)
+  // Preferenze come oggetti { agente: [lista dal migliore al peggiore] }.
+
+  M.dittaturaSeriale = function (prefs, ordine) {
+    const presi = new Set(), out = {};
+    ordine.forEach((a) => {
+      const x = prefs[a].find((y) => !presi.has(y));
+      out[a] = x;
+      presi.add(x);
+    });
+    return out;
+  };
+
+  // TTC: owner[oggetto] = agente. Restituisce { assegnazione, giri: [[agenti del ciclo], ...] }.
+  M.ttc = function (prefs, owner) {
+    const agenti = new Set(Object.keys(prefs)), oggetti = new Set(Object.keys(owner));
+    const out = {}, giri = [];
+    while (agenti.size) {
+      const top = {};
+      agenti.forEach((a) => (top[a] = prefs[a].find((x) => oggetti.has(x))));
+      let a = [...agenti].sort()[0];
+      const visti = [];
+      while (!visti.includes(a)) { visti.push(a); a = owner[top[a]]; }
+      const ciclo = visti.slice(visti.indexOf(a));
+      ciclo.forEach((b) => { out[b] = top[b]; agenti.delete(b); oggetti.delete(top[b]); });
+      giri.push(ciclo);
+    }
+    return { assegnazione: out, giri };
+  };
+
+  // Accettazione differita: propongono i "proponenti". Restituisce partner e passi.
+  M.galeShapley = function (proponenti, riceventi) {
+    const nxt = {}, fid = {}, passi = [];
+    Object.keys(proponenti).forEach((m) => (nxt[m] = 0));
+    const liberi = Object.keys(proponenti).sort();
+    while (liberi.length) {
+      const m = liberi.shift();
+      const w = proponenti[m][nxt[m]++];
+      const cur = fid[w];
+      if (cur === undefined) { fid[w] = m; passi.push([m, w, "accetta"]); }
+      else if (riceventi[w].indexOf(m) < riceventi[w].indexOf(cur)) {
+        fid[w] = m; liberi.push(cur); passi.push([m, w, "lascia " + cur]);
+      } else { liberi.push(m); passi.push([m, w, "rifiuta"]); }
+    }
+    const partner = {};
+    Object.keys(fid).forEach((w) => (partner[fid[w]] = w));
+    return { partner, passi };
+  };
+
+  // Coppie (m, w) che bloccano il matching (partner: uomo -> donna).
+  M.coppieBloccanti = function (uomini, donne, partner) {
+    const marito = {};
+    Object.keys(partner).forEach((m) => (marito[partner[m]] = m));
+    const out = [];
+    Object.keys(uomini).sort().forEach((m) => {
+      for (const w of uomini[m]) {
+        if (w === partner[m]) break;
+        if (donne[w].indexOf(m) < donne[w].indexOf(marito[w])) out.push([m, w]);
+      }
+    });
+    return out;
+  };
+
+  // Flusso massimo (Edmonds-Karp). archi: [u, v, capacità]. Restituisce valore e lato S del taglio minimo.
+  M.flussoMassimo = function (archi, s, t) {
+    const cap = {}, adj = {};
+    const k = (u, v) => u + ">" + v;
+    archi.forEach(([u, v, c]) => {
+      cap[k(u, v)] = (cap[k(u, v)] || 0) + c;
+      if (cap[k(v, u)] === undefined) cap[k(v, u)] = 0;
+      (adj[u] = adj[u] || new Set()).add(v);
+      (adj[v] = adj[v] || new Set()).add(u);
+    });
+    let valore = 0;
+    for (;;) {
+      const par = { [s]: null }, coda = [s];
+      while (coda.length && !(t in par)) {
+        const u = coda.shift();
+        (adj[u] || []).forEach((v) => { if (!(v in par) && cap[k(u, v)] > 0) { par[v] = u; coda.push(v); } });
+      }
+      if (!(t in par)) return { valore, S: Object.keys(par).sort() };
+      let b = Infinity;
+      for (let v = t; par[v] !== null; v = par[v]) b = Math.min(b, cap[k(par[v], v)]);
+      for (let v = t; par[v] !== null; v = par[v]) { cap[k(par[v], v)] -= b; cap[k(v, par[v])] += b; }
+      valore += b;
+    }
+  };
+
+  // Tutte le permutazioni di un array (per n piccolo).
+  M.permutazioni = function (a) {
+    if (a.length <= 1) return [a.slice()];
+    const out = [];
+    a.forEach((x, i) => M.permutazioni(a.slice(0, i).concat(a.slice(i + 1))).forEach((p) => out.push([x].concat(p))));
+    return out;
+  };
+
   const QUIZ = {
     lezioni, aggiungi, rng, fmt, fmtBreve, decimale, frazione, leggiNumero, numeroGiusto,
     T: { bimatrice, tabella, vettore }, M, hash,

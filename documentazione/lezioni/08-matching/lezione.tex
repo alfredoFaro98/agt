@@ -1,0 +1,830 @@
+% =====================================================================
+%  Lezione 8 — Teoria del matching e applicazioni
+%  Materiale: Lesson_8_Matching_Theory.pdf (nessun notebook di laboratorio:
+%             la parte LAB implementa e verifica gli algoritmi delle slide)
+% =====================================================================
+\chapter[Teoria del matching]{Teoria del matching\\e applicazioni}
+
+\parteteoria
+
+Un problema di \kw{matching} (abbinamento) nasce quando degli agenti hanno preferenze su
+altri agenti o su oggetti, e bisogna decidere chi va con chi. Gli esempi delle slide sono
+molto concreti: scambiare case o reni, distribuire $n$ oggetti fra $n$ persone, assegnare
+specializzandi agli ospedali e studenti alle scuole, formare coppie, assegnare i revisori
+agli articoli o le persone ai compiti. Il percorso:
+\begin{enumerate}[label=\arabic*.]
+  \item preferenze da \kw{un lato solo}: la dittatura seriale e lo scambio con il
+        \kw{Top Trading Cycle};
+  \item preferenze da \kw{entrambi i lati}: il matrimonio stabile e l'algoritmo di
+        \kw{Gale--Shapley}, con le sue proprietà e i suoi limiti;
+  \item il matching come \kw{ottimizzazione}: flusso massimo e flusso a costo minimo.
+\end{enumerate}
+Torna un tema della lezione 7: una regola di decisione collettiva va giudicata per
+efficienza, equità e \en{strategyproofness}, e di solito non si possono avere tutte.
+
+% ---------------------------------------------------------------------
+\section{Il panorama dei problemi di matching}
+
+La lezione tratta il \kw{matching bipartito}: due insiemi disgiunti (persone e oggetti,
+studenti e scuole, uomini e donne) e ogni abbinamento collega un elemento del primo con uno
+del secondo.
+
+\begin{definizione}[Matching]
+Dati due insiemi disgiunti $U$ e $V$, un \kw{matching} è un insieme di coppie
+$(u, v) \in U \times V$ in cui ogni elemento compare al più una volta. È \kw{perfetto} se
+ogni elemento di $U$ e di $V$ compare esattamente una volta (serve $|U| = |V|$).
+\end{definizione}
+
+Tre famiglie, che danno un significato diverso a ``buon matching'':
+\begin{itemize}
+  \item \kw{preferenze da un lato}: solo un lato ha preferenze (le persone sugli oggetti).
+        Si cercano efficienza, equità e incentivi a dire il vero;
+  \item \kw{preferenze da due lati}: entrambi i lati hanno preferenze sull'altro. La
+        proprietà centrale diventa la \kw{stabilità}: nessuna coppia vuole lasciare
+        l'abbinamento assegnato;
+  \item \kw{ottimizzazione}: si vuole massimizzare o minimizzare una funzione globale
+        (numero di coppie, costo totale), anche dove la stabilità non si può ottenere.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Preferenze da un lato: la dittatura seriale}
+
+Ci sono $n$ persone e $n$ oggetti; ogni persona ha un ordinamento stretto sugli oggetti e
+ne deve ricevere esattamente uno. L'esempio delle slide, con le liste dalla scelta migliore
+alla peggiore:
+\[
+  A = [X, Y, Z], \qquad B = [Z, X, Y], \qquad C = [Z, Y, X].
+\]
+
+\begin{definizione}[Dittatura seriale]
+Si fissa un ordine degli agenti. Seguendo l'ordine, ogni agente prende l'oggetto che
+preferisce fra quelli ancora liberi. Se l'ordine è estratto a caso si parla di
+\kw{dittatura seriale casuale} (\en{random serial dictatorship}).
+\end{definizione}
+
+\begin{esempio}[l'ordine conta]
+Con l'ordine $A, B, C$: $A$ prende $X$, $B$ prende $Z$, a $C$ resta $Y$. È il matching delle
+slide, $\{(A,X), (B,Z), (C,Y)\}$: $A$ e $B$ hanno la prima scelta, $C$ la seconda. Con
+l'ordine $C, B, A$: $C$ prende $Z$, $B$ prende $X$, ad $A$ resta $Y$. Cambiando l'ordine
+cambia chi resta deluso.
+\end{esempio}
+
+Le proprietà elencate nelle slide:
+\begin{itemize}
+  \item \kw{Pareto efficiente}: non si può migliorare qualcuno senza peggiorare qualcun
+        altro. Il primo agente ha il suo oggetto preferito; per dare a un agente qualcosa di
+        meglio bisognerebbe toglierlo a uno che l'ha scelto prima di lui, e che quindi
+        ci perde;
+  \item \kw{strategyproof}: mentire non conviene. Quando arriva il proprio turno si prende
+        il migliore fra quelli rimasti, e gli oggetti rimasti non dipendono da ciò che
+        si dichiara;
+  \item \kw{non massimizza il benessere sociale}: con utilità cardinali può esistere
+        un'allocazione con somma più alta;
+  \item \kw{equa?} Con l'ordine casuale tutti gli agenti sono trattati allo stesso modo
+        \emph{prima} dell'estrazione: è equa in valore atteso, non a posteriori.
+\end{itemize}
+
+\begin{esempio}[non massimizza il benessere]
+Due agenti e due oggetti. $A$ dà valore 10 a $X$ e 9 a $Y$; $B$ dà valore 10 a $X$ e 0 a
+$Y$. Con l'ordine $A, B$: $A$ prende $X$, $B$ resta con $Y$, benessere $10 + 0 = 10$.
+L'allocazione $(A, Y), (B, X)$ dà $9 + 10 = 19$. La dittatura seriale usa solo gli
+ordinamenti: non vede che per $A$ la differenza fra $X$ e $Y$ è piccola e per $B$ enorme.
+\end{esempio}
+
+\subsection{Estensioni}
+
+\begin{itemize}
+  \item \kw{Numero diverso di agenti e oggetti} ($n \ne m$): funziona senza modifiche. Con
+        più oggetti che agenti alcuni oggetti restano liberi; con più agenti gli ultimi
+        restano senza.
+  \item \kw{Capacità}: ogni agente può ricevere più oggetti (e ogni oggetto può avere più
+        copie). Due varianti:
+        \begin{itemize}
+          \item \kw{dittatura seriale fino alla capacità}: nell'ordine, ogni agente prende
+                in un colpo solo tanti oggetti quanta è la sua capacità. Strategyproof ma
+                iniqua: il primo prende tutto il meglio;
+          \item \kw{round robin}: a ogni turno ogni agente prende \emph{un} oggetto, e si
+                ripete finché le capacità sono piene. Più equa, ma non strategyproof.
+        \end{itemize}
+\end{itemize}
+
+\begin{esempio}[manipolare il round robin]
+Due agenti, quattro oggetti, due a testa; l'ordine è $1, 2, 1, 2$. Le preferenze vere sono
+$1: a \succ b \succ c \succ d$ e $2: b \succ c \succ a \succ d$, con utilità additive.
+Dichiarando il vero: $1$ prende $a$, $2$ prende $b$, $1$ prende $c$, $2$ prende $d$;
+l'agente 1 ha $\{a, c\}$. Se invece l'agente 1 dichiara $b \succ a \succ c \succ d$: prende
+$b$, l'agente 2 (che voleva $b$) prende $c$, l'agente 1 prende $a$. Ora ha $\{a, b\}$, che
+preferisce. Ha senso prendere subito l'oggetto conteso e lasciare per dopo quello che
+nessun altro vuole.
+\end{esempio}
+
+La distribuzione di oggetti \emph{indivisibili} fra agenti è studiata nell'AGT sotto il
+nome di \kw{fair division of indivisible goods}, uno degli argomenti ``in arrivo'' citati
+nella lezione 1.
+
+% ---------------------------------------------------------------------
+\section{Scambi: l'algoritmo Top Trading Cycle}
+
+Situazione diversa: ci sono ancora $n$ agenti e $n$ oggetti, ma ogni agente \kw{possiede
+già} un oggetto e ha preferenze strette su tutti. Si vuole scambiare gli oggetti in modo che
+ognuno stia almeno come prima. Scenari tipici: programmi di edilizia sociale, scambio di
+stanze, scambio di reni fra coppie donatore--paziente incompatibili. Il modello si chiama
+\kw{housing market} (Shapley e Scarf, 1974).
+
+\begin{definizione}[Top Trading Cycle, TTC]
+Algoritmo attribuito a David Gale e pubblicato da Shapley e Scarf:
+\begin{enumerate}
+  \item si costruisce un grafo orientato: ogni agente punta al suo oggetto preferito fra
+        quelli rimasti, ogni oggetto punta al suo proprietario;
+  \item il grafo ha almeno un ciclo: se ne trova uno e ogni agente del ciclo riceve
+        l'oggetto a cui punta;
+  \item si tolgono gli agenti e gli oggetti del ciclo e si ripete.
+\end{enumerate}
+\end{definizione}
+
+\begin{osservazione}[perché un ciclo c'è sempre]
+Nel grafo ogni nodo ha esattamente un arco uscente. Partendo da un nodo qualunque e
+seguendo gli archi, prima o poi si torna su un nodo già visto, perché i nodi sono finiti:
+quello è un ciclo. Il ciclo può anche essere lungo uno, cioè un agente punta al proprio
+oggetto: in quel caso se lo tiene.
+\end{osservazione}
+
+\begin{esempio}[il TTC delle slide]
+Quattro agenti; fra parentesi l'oggetto posseduto.
+\[
+\begin{array}{ll}
+  A\ (i_1):\ [i_3, i_2, i_4, i_1] & \qquad B\ (i_2):\ [i_4, i_1, i_2, i_3] \\
+  C\ (i_3):\ [i_1, i_4, i_3, i_2] & \qquad D\ (i_4):\ [i_3, i_2, i_1, i_4]
+\end{array}
+\]
+\textbf{Primo giro.} $A \to i_3 \to C \to i_1 \to A$ è un ciclo: $A$ riceve $i_3$ e $C$
+riceve $i_1$. Anche $B$ e $D$ puntano a $i_4$ e a $i_3$, ma non chiudono un ciclo.
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small,
+    ag/.style={circle, draw=blu, thick, minimum size=6.5mm, inner sep=0pt},
+    og/.style={circle, draw=unical, thick, minimum size=6.5mm, inner sep=0pt},
+    fr/.style={-{Stealth[length=5pt]}, thick}]
+  \foreach \n/\y in {A/3, B/2, C/1, D/0} \node[ag] (\n) at (0,\y) {\n};
+  \foreach \n/\y in {1/3, 2/2, 3/1, 4/0} \node[og] (i\n) at (3.2,\y) {$i_\n$};
+  \draw[fr, unical, very thick] (A) -- (i3);
+  \draw[fr, unical, very thick] (C) -- (i1);
+  \draw[fr] (B) -- (i4);
+  \draw[fr] (D) -- (i3);
+  \draw[fr, grigio, dashed] (i1) to[bend right=25] (A);
+  \draw[fr, grigio, dashed] (i2) to[bend right=25] (B);
+  \draw[fr, grigio, dashed] (i3) to[bend right=25] (C);
+  \draw[fr, grigio, dashed] (i4) to[bend right=25] (D);
+  \node[anchor=west, text width=5.2cm, font=\footnotesize] at (4.3,1.5)
+    {agente $\to$ oggetto preferito (pieno);\\ oggetto $\to$ proprietario (tratteggiato).\\
+     In rosso il ciclo $A \to i_3 \to C \to i_1 \to A$.};
+\end{tikzpicture}
+\end{center}
+\textbf{Secondo giro.} Restano $B, D$ e $i_2, i_4$. $B$ punta a $i_4$ (di $D$), $D$ non
+può più avere $i_3$ e punta a $i_2$ (di $B$): ciclo $B \to i_4 \to D \to i_2 \to B$.
+Risultato: $(A, i_3), (C, i_1), (B, i_4), (D, i_2)$. Tre agenti hanno la prima scelta, $D$
+la seconda; tutti stanno meglio di prima.
+\end{esempio}
+
+Le proprietà del TTC:
+\begin{itemize}
+  \item \kw{individualmente razionale}: nessuno riceve un oggetto peggiore del proprio,
+        perché il proprio oggetto resta disponibile finché il suo proprietario è in gioco;
+  \item \kw{stabile}, nel senso del \kw{core}: nessun gruppo di agenti può fare meglio
+        scambiandosi fra loro solo i propri oggetti. Con preferenze strette il risultato è
+        l'\kw{unica allocazione nel core} (Roth e Postlewaite, 1977);
+  \item \kw{strategyproof} (Roth, 1982): dichiarare preferenze false non fa ottenere un
+        oggetto migliore;
+  \item \kw{Pareto efficiente}: segue dal core, perché la coalizione di tutti gli agenti
+        non può migliorare.
+\end{itemize}
+
+\begin{attenzione}[cosa garantisce davvero]
+La slide di presentazione dice che lo scopo è ``che ogni agente ottenga un oggetto
+migliore''. Non è sempre possibile: se tutti preferiscono il proprio oggetto, il TTC li
+lascia dove sono (tutti cicli di lunghezza uno). La garanzia è più debole e più precisa:
+\emph{nessuno peggiora}, e nessun gruppo può fare meglio da solo. Anche ``nessun agente
+vuole deviare'' va letto così: è la stabilità del core, non quella delle coppie che vedremo
+nel matrimonio stabile.
+\end{attenzione}
+
+\begin{extra}[lo scambio di reni]
+Una coppia paziente--donatore incompatibile ``possiede'' un rene che non può usare. Il TTC
+troverebbe cicli di scambio, ma nella pratica ogni ciclo richiede operazioni simultanee,
+quindi si limitano i cicli a lunghezza 2 o 3. Con questo vincolo il problema di massimizzare
+i trapianti diventa NP-difficile e si risolve con la programmazione lineare intera. Roth e
+Shapley hanno ricevuto il Nobel per l'economia nel 2012 proprio per la teoria delle
+allocazioni stabili e la sua applicazione a mercati come questo.
+\end{extra}
+
+% ---------------------------------------------------------------------
+\section{Preferenze da due lati: il matrimonio stabile}
+
+Ora entrambi i lati hanno preferenze. La formulazione classica: $n$ uomini e $n$ donne, ogni
+agente ha un ordinamento stretto e completo sugli agenti dell'altro lato. Si vuole un
+matching perfetto \kw{stabile}.
+
+\begin{definizione}[Coppia bloccante e matching stabile]
+Dato un matching $\mu$, una coppia $(m, w)$ che non è in $\mu$ è \kw{bloccante} se $m$
+preferisce $w$ alla sua partner $\mu(m)$ \emph{e} $w$ preferisce $m$ al suo partner
+$\mu(w)$. Un matching è \kw{stabile} se non ha coppie bloccanti.
+\end{definizione}
+
+In parole: nessun uomo e nessuna donna vogliono ``divorziare'' dai partner assegnati per
+mettersi insieme. Per bloccare serve che \emph{entrambi} ci guadagnino: se solo uno dei due
+vuole cambiare, la coppia non si forma.
+
+\begin{attenzione}[stabilità non è efficienza]
+La slide descrive la stabilità anche come ``non si può riassegnare una coppia per
+migliorarla senza peggiorare qualcun altro''. Questa è la \emph{Pareto efficienza}, un
+concetto diverso. Con preferenze strette ogni matching stabile è anche Pareto efficiente:
+se $\mu'$ migliorasse qualcuno, per esempio $m$ con $\mu'(m) = w$, senza peggiorare nessuno,
+anche $w$ avrebbe cambiato partner, quindi starebbe strettamente meglio con $m$, e $(m, w)$
+bloccherebbe $\mu$. Il contrario è falso: ci sono matching Pareto efficienti instabili. La
+definizione da usare è quella con le coppie bloccanti.
+\end{attenzione}
+
+\section{L'algoritmo di Gale--Shapley}
+
+\begin{teorema}[Gale e Shapley, 1962]
+Per qualunque profilo di preferenze di $n$ uomini e $n$ donne esiste un matching stabile.
+\end{teorema}
+
+La dimostrazione è costruttiva: l'algoritmo di \kw{accettazione differita}
+(\en{deferred acceptance}) ne trova uno.
+\begin{itemize}
+  \item A ogni turno, ogni uomo non fidanzato fa la proposta alla donna che preferisce fra
+        quelle a cui non l'ha ancora fatta.
+  \item A ogni turno, ogni donna sceglie il preferito fra le proposte ricevute e il
+        fidanzato attuale; rifiuta gli altri.
+\end{itemize}
+``Differita'' perché nessuna accettazione è definitiva: una donna tiene il fidanzato solo
+finché non arriva qualcuno che preferisce. L'algoritmo finisce quando tutti sono fidanzati.
+
+\begin{lstlisting}[style=pseudo]
+tutti liberi
+while esiste un uomo libero m con donne ancora da provare:
+    w = la prima donna nella lista di m a cui non ha ancora proposto
+    if w e' libera: (m, w) si fidanzano
+    else if w preferisce m al fidanzato m': (m, w) si fidanzano, m' torna libero
+    else: w rifiuta m
+return i fidanzamenti
+\end{lstlisting}
+
+\begin{esempio}[il Gale--Shapley delle slide]
+\[
+\begin{array}{lll}
+  A = [X, Y, Z] & \qquad & X = [A, B, C] \\
+  B = [Z, X, Y] & \qquad & Y = [B, C, A] \\
+  C = [Z, Y, X] & \qquad & Z = [A, C, B]
+\end{array}
+\]
+Proposte degli uomini, nell'ordine delle slide:
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{rll}
+\toprule
+Passo & Proposta & Esito \\
+\midrule
+1 & $A \to X$ & $X$ è libera: $(A, X)$ \\
+2 & $B \to Z$ & $Z$ è libera: $(B, Z)$ \\
+3 & $C \to Z$ & $Z$ preferisce $C$ a $B$: $(C, Z)$, $B$ torna libero \\
+4 & $B \to X$ & $X$ preferisce $A$ a $B$: rifiutato \\
+5 & $B \to Y$ & $Y$ è libera: $(B, Y)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Risultato $\{(A, X), (B, Y), (C, Z)\}$, con 5 proposte. Controllo della stabilità: $A$ e
+$C$ hanno la prima scelta (per $C$, $Z$ è in cima) e non bloccano nulla; $B$ preferirebbe
+$Z$ e $X$, ma $Z$ preferisce $C$ e $X$ preferisce $A$. Nessuna coppia bloccante. In questo
+profilo il matching stabile è anche l'unico: lo si verifica provando tutte le $3! = 6$
+assegnazioni, e lo stesso risultato esce facendo proporre le donne.
+\end{esempio}
+
+\begin{teorema}[correttezza dell'accettazione differita]
+L'algoritmo termina dopo al più $n^2$ proposte e restituisce un matching perfetto stabile.
+\end{teorema}
+\paragraph{Terminazione.} Ogni uomo propone a ogni donna al più una volta: al più $n$
+proposte a testa, $n^2$ in tutto. Le slide dicono ``$O(n^2)$ passi''.
+
+\paragraph{Matching perfetto.} Una donna che ha ricevuto una proposta resta fidanzata fino
+alla fine (cambia solo partner, e sempre in meglio). Se alla fine un uomo $m$ fosse libero,
+avrebbe proposto a tutte le $n$ donne, che quindi sarebbero tutte fidanzate: $n$ donne con
+al più $n - 1$ uomini, impossibile.
+
+\paragraph{Stabilità.} Supponiamo che $(m, w)$ sia bloccante: $m$ preferisce $w$ alla
+partner finale $\mu(m)$, e $w$ preferisce $m$ a $\mu(w)$. Siccome $m$ propone in ordine di
+preferenza, ha proposto a $w$ prima che a $\mu(m)$. Quindi $w$ l'ha rifiutato, subito o più
+tardi, per qualcuno che preferiva; e da allora i suoi fidanzati sono solo migliorati. Il
+partner finale $\mu(w)$ è quindi preferito a $m$: contraddizione. (È l'argomento delle
+slide: ``o $m$ non ha proposto a $w$, o $w$ l'ha rifiutato per uno peggiore, ed entrambe le
+cose sono impossibili''.)
+
+\begin{osservazione}[l'ordine delle proposte non conta]
+Le slide descrivono turni in cui tutti gli uomini liberi propongono insieme; l'esempio fa
+una proposta alla volta. Il risultato è lo stesso: qualunque ordine si scelga per le
+proposte, l'accettazione differita con gli uomini che propongono restituisce sempre lo
+stesso matching, quello ottimo per gli uomini del prossimo paragrafo.
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\section{Chi propone vince: ottimalità e strategie}
+
+Un profilo può avere più matching stabili. Ci si chiede quale restituisce l'algoritmo e chi
+ne trae vantaggio.
+
+\begin{definizione}[partner stabile, M-ottimale, W-ottimale]
+$w$ è un \kw{partner stabile} di $m$ se esiste un matching stabile che li mette insieme. Un
+matching stabile è \kw{M-ottimale} se ogni uomo lo preferisce almeno quanto ogni altro
+matching stabile, cioè ogni uomo ha la migliore fra le sue partner stabili. È
+\kw{W-ottimale} se vale lo stesso per ogni donna. Simmetricamente si definiscono
+\kw{M-pessimale} e \kw{W-pessimale}.
+\end{definizione}
+
+Non è ovvio che un matching M-ottimale esista: potrebbe darsi che le migliori partner
+stabili di due uomini coincidano. Il teorema seguente lo dimostra mostrando che
+l'algoritmo lo costruisce.
+
+\begin{teorema}[ottimalità di chi propone]
+L'accettazione differita con proposte degli uomini restituisce il matching stabile
+M-ottimale, che è anche W-pessimale. Facendo proporre le donne si ottiene il W-ottimale,
+che è M-pessimale.
+\end{teorema}
+
+\paragraph{M-ottimalità.} Mostriamo che nessun uomo viene mai rifiutato da una sua partner
+stabile. Supponiamo il contrario e prendiamo il \emph{primo} rifiuto di questo tipo durante
+l'esecuzione: $w$ rifiuta $m$, partner stabile di $m$, perché ha (o riceve) $m'$ che
+preferisce. Sia $\mu'$ un matching stabile con $(m, w)$. In $\mu'$, $m'$ è con un'altra
+donna $w'$. Quando $m'$ ha proposto a $w$ non era ancora stato rifiutato da nessuna partner
+stabile (questo è il primo rifiuto del genere), quindi non era ancora stato rifiutato da
+$w'$: siccome propone in ordine, preferisce $w$ a $w'$. Ma allora in $\mu'$ la coppia
+$(m', w)$ è bloccante: $m'$ preferisce $w$ a $w'$, e $w$ preferisce $m'$ a $m$. Assurdo.
+Quindi ogni uomo finisce con la prima partner stabile della sua lista, la migliore.
+
+\paragraph{W-pessimalità.} Sia $\mu$ il risultato e $(m, w) \in \mu$. Se esistesse un
+matching stabile $\mu'$ in cui $w$ sta peggio, con $m'$ al posto di $m$, allora in $\mu'$
+l'uomo $m$ sta con $w' \ne w$. Per la M-ottimalità $w$ è la migliore partner stabile di
+$m$, quindi $m$ preferisce $w$ a $w'$; e $w$ preferisce $m$ a $m'$. La coppia $(m, w)$
+bloccherebbe $\mu'$: contraddizione.
+
+\begin{attenzione}[le dimostrazioni nelle slide]
+Le due dimostrazioni delle slide vanno nella direzione giusta ma saltano un passaggio. Per
+l'ottimalità dicono che, se $m$ non ottiene la donna preferita $w$, è perché $w$ l'ha
+rifiutato per $m'$, e quindi un matching con $(m, w)$ non sarebbe stabile. Il passaggio
+mancante è perché $m'$ preferisca $w$ alla partner che avrebbe in quell'altro matching:
+serve l'argomento del \emph{primo} rifiuto qui sopra. E l'enunciato giusto confronta $m$
+con le sole partner \emph{stabili}: la donna in cima alla sua lista può benissimo non
+essere raggiungibile. Allo stesso modo, nella W-pessimalità la slide scrive che ``$m$
+preferisce $w$ a ogni altra donna della sua lista''; il vero è ``a ogni altra partner
+stabile''.
+\end{attenzione}
+
+\subsection{Nessun meccanismo stabile è strategyproof}
+
+Un \kw{meccanismo di matching} riceve le preferenze dichiarate e restituisce un matching. È
+\kw{stabile} se il matching è stabile rispetto alle preferenze dichiarate; è
+\kw{strategyproof} se a nessun agente conviene dichiarare il falso.
+
+\begin{teorema}[Roth, 1982]
+Non esiste un meccanismo di matching che sia sempre stabile e strategyproof.
+\end{teorema}
+\paragraph{Dimostrazione (dalle slide).} Basta un profilo in cui ogni scelta stabile
+lascia a qualcuno un incentivo a mentire:
+\[
+\begin{array}{lll}
+  m_1: w_1, w_2, w_3 & \qquad & w_1: m_2, m_1, m_3 \\
+  m_2: w_2, w_1, w_3 & \qquad & w_2: m_1, m_2, m_3 \\
+  m_3: w_1, w_2, w_3 & \qquad & w_3: m_1, m_2, m_3
+\end{array}
+\]
+Gli unici matching stabili sono due:
+\[
+  \mu_1 = \{(m_1, w_1), (m_2, w_2), (m_3, w_3)\}, \qquad
+  \mu_2 = \{(m_1, w_2), (m_2, w_1), (m_3, w_3)\}.
+\]
+$\mu_1$ è M-ottimale (ogni uomo ha la prima scelta possibile), $\mu_2$ è W-ottimale.
+\begin{itemize}
+  \item Se il meccanismo sceglie $\mu_1$, la donna $w_1$ può dichiarare
+        $w_1: m_2, m_3, m_1$. Con questa lista la coppia $(m_3, w_1)$ blocca $\mu_1$, e
+        l'unico matching stabile diventa $\mu_2$: $w_1$ ottiene $m_2$, la sua vera prima
+        scelta.
+  \item Se il meccanismo sceglie $\mu_2$, l'uomo $m_1$ può dichiarare $m_1: w_1, w_3, w_2$.
+        Ora $(m_1, w_3)$ blocca $\mu_2$ e l'unico matching stabile è $\mu_1$: $m_1$ ottiene
+        $w_1$, la sua vera prima scelta.
+\end{itemize}
+In entrambi i casi un meccanismo stabile deve restituire il matching favorevole a chi ha
+mentito. \hfill$\square$
+
+Tutto verificato enumerando le $3! = 6$ assegnazioni per ciascuno dei tre profili (quello
+vero e i due manipolati).
+
+\begin{osservazione}[chi può mentire]
+Il teorema non dice che tutti possono manipolare. Un risultato di Dubins e Freedman (1981)
+e di Roth (1982) mostra che l'accettazione differita è strategyproof \emph{per chi
+propone}: nessun uomo ottiene di più mentendo quando propongono gli uomini. Sono le donne,
+il lato che riceve le proposte, a poter manipolare, come $w_1$ nell'esempio. È per questo
+che nei sistemi reali di ammissione si fanno proporre gli studenti: sono loro a cui si
+chiede di dichiarare il vero.
+\end{osservazione}
+
+% ---------------------------------------------------------------------
+\section{Estensioni del matrimonio stabile}
+
+\begin{itemize}
+  \item \kw{$n$ uomini e $m$ donne con $n \ne m$}: l'accettazione differita funziona
+        ancora. O si cambia il criterio di arresto (un uomo rifiutato da tutte resta
+        solo), o si aggiungono individui fittizi, messi in fondo a tutte le liste, per avere
+        $n = m$.
+  \item \kw{Liste incomplete}: un uomo non propone alle donne che considera inaccettabili e
+        una donna non accetta uomini inaccettabili. Ora alcuni restano soli, e una coppia
+        blocca anche quando entrambi preferiscono stare insieme piuttosto che soli.
+  \item \kw{Preferenze con pareggi}: si rompono i pareggi a caso e si esegue l'algoritmo.
+\end{itemize}
+
+\begin{extra}[pareggi e liste incomplete insieme]
+Rompendo i pareggi a caso si ottiene un matching \emph{debolmente} stabile (nessuna coppia
+in cui entrambi stanno strettamente meglio), ma diverse rotture possono dare matching di
+dimensioni diverse. Trovare il più grande matching debolmente stabile con pareggi e liste
+incomplete è NP-difficile (Manlove et al., 2002). Con liste incomplete e preferenze strette,
+invece, tutti i matching stabili lasciano soli gli stessi agenti (\en{teorema degli
+ospedali rurali}).
+\end{extra}
+
+\subsection{Matching stabile con capacità}
+
+Studenti e scuole: gli studenti hanno preferenze sulle scuole, le scuole sugli studenti, e
+la scuola $i$ ha al più $c_i$ posti. Con $n$ studenti e $m$ scuole di capacità
+$c_1, \dots, c_m$ si usa l'accettazione differita in cui la scuola $i$ tiene fino a $c_i$
+studenti, i migliori secondo le sue preferenze. Una coppia studente--scuola è bloccante se
+lo studente preferisce quella scuola alla propria e la scuola ha un posto libero oppure
+preferisce lo studente al peggiore fra quelli ammessi. È il modello degli ospedali e degli
+specializzandi (\en{hospitals/residents}) e delle ammissioni scolastiche.
+
+\begin{esempio}[le capacità delle slide]
+Cinque studenti, tutti con $[X, Y]$. Le scuole: $X = [A, E, B, C, D]$ con $c_X = 2$,
+$Y = [E, A, B, C, D]$ con $c_Y = 3$. Proposte degli studenti:
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{rll}
+\toprule
+Passo & Proposta & Esito \\
+\midrule
+1--2 & $A \to X$, $B \to X$ & $X$ tiene $\{A, B\}$: è piena \\
+3 & $C \to X$ & rifiutato: $X$ preferisce $A$ e $B$ \\
+4 & $D \to X$ & rifiutato: $X$ preferisce $A$ e $B$ \\
+5 & $E \to X$ & $X$ preferisce $E$ a $B$: tiene $\{A, E\}$, $B$ è rifiutato \\
+6--8 & $B, C, D \to Y$ & $Y$ ha tre posti: tiene $\{B, C, D\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Risultato: $X = \{A, E\}$, $Y = \{B, C, D\}$. È stabile: $B$, $C$, $D$ vorrebbero $X$, ma
+$X$ è piena con due studenti che preferisce a ciascuno di loro. Nella slide del passo 4 il
+commento dice ancora ``$A, B$ preferiti a $C$'': si intende $D$.
+\end{esempio}
+
+% ---------------------------------------------------------------------
+\section{Oltre la stabilità: matching e flussi}
+
+A volte la stabilità non si può ottenere, oppure non è ciò che interessa: si vuole
+massimizzare il numero di coppie o minimizzare un costo totale. Molti di questi problemi si
+riducono a un problema di \kw{flusso su rete}, per cui esistono algoritmi polinomiali.
+
+\begin{attenzione}[non tutto si riduce a un flusso]
+Alcuni problemi di matching sono NP-difficili, per esempio il \kw{generalized assignment}
+(compiti con dimensioni diverse da assegnare ad agenti con capacità, a costo minimo). Gli
+algoritmi di flusso non li risolvono esattamente, ma si possono usare per ottenere soluzioni
+approssimate, per esempio risolvendo il rilassamento e poi arrotondando.
+\end{attenzione}
+
+\subsection{Reti di flusso e flusso massimo}
+
+\begin{definizione}[Rete di flusso]
+Una \kw{rete di flusso} è un grafo orientato in cui ogni arco $e$ ha una \kw{capacità}
+$c(e) \ge 0$, con una \kw{sorgente} $s$ e un \kw{pozzo} $t$. Un flusso assegna a ogni arco
+una quantità $f(e)$ con:
+\begin{enumerate}
+  \item \kw{vincolo di capacità}: $0 \le f(e) \le c(e)$;
+  \item \kw{conservazione}: in ogni nodo diverso da $s$ e $t$ entra quanto esce,
+        \[ \sum_{e \text{ entra in } v} f(e) = \sum_{e \text{ esce da } v} f(e). \]
+\end{enumerate}
+Il \kw{valore} del flusso è quanto esce da $s$ (uguale a quanto entra in $t$).
+\end{definizione}
+
+Si pensi ad acqua in una rete di tubi, a dati fra router, a merci lungo una catena di
+fornitura.
+
+\begin{center}
+\begin{tikzpicture}[x=1.45cm, y=1.15cm, font=\small,
+    nd/.style={circle, draw, thick, minimum size=6.5mm, inner sep=0pt},
+    st/.style={circle, fill=blu, text=white, minimum size=6.5mm, inner sep=0pt},
+    fr/.style={-{Stealth[length=5pt]}, blu!70},
+    lb/.style={fill=white, inner sep=1pt, font=\footnotesize}]
+  \node[st] (s) at (0,0) {$s$};
+  \node[nd] (a) at (1.6,1.3) {$a$};
+  \node[nd] (b) at (1.6,0) {$b$};
+  \node[nd] (c) at (1.6,-1.3) {$c$};
+  \node[nd] (d) at (4,1.3) {$d$};
+  \node[nd] (e) at (4,0) {$e$};
+  \node[nd] (f) at (4,-1.3) {$f$};
+  \node[st] (t) at (5.6,0) {$t$};
+  \foreach \u/\v/\c/\p in {s/a/10/0.5, s/b/5/0.5, s/c/15/0.5, a/b/4/0.5, b/c/4/0.5,
+      a/d/9/0.5, a/e/15/0.3, b/e/8/0.5, b/f/6/0.3, c/f/13/0.5, d/e/15/0.5, e/f/15/0.5,
+      d/t/10/0.5, e/t/10/0.5, f/t/10/0.5}
+    \draw[fr] (\u) -- node[lb, pos=\p] {\c} (\v);
+\end{tikzpicture}
+\end{center}
+La rete delle slide, con i nodi interni chiamati $a, \dots, f$. Le slide la riempiono un
+cammino alla volta: il primo è $s \to a \to b \to e \to t$, che porta 4 unità, perché
+l'arco $a \to b$ ha capacità 4 ed è il \kw{collo di bottiglia} del cammino.
+
+\begin{teorema}[flusso massimo e taglio minimo]
+Un \kw{taglio} $(S, T)$ divide i nodi in due parti, con $s \in S$ e $t \in T$; la sua
+capacità è la somma delle capacità degli archi che vanno \emph{da} $S$ \emph{a} $T$. Il
+valore del flusso massimo è uguale alla capacità minima di un taglio.
+\end{teorema}
+
+L'intuizione delle slide: aumentare la capacità di un arco collo di bottiglia aumenta il
+flusso massimo, togliere un arco su un cammino critico lo diminuisce. Il taglio minimo è
+proprio l'insieme dei colli di bottiglia: ogni unità di flusso deve attraversarlo.
+
+\begin{esempio}[flusso massimo della rete]
+Il flusso massimo vale \textbf{25}. Un taglio minimo è $S = \{s, c, f\}$: gli archi da $S$
+a $T$ sono $s \to a$ (10), $s \to b$ (5) e $f \to t$ (10), in tutto 25. Gli archi
+$b \to c$, $b \to f$ ed $e \to f$ vanno da $T$ a $S$ e non contano. Siccome flusso e taglio coincidono,
+nessun flusso può superare 25 e nessun taglio può valere meno.
+\end{esempio}
+
+\begin{attenzione}[il taglio disegnato nelle slide]
+La slide del taglio minimo evidenzia $S = \{s, b, c, f\}$ e scrive 5 sull'arco $b \to e$,
+che nelle slide precedenti aveva capacità 8. Con la capacità originale quel taglio vale
+$10 + 8 + 10 = 28$, non è minimo. Il taglio minimo è quello dell'esempio qui sopra; il
+valore del flusso massimo, 25, non cambia (verificato con l'algoritmo di Edmonds--Karp e
+con \texttt{networkx}, con entrambe le capacità).
+\end{attenzione}
+
+\begin{extra}[come si calcola: cammini aumentanti]
+L'algoritmo di \kw{Ford--Fulkerson} parte dal flusso nullo e ripete: cerca un cammino da
+$s$ a $t$ nella \kw{rete residua} (dove un arco con flusso $f$ e capacità $c$ ha ancora
+$c - f$ in avanti e $f$ all'indietro, per poter ``disfare'' scelte precedenti) e ci spinge
+il collo di bottiglia. Quando non ci sono più cammini, i nodi raggiungibili da $s$ formano
+il taglio minimo. Scegliendo ogni volta il cammino più corto (\kw{Edmonds--Karp}) il costo
+è $O(|V|\,|E|^2)$. Con capacità intere anche il flusso massimo trovato è intero
+(\kw{teorema di integralità}): è ciò che rende corretta la riduzione del matching.
+\end{extra}
+
+\subsection{Matching massimo come flusso massimo}
+
+Dati due insiemi $U$ e $V$ e le coppie ammesse fra loro, il \kw{matching di cardinalità
+massima} usa più coppie possibili senza usare due volte lo stesso nodo. Si costruisce una
+rete:
+\begin{enumerate}
+  \item una sorgente $s$ con un arco di capacità 1 verso ogni $u \in U$;
+  \item un arco di capacità 1 da $u \in U$ a $v \in V$ per ogni coppia ammessa;
+  \item un arco di capacità 1 da ogni $v \in V$ al pozzo $t$.
+\end{enumerate}
+Il flusso massimo è uguale al matching massimo. La capacità 1 sugli archi di $s$ e di $t$
+fa sì che ogni nodo abbia al più un partner; la conservazione fa sì che il flusso che entra
+in $u$ esca verso un solo $v$. Per l'integralità esiste un flusso massimo con valori 0 e 1,
+e le coppie con flusso 1 sono il matching.
+
+\begin{esempio}[le slide]
+$U = \{u_1, u_2, u_3\}$, $V = \{v_1, v_2, v_3\}$, coppie ammesse $u_1v_1$, $u_1v_2$, $u_2v_2$,
+$u_2v_3$, $u_3v_3$. Il flusso massimo vale 3: $\{u_1v_1, u_2v_2, u_3v_3\}$, un matching
+perfetto. Le slide mostrano poi la versione con capacità: archi $s \to u_i$ di capacità 2,
+e $v_2 \to t$ di capacità 2. Ora ogni $u$ può avere due partner e $v_2$ ne può avere due;
+il flusso massimo vale 4, per esempio $\{u_1v_1, u_1v_2, u_2v_2, u_3v_3\}$. Non può valere
+di più, perché gli archi verso $t$ portano in tutto $1 + 2 + 1 = 4$.
+\end{esempio}
+
+\subsection{Flusso a costo minimo}
+
+Il flusso massimo guarda solo al volume. Il \kw{flusso a costo minimo} aggiunge l'economia:
+ogni arco ha una capacità e un \kw{costo} per unità di flusso, e si vuole mandare da $s$ a
+$t$ una quantità richiesta di flusso spendendo il meno possibile:
+\[
+  \text{costo} = \sum_{e \in E} c(e)\, f(e),
+\]
+dove qui $c(e)$ è il costo unitario dell'arco. Con i costi sugli archi $u \to v$ si
+ottengono i problemi di \kw{assegnamento}: persone a compiti, revisori ad articoli, con il
+costo che misura quanto è cattivo l'abbinamento.
+
+\begin{esempio}[le slide]
+Stessa rete del matching, con costi $u_1v_1 = 1$, $u_1v_2 = 5$, $u_2v_2 = 1$, $u_2v_3 = 1$,
+$u_3v_3 = 5$, tutte le capacità 1. Mandare 3 unità significa trovare un matching perfetto, e
+ce n'è uno solo: $u_3$ può andare solo con $v_3$, quindi $u_2$ va con $v_2$ e $u_1$ con
+$v_1$. Costo $1 + 1 + 5 = 7$. Se l'arco $s \to u_2$ ha capacità 2, $u_2$ può prendere sia
+$v_2$ sia $v_3$: il flusso di 3 unità diventa $u_1v_1$, $u_2v_2$, $u_2v_3$, con costo
+$1 + 1 + 1 = 3$, e $u_3$ resta senza partner.
+\end{esempio}
+
+\begin{osservazione}[ottimizzare o stabilizzare]
+Gli ultimi due esempi mostrano la differenza di prospettiva rispetto a Gale--Shapley.
+Il flusso trova l'abbinamento migliore \emph{per un obiettivo globale} (più coppie, meno
+costo), ma non si chiede se qualcuno vorrebbe deviare. Il matching stabile protegge dalle
+deviazioni ma può essere lontano dall'ottimo globale. Quale serve dipende dal problema: in
+un mercato dove i partecipanti possono accordarsi fuori dal sistema conta la stabilità; in
+un'assegnazione decisa centralmente (compiti in un'azienda) conta l'obiettivo.
+\end{osservazione}
+
+% =====================================================================
+\partelab{implementare e verificare gli algoritmi}
+% =====================================================================
+
+\textbf{Nota}: per questa lezione non c'è ancora un notebook del laboratorio. Questa parte
+implementa gli algoritmi delle slide in Python e li verifica sugli esempi e su istanze
+casuali, contro una ricerca esaustiva. Tutti i numeri riportati sono misurati. Quando
+arriverà il notebook, la sezione si aggiornerà.
+
+\subsection{Dittatura seriale e Top Trading Cycle}
+
+\begin{lstlisting}
+def serial_dictatorship(prefs, order):
+    taken, out = set(), {}
+    for a in order:
+        item = next(x for x in prefs[a] if x not in taken)
+        out[a] = item
+        taken.add(item)
+    return out
+
+def top_trading_cycles(prefs, owner):
+    """prefs: agente -> lista di oggetti; owner: oggetto -> agente."""
+    agents, items, out = set(prefs), set(owner), {}
+    while agents:
+        top = {a: next(x for x in prefs[a] if x in items) for a in agents}
+        a = min(agents)                      # da un agente qualunque...
+        seen = []
+        while a not in seen:                 # ...si seguono le frecce
+            seen.append(a)
+            a = owner[top[a]]
+        cycle = seen[seen.index(a):]         # il primo nodo ripetuto chiude il ciclo
+        for b in cycle:
+            out[b] = top[b]
+        agents -= set(cycle)
+        items -= {top[b] for b in cycle}
+    return out
+\end{lstlisting}
+Gli agenti e gli oggetti si riducono di almeno uno a ogni giro, e ogni giro costa
+$O(n^2)$ nel caso peggiore: $O(n^3)$ in tutto, più che sufficiente per esempi didattici.
+Sull'esempio delle slide \texttt{top\_trading\_cycles} restituisce
+\texttt{\{A: 3, C: 1, B: 4, D: 2\}}; \texttt{serial\_dictatorship} con l'ordine
+\texttt{"ABC"} restituisce \texttt{\{A: X, B: Z, C: Y\}}.
+
+\paragraph{Verifiche.} Su 300 istanze casuali con 5 agenti, il risultato del TTC è sempre
+individualmente razionale e Pareto efficiente (confronto con tutte le $5! = 120$
+allocazioni). Su 200 istanze con 4 agenti, per ogni agente si sono provate tutte le
+$4! = 24$ liste false: \textbf{nessuna} manipolazione migliora l'oggetto ricevuto, come
+prevede la strategyproofness.
+
+\subsection{Gale--Shapley e controllo della stabilità}
+
+\begin{lstlisting}
+from collections import deque
+
+def gale_shapley(men, women):
+    rank = {w: {m: i for i, m in enumerate(p)} for w, p in women.items()}
+    nxt = {m: 0 for m in men}            # prossima donna da provare
+    fiance = {}                          # donna -> uomo
+    free = deque(men)
+    while free:
+        m = free.popleft()
+        w = men[m][nxt[m]]
+        nxt[m] += 1
+        cur = fiance.get(w)
+        if cur is None:
+            fiance[w] = m
+        elif rank[w][m] < rank[w][cur]:  # w preferisce m
+            fiance[w] = m
+            free.append(cur)
+        else:
+            free.append(m)
+    return {m: w for w, m in fiance.items()}
+
+def blocking_pairs(men, women, match):
+    husband = {w: m for m, w in match.items()}
+    out = []
+    for m in men:
+        for w in men[m]:                 # donne che m preferisce alla sua
+            if w == match[m]:
+                break
+            if women[w].index(m) < women[w].index(husband[w]):
+                out.append((m, w))
+    return out
+\end{lstlisting}
+La tabella \texttt{rank} permette a una donna di confrontare due uomini in $O(1)$: senza,
+ogni confronto costerebbe $O(n)$ e l'algoritmo $O(n^3)$. Per trovare \emph{tutti} i
+matching stabili di un'istanza piccola basta provare le $n!$ permutazioni e tenere quelle
+senza coppie bloccanti.
+
+\paragraph{Verifiche contro la ricerca esaustiva.} Su 1000 istanze casuali con $n$ da 2 a
+6 il risultato è sempre stabile, ogni uomo ha la migliore delle sue partner stabili e ogni
+donna la peggiore dei suoi: M-ottimale e W-pessimale, come dice il teorema. Con $n = 6$ le
+istanze hanno in media 2,08 matching stabili (da 1 a 8); in 69 casi su 200 ce n'è uno
+solo. Sugli esempi delle slide si ritrovano il matching $\{(A,X),(B,Y),(C,Z)\}$ con 5
+proposte e i due soli matching stabili della dimostrazione di Roth.
+
+\paragraph{Chi può manipolare.} Su 300 istanze casuali con $n = 4$, provando per ogni
+agente tutte le 24 liste false: con gli uomini che propongono, \textbf{nessun uomo}
+migliora mai mentendo; in 12 istanze su 300 (4\%) almeno una donna sì. È il teorema di
+Roth visto dal vivo: la manipolazione esiste, ma solo dal lato che riceve le proposte, e
+su istanze casuali è rara.
+
+\paragraph{Quante proposte servono davvero.} Il limite è $n^2$, ma con preferenze casuali
+le proposte sono molte meno, circa $n \ln n$ (media su 5 istanze):
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{rrrrr}
+\toprule
+$n$ & Proposte & $n \ln n$ & $n^2$ & Tempo \\
+\midrule
+100  & 459     & 461     & 10\,000     & 0,5 ms \\
+500  & 3\,208  & 3\,107  & 250\,000    & 15 ms \\
+1000 & 6\,669  & 6\,908  & 1\,000\,000 & 67 ms \\
+2000 & 14\,975 & 15\,202 & 4\,000\,000 & 275 ms \\
+\bottomrule
+\end{tabular}
+\end{center}
+I tempi crescono più delle proposte perché costruire \texttt{rank} legge tutte le $n^2$
+preferenze: è il costo di leggere l'input, inevitabile.
+
+\subsection{Capacità}
+
+Basta che ogni scuola tenga i suoi migliori $c_i$ e rimandi indietro il peggiore quando
+supera la capacità:
+\begin{lstlisting}
+def deferred_acceptance_cap(students, schools, cap):
+    rank = {h: {s: i for i, s in enumerate(p)} for h, p in schools.items()}
+    nxt = {s: 0 for s in students}
+    held = {h: [] for h in schools}
+    free = deque(students)
+    while free:
+        s = free.popleft()
+        if nxt[s] >= len(students[s]):   # lista finita: resta senza scuola
+            continue
+        h = students[s][nxt[s]]
+        nxt[s] += 1
+        held[h].append(s)
+        held[h].sort(key=lambda x: rank[h][x])
+        if len(held[h]) > cap[h]:
+            free.append(held[h].pop())   # rimanda indietro il peggiore
+    return held
+\end{lstlisting}
+Sull'esempio delle slide restituisce $X = \{A, E\}$, $Y = \{B, C, D\}$. Il controllo della
+lista finita gestisce anche le liste incomplete.
+
+\subsection{Flussi con NetworkX}
+
+Il flusso massimo e il taglio minimo della rete delle slide:
+\begin{lstlisting}
+import networkx as nx
+G = nx.DiGraph()
+for u, v, c in [("s","a",10), ("s","b",5), ("s","c",15), ("a","b",4),
+                ("b","c",4), ("a","d",9), ("a","e",15), ("b","e",8),
+                ("b","f",6), ("c","f",13), ("d","e",15), ("e","f",15),
+                ("d","t",10), ("e","t",10), ("f","t",10)]:
+    G.add_edge(u, v, capacity=c)
+valore, (S, T) = nx.minimum_cut(G, "s", "t")   # 25, S = {s, c, f}
+\end{lstlisting}
+Un'implementazione diretta di Edmonds--Karp (ricerca in ampiezza nella rete residua) dà lo
+stesso valore 25 e lo stesso taglio. Per il flusso a costo minimo l'attributo
+\texttt{weight} è il costo unitario:
+\begin{lstlisting}
+H = nx.DiGraph()
+for u in ["u1", "u2", "u3"]:
+    H.add_edge("s", u, capacity=1, weight=0)
+for (u, v), costo in {("u1","v1"): 1, ("u1","v2"): 5, ("u2","v2"): 1,
+                      ("u2","v3"): 1, ("u3","v3"): 5}.items():
+    H.add_edge(u, v, capacity=1, weight=costo)
+for v in ["v1", "v2", "v3"]:
+    H.add_edge(v, "t", capacity=1, weight=0)
+F = nx.max_flow_min_cost(H, "s", "t")
+nx.cost_of_flow(H, F)                          # 7
+\end{lstlisting}
+Con \texttt{capacity=2} sull'arco $s \to u_2$ il costo scende a 3, con il flusso su
+$u_1v_1$, $u_2v_2$, $u_2v_3$: i due casi delle slide. Per il solo matching massimo in un
+grafo bipartito c'è anche \texttt{nx.bipartite.maximum\_matching} (Hopcroft--Karp), che
+non richiede di costruire la rete.
+
+% ---------------------------------------------------------------------
+\begin{riepilogo}
+\begin{itemize}
+  \item \textbf{Tre famiglie}: preferenze da un lato (efficienza, incentivi), da due lati
+        (stabilità), ottimizzazione (flussi).
+  \item \textbf{Dittatura seriale}: in ordine, ognuno prende il migliore rimasto. Pareto
+        efficiente e strategyproof, non massimizza il benessere, equa solo in valore atteso
+        con ordine casuale. Round robin: più equo, manipolabile.
+  \item \textbf{TTC}: ognuno punta al preferito, l'oggetto al proprietario; si eseguono i
+        cicli. Individualmente razionale, unica allocazione nel core, strategyproof.
+  \item \textbf{Matrimonio stabile}: nessuna coppia bloccante. Gale--Shapley trova sempre
+        un matching stabile in al più $n^2$ proposte; chi propone ottiene il suo ottimo
+        stabile, l'altro lato il suo peggiore.
+  \item \textbf{Roth}: nessun meccanismo è stabile e strategyproof insieme; l'accettazione
+        differita è strategyproof solo per chi propone.
+  \item \textbf{Estensioni}: $n \ne m$, liste incomplete, pareggi; capacità (studenti e
+        scuole) con la stessa accettazione differita.
+  \item \textbf{Flussi}: flusso massimo = taglio minimo; il matching massimo è un flusso
+        con capacità 1; il flusso a costo minimo risolve l'assegnamento. Nell'esempio delle
+        slide il flusso massimo è 25, e il taglio disegnato (28 con la capacità originale)
+        non è quello minimo.
+  \item \textbf{Lab}: tutti gli esempi verificati; su istanze casuali Gale--Shapley è
+        M-ottimale, nessun proponente manipola, $\approx n\ln n$ proposte invece di $n^2$.
+\end{itemize}
+\end{riepilogo}
